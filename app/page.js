@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { saveExpense } from '../../lib/storage'
+import { getExpenses, getBudgets } from '../lib/storage'
 
 export default function AddExpense() {
   const [vendor, setVendor] = useState('')

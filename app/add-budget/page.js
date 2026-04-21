@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { saveBudget, getBudgets, deleteBudget } from '../../lib/storage'
+import {
+  saveBudget,
+  getBudgets,
+  deleteBudget,
+  updateBudget
+} from '../../lib/storage'
 
 export default function AddBudget() {
   const [year, setYear] = useState('')
@@ -10,19 +15,20 @@ export default function AddBudget() {
   const [amount, setAmount] = useState('')
   const [purpose, setPurpose] = useState('')
   const [currency, setCurrency] = useState('INR')
+
   const [budgets, setBudgets] = useState([])
+  const [editingId, setEditingId] = useState(null)
 
   useEffect(() => {
     loadBudgets()
   }, [])
 
   function loadBudgets() {
-    const data = getBudgets()
-    setBudgets(data)
+    setBudgets(getBudgets())
   }
 
   const handleSubmit = () => {
-    if (!year || !quarter || !amount || !purpose || !currency) {
+    if (!year || !quarter || !amount || !purpose) {
       alert('Please fill all fields')
       return
     }
@@ -35,48 +41,76 @@ export default function AddBudget() {
       total_budget: Number(amount)
     })
 
-    alert('Budget saved!')
-
-    // reset form
-    setYear('')
-    setQuarter('')
-    setAmount('')
-    setPurpose('')
-    setCurrency('INR')
-
+    resetForm()
     loadBudgets()
   }
 
-  // ✅ Delete handler
   const handleDelete = (id) => {
-    const confirmDelete = confirm('Are you sure you want to delete this budget?')
-    if (!confirmDelete) return
-
+    if (!confirm('Delete this budget?')) return
     deleteBudget(id)
     loadBudgets()
+  }
+
+  // ✅ Start editing
+  const handleEdit = (b) => {
+    setEditingId(b.id)
+    setYear(b.year)
+    setQuarter(b.quarter)
+    setPurpose(b.purpose)
+    setCurrency(b.currency)
+    setAmount(b.total_budget)
+  }
+
+  // ✅ Save edited budget
+  const handleUpdate = () => {
+    updateBudget({
+      id: editingId,
+      year,
+      quarter,
+      purpose,
+      currency,
+      total_budget: Number(amount)
+    })
+
+    setEditingId(null)
+    resetForm()
+    loadBudgets()
+  }
+
+  const resetForm = () => {
+    setYear('')
+    setQuarter('')
+    setPurpose('')
+    setCurrency('INR')
+    setAmount('')
+  }
+
+  const getSymbol = (cur) => {
+    if (cur === 'INR') return '₹'
+    if (cur === 'USD') return '$'
+    if (cur === 'EUR') return '€'
+    if (cur === 'SEK') return 'kr'
+    return ''
   }
 
   return (
     <div style={{ padding: 20 }}>
       {/* Navigation */}
       <div style={{ marginBottom: 20 }}>
-        <Link href="/">
-          <button>Home</button>
-        </Link>
-
+        <Link href="/"><button>Home</button></Link>
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
           <button>Add Expense</button>
         </Link>
       </div>
 
-      <h1>Add Budget</h1>
+      <h1>{editingId ? 'Edit Budget' : 'Add Budget'}</h1>
 
       {/* Year */}
       <select value={year} onChange={(e) => setYear(e.target.value)}>
         <option value="">Select Year</option>
-        <option value="2025">2025</option>
-        <option value="2026">2026</option>
-        <option value="2027">2027</option>
+        <option>2025</option>
+        <option>2026</option>
+        <option>2027</option>
       </select>
 
       <br /><br />
@@ -84,43 +118,49 @@ export default function AddBudget() {
       {/* Quarter */}
       <select value={quarter} onChange={(e) => setQuarter(e.target.value)}>
         <option value="">Select Quarter</option>
-        <option value="Q1">Q1</option>
-        <option value="Q2">Q2</option>
-        <option value="Q3">Q3</option>
-        <option value="Q4">Q4</option>
+        <option>Q1</option>
+        <option>Q2</option>
+        <option>Q3</option>
+        <option>Q4</option>
       </select>
 
       <br /><br />
 
       {/* Purpose */}
       <input
-        placeholder="Budget For (e.g. Project A)"
+        placeholder="Purpose"
         value={purpose}
         onChange={(e) => setPurpose(e.target.value)}
       />
 
       <br /><br />
 
-      {/* Currency */}
+      {/* Currency (UPDATED with SEK) */}
       <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
         <option value="INR">₹ INR</option>
         <option value="USD">$ USD</option>
         <option value="EUR">€ EUR</option>
+        <option value="SEK">kr SEK</option>
       </select>
 
       <br /><br />
 
       {/* Amount */}
       <input
-        placeholder="Amount"
         type="number"
+        placeholder="Amount"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
       />
 
       <br /><br />
 
-      <button onClick={handleSubmit}>Save</button>
+      {/* Button switches between Save / Update */}
+      {editingId ? (
+        <button onClick={handleUpdate}>Update</button>
+      ) : (
+        <button onClick={handleSubmit}>Save</button>
+      )}
 
       <hr style={{ margin: '30px 0' }} />
 
@@ -136,8 +176,8 @@ export default function AddBudget() {
               <th>Quarter</th>
               <th>Purpose</th>
               <th>Currency</th>
-              <th>Budget</th>
-              <th>Action</th>
+              <th>Amount</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -147,14 +187,13 @@ export default function AddBudget() {
                 <td>{b.quarter}</td>
                 <td>{b.purpose}</td>
                 <td>{b.currency}</td>
+                <td>{getSymbol(b.currency)} {b.total_budget}</td>
                 <td>
-                  {b.currency === 'INR' && '₹'}
-                  {b.currency === 'USD' && '$'}
-                  {b.currency === 'EUR' && '€'}
-                  {b.total_budget}
-                </td>
-                <td>
-                  <button onClick={() => handleDelete(b.id)}>
+                  <button onClick={() => handleEdit(b)}>Edit</button>
+                  <button
+                    onClick={() => handleDelete(b.id)}
+                    style={{ marginLeft: 5 }}
+                  >
                     Delete
                   </button>
                 </td>

@@ -1,17 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { saveBudget, getBudgets } from '../../lib/storage'
+import { saveBudget, getBudgets, deleteBudget } from '../../lib/storage'
 
 export default function AddBudget() {
-  const router = useRouter()
-
   const [year, setYear] = useState('')
   const [quarter, setQuarter] = useState('')
   const [amount, setAmount] = useState('')
   const [purpose, setPurpose] = useState('')
+  const [currency, setCurrency] = useState('INR')
   const [budgets, setBudgets] = useState([])
 
   useEffect(() => {
@@ -24,7 +22,7 @@ export default function AddBudget() {
   }
 
   const handleSubmit = () => {
-    if (!year || !quarter || !amount || !purpose) {
+    if (!year || !quarter || !amount || !purpose || !currency) {
       alert('Please fill all fields')
       return
     }
@@ -33,6 +31,7 @@ export default function AddBudget() {
       year,
       quarter,
       purpose,
+      currency,
       total_budget: Number(amount)
     })
 
@@ -43,8 +42,17 @@ export default function AddBudget() {
     setQuarter('')
     setAmount('')
     setPurpose('')
+    setCurrency('INR')
 
-    // reload table
+    loadBudgets()
+  }
+
+  // ✅ Delete handler
+  const handleDelete = (id) => {
+    const confirmDelete = confirm('Are you sure you want to delete this budget?')
+    if (!confirmDelete) return
+
+    deleteBudget(id)
     loadBudgets()
   }
 
@@ -86,10 +94,19 @@ export default function AddBudget() {
 
       {/* Purpose */}
       <input
-        placeholder="Budget For (e.g. Project A / Infra / Marketing)"
+        placeholder="Budget For (e.g. Project A)"
         value={purpose}
         onChange={(e) => setPurpose(e.target.value)}
       />
+
+      <br /><br />
+
+      {/* Currency */}
+      <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
+        <option value="INR">₹ INR</option>
+        <option value="USD">$ USD</option>
+        <option value="EUR">€ EUR</option>
+      </select>
 
       <br /><br />
 
@@ -107,7 +124,6 @@ export default function AddBudget() {
 
       <hr style={{ margin: '30px 0' }} />
 
-      {/* Budget Table */}
       <h2>Saved Budgets</h2>
 
       {budgets.length === 0 ? (
@@ -119,7 +135,9 @@ export default function AddBudget() {
               <th>Year</th>
               <th>Quarter</th>
               <th>Purpose</th>
+              <th>Currency</th>
               <th>Budget</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -128,7 +146,18 @@ export default function AddBudget() {
                 <td>{b.year}</td>
                 <td>{b.quarter}</td>
                 <td>{b.purpose}</td>
-                <td>₹{b.total_budget}</td>
+                <td>{b.currency}</td>
+                <td>
+                  {b.currency === 'INR' && '₹'}
+                  {b.currency === 'USD' && '$'}
+                  {b.currency === 'EUR' && '€'}
+                  {b.total_budget}
+                </td>
+                <td>
+                  <button onClick={() => handleDelete(b.id)}>
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

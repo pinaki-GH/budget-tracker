@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { saveBudget } from '../../lib/storage'
 
 export default function AddBudget() {
@@ -26,6 +27,17 @@ export default function AddBudget() {
 
   return (
     <div style={{ padding: 20 }}>
+      {/* ✅ Navigation */}
+      <div style={{ marginBottom: 20 }}>
+        <Link href="/">
+          <button>Home</button>
+        </Link>
+
+        <Link href="/add-expense" style={{ marginLeft: 10 }}>
+          <button>Add Expense</button>
+        </Link>
+      </div>
+
       <h1>Add Budget</h1>
 
       <input

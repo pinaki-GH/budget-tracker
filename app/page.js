@@ -1,52 +1,55 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { getExpenses, getBudgets } from '../lib/storage'
-import BudgetSummary from '../components/BudgetSummary'
-import ExpenseList from '../components/ExpenseList'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { saveExpense } from '../../lib/storage'
 
-export default function Home() {
-  const [expenses, setExpenses] = useState([])
-  const [budget, setBudget] = useState(0)
+export default function AddExpense() {
+  const [vendor, setVendor] = useState('')
+  const [amount, setAmount] = useState('')
+  const [date, setDate] = useState('')
+  const router = useRouter()
 
-  useEffect(() => {
-    loadData()
-  }, [])
+  const handleSubmit = () => {
+    if (!vendor || !amount || !date) {
+      alert('Please fill all fields')
+      return
+    }
 
-  function loadData() {
-    const exp = getExpenses()
-    const bud = getBudgets()
+    saveExpense({
+      vendor_name: vendor,
+      amount: Number(amount),
+      date
+    })
 
-    setExpenses(exp)
-
-    // ✅ Use latest budget instead of first
-    setBudget(bud.length > 0 ? bud[bud.length - 1].total_budget : 0)
+    alert('Expense saved!')
+    router.push('/')
   }
-
-  const totalSpend = expenses.reduce((sum, e) => sum + e.amount, 0)
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>Budget Tracker</h1>
+      <h1>Add Expense</h1>
 
-      {/* ✅ Navigation */}
-      <div style={{ marginBottom: 20 }}>
-        <Link href="/add-budget">
-          <button>Add Budget</button>
-        </Link>
+      <input
+        placeholder="Vendor"
+        onChange={(e) => setVendor(e.target.value)}
+      />
+      <br /><br />
 
-        <Link href="/add-expense" style={{ marginLeft: 10 }}>
-          <button>Add Expense</button>
-        </Link>
+      <input
+        placeholder="Amount"
+        type="number"
+        onChange={(e) => setAmount(e.target.value)}
+      />
+      <br /><br />
 
-        <button onClick={loadData} style={{ marginLeft: 10 }}>
-          Refresh
-        </button>
-      </div>
+      <input
+        type="date"
+        onChange={(e) => setDate(e.target.value)}
+      />
+      <br /><br />
 
-      <BudgetSummary budget={budget} totalSpend={totalSpend} />
-      <ExpenseList expenses={expenses} />
+      <button onClick={handleSubmit}>Save</button>
     </div>
   )
 }

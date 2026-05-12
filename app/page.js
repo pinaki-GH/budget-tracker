@@ -524,6 +524,7 @@ export default function Home() {
         <thead style={{ background: '#f0f0f0' }}>
           <tr>
             <th>Vendor</th>
+            <th>Date</th>
             <th>Year</th>
             <th>Quarter</th>
             <th>Project</th>
@@ -538,6 +539,7 @@ export default function Home() {
           {filteredExpenses.map((e) => (
             <tr key={e.id}>
               <td>{e.vendor_name}</td>
+              <td>{e.date}</td>
               <td>{e.year}</td>
               <td>{e.quarter}</td>
               <td>{e.project}</td>

@@ -21,6 +21,19 @@ export default function Home() {
     setExpenses(getExpenses())
   }
 
+  // ✅ Currency conversion rates to SEK
+  const exchangeRates = {
+    SEK: 1,
+    INR: 0.13,
+    USD: 10.5,
+    EUR: 11.5
+  }
+
+  // Convert amount to SEK
+  const convertToSEK = (amount, currency) => {
+    return amount * (exchangeRates[currency] || 1)
+  }
+
   // Filter budgets
   const filteredBudgets = budgets.filter((b) => {
     return (
@@ -41,17 +54,17 @@ export default function Home() {
     )
   })
 
-  const totalBudget = filteredBudgets.reduce(
-    (sum, b) => sum + b.total_budget,
-    0
-  )
+  // ✅ Budget converted to SEK
+  const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
+    return sum + convertToSEK(b.total_budget, b.currency)
+  }, 0)
 
-  const totalSpend = filteredExpenses.reduce(
-    (sum, e) => sum + e.amount,
-    0
-  )
+  // ✅ Expenses converted to SEK
+  const totalSpendSEK = filteredExpenses.reduce((sum, e) => {
+    return sum + convertToSEK(e.amount, e.currency)
+  }, 0)
 
-  const remaining = totalBudget - totalSpend
+  const remainingSEK = totalBudgetSEK - totalSpendSEK
 
   return (
     <div style={{ padding: 20 }}>
@@ -109,11 +122,22 @@ export default function Home() {
       <hr style={{ margin: '20px 0' }} />
 
       {/* Summary */}
-      <h2>Summary</h2>
+      <h2>Summary (All values converted to SEK)</h2>
 
-      <p>Total Budget: {totalBudget}</p>
-      <p>Total Spend: {totalSpend}</p>
-      <p>Remaining: {remaining}</p>
+      <p>
+        <strong>Total Budget:</strong> kr{' '}
+        {totalBudgetSEK.toFixed(2)}
+      </p>
+
+      <p>
+        <strong>Total Spend:</strong> kr{' '}
+        {totalSpendSEK.toFixed(2)}
+      </p>
+
+      <p>
+        <strong>Remaining:</strong> kr{' '}
+        {remainingSEK.toFixed(2)}
+      </p>
 
       <hr style={{ margin: '20px 0' }} />
 
@@ -127,7 +151,8 @@ export default function Home() {
             <th>Quarter</th>
             <th>Purpose</th>
             <th>Currency</th>
-            <th>Budget</th>
+            <th>Original Amount</th>
+            <th>SEK Equivalent</th>
           </tr>
         </thead>
 
@@ -139,6 +164,9 @@ export default function Home() {
               <td>{b.purpose}</td>
               <td>{b.currency}</td>
               <td>{b.total_budget}</td>
+              <td>
+                kr {convertToSEK(b.total_budget, b.currency).toFixed(2)}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -157,7 +185,8 @@ export default function Home() {
             <th>Quarter</th>
             <th>Purpose</th>
             <th>Currency</th>
-            <th>Amount</th>
+            <th>Original Amount</th>
+            <th>SEK Equivalent</th>
           </tr>
         </thead>
 
@@ -170,6 +199,9 @@ export default function Home() {
               <td>{e.purpose}</td>
               <td>{e.currency}</td>
               <td>{e.amount}</td>
+              <td>
+                kr {convertToSEK(e.amount, e.currency).toFixed(2)}
+              </td>
             </tr>
           ))}
         </tbody>

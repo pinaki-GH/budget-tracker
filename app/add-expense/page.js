@@ -11,11 +11,13 @@ import {
 } from '../../lib/storage'
 
 export default function AddExpense() {
+
   const [vendor, setVendor] = useState('')
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState('')
   const [year, setYear] = useState('')
   const [quarter, setQuarter] = useState('')
+  const [project, setProject] = useState('')
   const [purpose, setPurpose] = useState('')
   const [currency, setCurrency] = useState('INR')
 
@@ -31,12 +33,14 @@ export default function AddExpense() {
   }
 
   const handleSubmit = () => {
+
     if (
       !vendor ||
       !amount ||
       !date ||
       !year ||
       !quarter ||
+      !project ||
       !purpose
     ) {
       alert('Please fill all fields')
@@ -49,6 +53,7 @@ export default function AddExpense() {
       date,
       year,
       quarter,
+      project,
       purpose,
       currency
     })
@@ -58,6 +63,7 @@ export default function AddExpense() {
   }
 
   const handleDelete = (id) => {
+
     if (!confirm('Delete this expense?')) return
 
     deleteExpense(id)
@@ -65,6 +71,7 @@ export default function AddExpense() {
   }
 
   const handleEdit = (e) => {
+
     setEditingId(e.id)
 
     setVendor(e.vendor_name)
@@ -72,11 +79,13 @@ export default function AddExpense() {
     setDate(e.date)
     setYear(e.year)
     setQuarter(e.quarter)
+    setProject(e.project || '')
     setPurpose(e.purpose)
     setCurrency(e.currency)
   }
 
   const handleUpdate = () => {
+
     updateExpense({
       id: editingId,
       vendor_name: vendor,
@@ -84,6 +93,7 @@ export default function AddExpense() {
       date,
       year,
       quarter,
+      project,
       purpose,
       currency
     })
@@ -95,17 +105,20 @@ export default function AddExpense() {
   }
 
   const resetForm = () => {
+
     setVendor('')
     setAmount('')
     setDate('')
     setYear('')
     setQuarter('')
+    setProject('')
     setPurpose('')
     setCurrency('INR')
   }
 
   return (
     <div style={{ padding: 20 }}>
+
       {/* Navigation */}
       <div style={{ marginBottom: 20 }}>
         <Link href="/">
@@ -129,7 +142,10 @@ export default function AddExpense() {
       <br /><br />
 
       {/* Year */}
-      <select value={year} onChange={(e) => setYear(e.target.value)}>
+      <select
+        value={year}
+        onChange={(e) => setYear(e.target.value)}
+      >
         <option value="">Select Year</option>
         <option>2025</option>
         <option>2026</option>
@@ -139,13 +155,25 @@ export default function AddExpense() {
       <br /><br />
 
       {/* Quarter */}
-      <select value={quarter} onChange={(e) => setQuarter(e.target.value)}>
+      <select
+        value={quarter}
+        onChange={(e) => setQuarter(e.target.value)}
+      >
         <option value="">Select Quarter</option>
         <option>Q1</option>
         <option>Q2</option>
         <option>Q3</option>
         <option>Q4</option>
       </select>
+
+      <br /><br />
+
+      {/* Project */}
+      <input
+        placeholder="Project"
+        value={project}
+        onChange={(e) => setProject(e.target.value)}
+      />
 
       <br /><br />
 
@@ -159,7 +187,10 @@ export default function AddExpense() {
       <br /><br />
 
       {/* Currency */}
-      <select value={currency} onChange={(e) => setCurrency(e.target.value)}>
+      <select
+        value={currency}
+        onChange={(e) => setCurrency(e.target.value)}
+      >
         <option value="INR">₹ INR</option>
         <option value="USD">$ USD</option>
         <option value="EUR">€ EUR</option>
@@ -188,9 +219,13 @@ export default function AddExpense() {
       <br /><br />
 
       {editingId ? (
-        <button onClick={handleUpdate}>Update</button>
+        <button onClick={handleUpdate}>
+          Update
+        </button>
       ) : (
-        <button onClick={handleSubmit}>Save</button>
+        <button onClick={handleSubmit}>
+          Save
+        </button>
       )}
 
       <hr style={{ margin: '30px 0' }} />
@@ -206,6 +241,7 @@ export default function AddExpense() {
               <th>Vendor</th>
               <th>Year</th>
               <th>Quarter</th>
+              <th>Project</th>
               <th>Purpose</th>
               <th>Currency</th>
               <th>Amount</th>
@@ -220,6 +256,7 @@ export default function AddExpense() {
                 <td>{e.vendor_name}</td>
                 <td>{e.year}</td>
                 <td>{e.quarter}</td>
+                <td>{e.project}</td>
                 <td>{e.purpose}</td>
                 <td>{e.currency}</td>
                 <td>{e.amount}</td>

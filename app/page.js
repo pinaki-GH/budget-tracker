@@ -92,10 +92,7 @@ export default function Home() {
           <button>Expense</button>
         </Link>
 
-        //<button onClick={loadData} style={{ marginLeft: 10 }}>
-          //Refresh
-        //</button>
-      </div>
+        </div>
 
       <hr />
 

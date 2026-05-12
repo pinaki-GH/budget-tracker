@@ -30,7 +30,7 @@ export default function Home() {
   const [budgets, setBudgets] = useState([])
   const [expenses, setExpenses] = useState([])
 
-  // ✅ Multi-select filters
+  // Multi-select filters
   const [yearFilter, setYearFilter] = useState([currentYear])
   const [quarterFilter, setQuarterFilter] = useState([currentQuarter])
 
@@ -58,16 +58,6 @@ export default function Home() {
     return amount * (exchangeRates[currency] || 1)
   }
 
-  // ✅ Handle multi-select
-  const handleMultiSelect = (event, setter) => {
-    const values = Array.from(
-      event.target.selectedOptions,
-      option => option.value
-    )
-
-    setter(values)
-  }
-
   // Filter budgets
   const filteredBudgets = budgets.filter((b) => {
     return (
@@ -88,7 +78,17 @@ export default function Home() {
     )
   })
 
-  // Totals in SEK
+  // ✅ Year-only filtered data
+  const yearlyBudgets = budgets.filter((b) =>
+    yearFilter.includes(b.year)
+  )
+
+  const yearlyExpenses = expenses.filter((e) =>
+    yearFilter.includes(e.year)
+  )
+
+  // ===== QUARTER TOTALS =====
+
   const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
     return sum + convertToSEK(b.total_budget, b.currency)
   }, 0)
@@ -99,20 +99,39 @@ export default function Home() {
 
   const remainingSEK = totalBudgetSEK - totalSpendSEK
 
-  // Utilization %
-  const utilization =
+  // ===== YEAR TOTALS =====
+
+  const yearlyBudgetSEK = yearlyBudgets.reduce((sum, b) => {
+    return sum + convertToSEK(b.total_budget, b.currency)
+  }, 0)
+
+  const yearlySpendSEK = yearlyExpenses.reduce((sum, e) => {
+    return sum + convertToSEK(e.amount, e.currency)
+  }, 0)
+
+  const yearlyRemainingSEK =
+    yearlyBudgetSEK - yearlySpendSEK
+
+  // ===== UTILIZATION =====
+
+  const quarterUtilization =
     totalBudgetSEK > 0
       ? (totalSpendSEK / totalBudgetSEK) * 100
       : 0
 
+  const yearlyUtilization =
+    yearlyBudgetSEK > 0
+      ? (yearlySpendSEK / yearlyBudgetSEK) * 100
+      : 0
+
   // Progress bar color
-  const getProgressColor = () => {
+  const getProgressColor = (utilization) => {
     if (utilization < 60) return '#4CAF50'
     if (utilization < 85) return '#FF9800'
     return '#F44336'
   }
 
-  // ✅ Clear Filters
+  // Clear Filters
   const clearFilters = () => {
     setYearFilter([currentYear])
     setQuarterFilter([currentQuarter])
@@ -141,41 +160,66 @@ export default function Home() {
 
       <div style={{ marginBottom: 20 }}>
 
-        {/* Year Multi Select */}
-        <select
-          multiple
-          value={yearFilter}
-          onChange={(e) =>
-            handleMultiSelect(e, setYearFilter)
-          }
-          style={{
-            height: 80,
-            minWidth: 120
-          }}
-        >
-          <option value="2025">2025</option>
-          <option value="2026">2026</option>
-          <option value="2027">2027</option>
-        </select>
+        {/* Years */}
+        <div style={{ marginBottom: 10 }}>
+          <strong>Years:</strong>
 
-        {/* Quarter Multi Select */}
-        <select
-          multiple
-          value={quarterFilter}
-          onChange={(e) =>
-            handleMultiSelect(e, setQuarterFilter)
-          }
-          style={{
-            marginLeft: 10,
-            height: 80,
-            minWidth: 120
-          }}
-        >
-          <option value="Q1">Q1</option>
-          <option value="Q2">Q2</option>
-          <option value="Q3">Q3</option>
-          <option value="Q4">Q4</option>
-        </select>
+          {['2025', '2026', '2027'].map((year) => (
+            <label
+              key={year}
+              style={{ marginLeft: 10 }}
+            >
+              <input
+                type="checkbox"
+                checked={yearFilter.includes(year)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setYearFilter([...yearFilter, year])
+                  } else {
+                    setYearFilter(
+                      yearFilter.filter((y) => y !== year)
+                    )
+                  }
+                }}
+              />
+
+              {year}
+            </label>
+          ))}
+        </div>
+
+        {/* Quarters */}
+        <div style={{ marginBottom: 10 }}>
+          <strong>Quarters:</strong>
+
+          {['Q1', 'Q2', 'Q3', 'Q4'].map((quarter) => (
+            <label
+              key={quarter}
+              style={{ marginLeft: 10 }}
+            >
+              <input
+                type="checkbox"
+                checked={quarterFilter.includes(quarter)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setQuarterFilter([
+                      ...quarterFilter,
+                      quarter
+                    ])
+                  } else {
+                    setQuarterFilter(
+                      quarterFilter.filter(
+                        (q) => q !== quarter
+                      )
+                    )
+                  }
+                }}
+              />
+
+              {quarter}
+            </label>
+          ))}
+        </div>
 
         {/* Purpose */}
         <input
@@ -183,8 +227,7 @@ export default function Home() {
           value={purposeFilter}
           onChange={(e) => setPurposeFilter(e.target.value)}
           style={{
-            marginLeft: 10,
-            verticalAlign: 'top'
+            marginTop: 10
           }}
         />
 
@@ -192,8 +235,7 @@ export default function Home() {
         <button
           onClick={clearFilters}
           style={{
-            marginLeft: 10,
-            verticalAlign: 'top'
+            marginLeft: 10
           }}
         >
           Clear Filter
@@ -212,20 +254,27 @@ export default function Home() {
           marginBottom: 30
         }}
       >
+
         {/* Total Budget */}
         <div
           style={{
             border: '1px solid #ddd',
             borderRadius: 10,
             padding: 20,
-            minWidth: 220,
+            minWidth: 260,
             background: '#f9f9f9'
           }}
         >
           <h3>Total Budget</h3>
 
-          <p style={{ fontSize: 24, fontWeight: 'bold' }}>
+          <p>
+            <strong>Quarter:</strong><br />
             kr {totalBudgetSEK.toFixed(2)}
+          </p>
+
+          <p>
+            <strong>Year:</strong><br />
+            kr {yearlyBudgetSEK.toFixed(2)}
           </p>
         </div>
 
@@ -235,14 +284,20 @@ export default function Home() {
             border: '1px solid #ddd',
             borderRadius: 10,
             padding: 20,
-            minWidth: 220,
+            minWidth: 260,
             background: '#f9f9f9'
           }}
         >
           <h3>Total Spend</h3>
 
-          <p style={{ fontSize: 24, fontWeight: 'bold' }}>
+          <p>
+            <strong>Quarter:</strong><br />
             kr {totalSpendSEK.toFixed(2)}
+          </p>
+
+          <p>
+            <strong>Year:</strong><br />
+            kr {yearlySpendSEK.toFixed(2)}
           </p>
         </div>
 
@@ -252,20 +307,26 @@ export default function Home() {
             border: '1px solid #ddd',
             borderRadius: 10,
             padding: 20,
-            minWidth: 220,
+            minWidth: 260,
             background: '#f9f9f9'
           }}
         >
           <h3>Remaining</h3>
 
-          <p style={{ fontSize: 24, fontWeight: 'bold' }}>
+          <p>
+            <strong>Quarter:</strong><br />
             kr {remainingSEK.toFixed(2)}
+          </p>
+
+          <p>
+            <strong>Year:</strong><br />
+            kr {yearlyRemainingSEK.toFixed(2)}
           </p>
         </div>
       </div>
 
-      {/* Utilization */}
-      <h2>Budget Utilization</h2>
+      {/* Quarter Utilization */}
+      <h2>Quarter Utilization</h2>
 
       <div
         style={{
@@ -280,28 +341,49 @@ export default function Home() {
       >
         <div
           style={{
-            width: `${Math.min(utilization, 100)}%`,
-            background: getProgressColor(),
+            width: `${Math.min(quarterUtilization, 100)}%`,
+            background: getProgressColor(quarterUtilization),
             height: '100%',
             color: 'white',
             textAlign: 'center',
             lineHeight: '35px',
-            fontWeight: 'bold',
-            transition: '0.3s'
+            fontWeight: 'bold'
           }}
         >
-          {utilization.toFixed(1)}%
+          {quarterUtilization.toFixed(1)}%
         </div>
       </div>
 
-      <p style={{ marginTop: 10 }}>
-        {utilization < 60 && 'Healthy budget utilization'}
-        {utilization >= 60 &&
-          utilization < 85 &&
-          'Budget utilization increasing'}
-        {utilization >= 85 &&
-          'Warning: Budget nearing limit'}
-      </p>
+      <br />
+
+      {/* Year Utilization */}
+      <h2>Year Utilization</h2>
+
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 600,
+          border: '1px solid #ccc',
+          borderRadius: 10,
+          overflow: 'hidden',
+          height: 35,
+          background: '#eee'
+        }}
+      >
+        <div
+          style={{
+            width: `${Math.min(yearlyUtilization, 100)}%`,
+            background: getProgressColor(yearlyUtilization),
+            height: '100%',
+            color: 'white',
+            textAlign: 'center',
+            lineHeight: '35px',
+            fontWeight: 'bold'
+          }}
+        >
+          {yearlyUtilization.toFixed(1)}%
+        </div>
+      </div>
 
       <hr style={{ margin: '30px 0' }} />
 

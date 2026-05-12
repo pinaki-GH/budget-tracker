@@ -30,9 +30,9 @@ export default function Home() {
   const [budgets, setBudgets] = useState([])
   const [expenses, setExpenses] = useState([])
 
-  // ✅ Default filters
-  const [yearFilter, setYearFilter] = useState(currentYear)
-  const [quarterFilter, setQuarterFilter] = useState(currentQuarter)
+  // ✅ Multi-select filters
+  const [yearFilter, setYearFilter] = useState([currentYear])
+  const [quarterFilter, setQuarterFilter] = useState([currentQuarter])
 
   const [purposeFilter, setPurposeFilter] = useState('')
 
@@ -58,11 +58,21 @@ export default function Home() {
     return amount * (exchangeRates[currency] || 1)
   }
 
+  // ✅ Handle multi-select
+  const handleMultiSelect = (event, setter) => {
+    const values = Array.from(
+      event.target.selectedOptions,
+      option => option.value
+    )
+
+    setter(values)
+  }
+
   // Filter budgets
   const filteredBudgets = budgets.filter((b) => {
     return (
-      b.year === yearFilter &&
-      b.quarter === quarterFilter &&
+      yearFilter.includes(b.year) &&
+      quarterFilter.includes(b.quarter) &&
       (!purposeFilter ||
         b.purpose.toLowerCase().includes(purposeFilter.toLowerCase()))
     )
@@ -71,8 +81,8 @@ export default function Home() {
   // Filter expenses
   const filteredExpenses = expenses.filter((e) => {
     return (
-      e.year === yearFilter &&
-      e.quarter === quarterFilter &&
+      yearFilter.includes(e.year) &&
+      quarterFilter.includes(e.quarter) &&
       (!purposeFilter ||
         e.purpose.toLowerCase().includes(purposeFilter.toLowerCase()))
     )
@@ -104,8 +114,8 @@ export default function Home() {
 
   // ✅ Clear Filters
   const clearFilters = () => {
-    setYearFilter(currentYear)
-    setQuarterFilter(currentQuarter)
+    setYearFilter([currentYear])
+    setQuarterFilter([currentQuarter])
     setPurposeFilter('')
   }
 
@@ -130,26 +140,41 @@ export default function Home() {
       <h2>Filters</h2>
 
       <div style={{ marginBottom: 20 }}>
-        {/* Year */}
+
+        {/* Year Multi Select */}
         <select
+          multiple
           value={yearFilter}
-          onChange={(e) => setYearFilter(e.target.value)}
+          onChange={(e) =>
+            handleMultiSelect(e, setYearFilter)
+          }
+          style={{
+            height: 80,
+            minWidth: 120
+          }}
         >
-          <option>2025</option>
-          <option>2026</option>
-          <option>2027</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
         </select>
 
-        {/* Quarter */}
+        {/* Quarter Multi Select */}
         <select
+          multiple
           value={quarterFilter}
-          onChange={(e) => setQuarterFilter(e.target.value)}
-          style={{ marginLeft: 10 }}
+          onChange={(e) =>
+            handleMultiSelect(e, setQuarterFilter)
+          }
+          style={{
+            marginLeft: 10,
+            height: 80,
+            minWidth: 120
+          }}
         >
-          <option>Q1</option>
-          <option>Q2</option>
-          <option>Q3</option>
-          <option>Q4</option>
+          <option value="Q1">Q1</option>
+          <option value="Q2">Q2</option>
+          <option value="Q3">Q3</option>
+          <option value="Q4">Q4</option>
         </select>
 
         {/* Purpose */}
@@ -157,13 +182,19 @@ export default function Home() {
           placeholder="Filter by purpose"
           value={purposeFilter}
           onChange={(e) => setPurposeFilter(e.target.value)}
-          style={{ marginLeft: 10 }}
+          style={{
+            marginLeft: 10,
+            verticalAlign: 'top'
+          }}
         />
 
         {/* Clear Filter */}
         <button
           onClick={clearFilters}
-          style={{ marginLeft: 10 }}
+          style={{
+            marginLeft: 10,
+            verticalAlign: 'top'
+          }}
         >
           Clear Filter
         </button>

@@ -85,11 +85,11 @@ export default function Home() {
       {/* Navigation */}
       <div style={{ marginBottom: 20 }}>
         <Link href="/add-budget">
-          <button>Add Budget</button>
+          <button>Budget</button>
         </Link>
 
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
-          <button>Add Expense</button>
+          <button>Expense</button>
         </Link>
 
         <button onClick={loadData} style={{ marginLeft: 10 }}>

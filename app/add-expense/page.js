@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { saveExpense } from '../../lib/storage'
+
+import {
+  saveExpense,
+  getExpenses,
+  deleteExpense,
+  updateExpense
+} from '../../lib/storage'
 
 export default function AddExpense() {
-  const router = useRouter()
-
   const [vendor, setVendor] = useState('')
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState('')
@@ -15,6 +18,17 @@ export default function AddExpense() {
   const [quarter, setQuarter] = useState('')
   const [purpose, setPurpose] = useState('')
   const [currency, setCurrency] = useState('INR')
+
+  const [expenses, setExpenses] = useState([])
+  const [editingId, setEditingId] = useState(null)
+
+  useEffect(() => {
+    loadExpenses()
+  }, [])
+
+  function loadExpenses() {
+    setExpenses(getExpenses())
+  }
 
   const handleSubmit = () => {
     if (
@@ -39,8 +53,55 @@ export default function AddExpense() {
       currency
     })
 
-    alert('Expense saved!')
-    router.push('/')
+    resetForm()
+    loadExpenses()
+  }
+
+  const handleDelete = (id) => {
+    if (!confirm('Delete this expense?')) return
+
+    deleteExpense(id)
+    loadExpenses()
+  }
+
+  const handleEdit = (e) => {
+    setEditingId(e.id)
+
+    setVendor(e.vendor_name)
+    setAmount(e.amount)
+    setDate(e.date)
+    setYear(e.year)
+    setQuarter(e.quarter)
+    setPurpose(e.purpose)
+    setCurrency(e.currency)
+  }
+
+  const handleUpdate = () => {
+    updateExpense({
+      id: editingId,
+      vendor_name: vendor,
+      amount: Number(amount),
+      date,
+      year,
+      quarter,
+      purpose,
+      currency
+    })
+
+    setEditingId(null)
+
+    resetForm()
+    loadExpenses()
+  }
+
+  const resetForm = () => {
+    setVendor('')
+    setAmount('')
+    setDate('')
+    setYear('')
+    setQuarter('')
+    setPurpose('')
+    setCurrency('INR')
   }
 
   return (
@@ -52,11 +113,11 @@ export default function AddExpense() {
         </Link>
 
         <Link href="/add-budget" style={{ marginLeft: 10 }}>
-          <button>Add Budget</button>
+          <button>Budget</button>
         </Link>
       </div>
 
-      <h1>Add Expense</h1>
+      <h1>{editingId ? 'Edit Expense' : 'Expense'}</h1>
 
       {/* Vendor */}
       <input
@@ -126,7 +187,61 @@ export default function AddExpense() {
 
       <br /><br />
 
-      <button onClick={handleSubmit}>Save</button>
+      {editingId ? (
+        <button onClick={handleUpdate}>Update</button>
+      ) : (
+        <button onClick={handleSubmit}>Save</button>
+      )}
+
+      <hr style={{ margin: '30px 0' }} />
+
+      <h2>Saved Expenses</h2>
+
+      {expenses.length === 0 ? (
+        <p>No expenses added yet</p>
+      ) : (
+        <table border="1" cellPadding="8">
+          <thead>
+            <tr>
+              <th>Vendor</th>
+              <th>Year</th>
+              <th>Quarter</th>
+              <th>Purpose</th>
+              <th>Currency</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {expenses.map((e) => (
+              <tr key={e.id}>
+                <td>{e.vendor_name}</td>
+                <td>{e.year}</td>
+                <td>{e.quarter}</td>
+                <td>{e.purpose}</td>
+                <td>{e.currency}</td>
+                <td>{e.amount}</td>
+                <td>{e.date}</td>
+
+                <td>
+                  <button onClick={() => handleEdit(e)}>
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(e.id)}
+                    style={{ marginLeft: 5 }}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }

@@ -34,6 +34,10 @@ export default function Home() {
   const [yearFilter, setYearFilter] = useState([currentYear])
   const [quarterFilter, setQuarterFilter] = useState([currentQuarter])
 
+  // Project Filter
+  const [projectFilter, setProjectFilter] =
+    useState('All Projects')
+
   const [purposeFilter, setPurposeFilter] = useState('')
 
   useEffect(() => {
@@ -63,8 +67,14 @@ export default function Home() {
     return (
       yearFilter.includes(b.year) &&
       quarterFilter.includes(b.quarter) &&
+
+      (projectFilter === 'All Projects' ||
+        b.project === projectFilter) &&
+
       (!purposeFilter ||
-        b.purpose.toLowerCase().includes(purposeFilter.toLowerCase()))
+        b.purpose.toLowerCase().includes(
+          purposeFilter.toLowerCase()
+        ))
     )
   })
 
@@ -73,12 +83,18 @@ export default function Home() {
     return (
       yearFilter.includes(e.year) &&
       quarterFilter.includes(e.quarter) &&
+
+      (projectFilter === 'All Projects' ||
+        e.project === projectFilter) &&
+
       (!purposeFilter ||
-        e.purpose.toLowerCase().includes(purposeFilter.toLowerCase()))
+        e.purpose.toLowerCase().includes(
+          purposeFilter.toLowerCase()
+        ))
     )
   })
 
-  // ✅ Year-only filtered data
+  // Year-only filtered data
   const yearlyBudgets = budgets.filter((b) =>
     yearFilter.includes(b.year)
   )
@@ -87,33 +103,43 @@ export default function Home() {
     yearFilter.includes(e.year)
   )
 
-  // ===== QUARTER TOTALS =====
-
+  // Quarter totals
   const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
-    return sum + convertToSEK(b.total_budget, b.currency)
+    return sum + convertToSEK(
+      b.total_budget,
+      b.currency
+    )
   }, 0)
 
   const totalSpendSEK = filteredExpenses.reduce((sum, e) => {
-    return sum + convertToSEK(e.amount, e.currency)
+    return sum + convertToSEK(
+      e.amount,
+      e.currency
+    )
   }, 0)
 
-  const remainingSEK = totalBudgetSEK - totalSpendSEK
+  const remainingSEK =
+    totalBudgetSEK - totalSpendSEK
 
-  // ===== YEAR TOTALS =====
-
+  // Year totals
   const yearlyBudgetSEK = yearlyBudgets.reduce((sum, b) => {
-    return sum + convertToSEK(b.total_budget, b.currency)
+    return sum + convertToSEK(
+      b.total_budget,
+      b.currency
+    )
   }, 0)
 
   const yearlySpendSEK = yearlyExpenses.reduce((sum, e) => {
-    return sum + convertToSEK(e.amount, e.currency)
+    return sum + convertToSEK(
+      e.amount,
+      e.currency
+    )
   }, 0)
 
   const yearlyRemainingSEK =
     yearlyBudgetSEK - yearlySpendSEK
 
-  // ===== UTILIZATION =====
-
+  // Utilization
   const quarterUtilization =
     totalBudgetSEK > 0
       ? (totalSpendSEK / totalBudgetSEK) * 100
@@ -135,11 +161,13 @@ export default function Home() {
   const clearFilters = () => {
     setYearFilter([currentYear])
     setQuarterFilter([currentQuarter])
+    setProjectFilter('All Projects')
     setPurposeFilter('')
   }
 
   return (
     <div style={{ padding: 20, fontFamily: 'Arial' }}>
+
       <h1>PMO Budget Dashboard</h1>
 
       {/* Navigation */}
@@ -174,10 +202,15 @@ export default function Home() {
                 checked={yearFilter.includes(year)}
                 onChange={(e) => {
                   if (e.target.checked) {
-                    setYearFilter([...yearFilter, year])
+                    setYearFilter([
+                      ...yearFilter,
+                      year
+                    ])
                   } else {
                     setYearFilter(
-                      yearFilter.filter((y) => y !== year)
+                      yearFilter.filter(
+                        (y) => y !== year
+                      )
                     )
                   }
                 }}
@@ -199,7 +232,9 @@ export default function Home() {
             >
               <input
                 type="checkbox"
-                checked={quarterFilter.includes(quarter)}
+                checked={quarterFilter.includes(
+                  quarter
+                )}
                 onChange={(e) => {
                   if (e.target.checked) {
                     setQuarterFilter([
@@ -221,11 +256,43 @@ export default function Home() {
           ))}
         </div>
 
+        {/* Project Filter */}
+        <div style={{ marginBottom: 10 }}>
+          <strong>Project:</strong>
+
+          <select
+            value={projectFilter}
+            onChange={(e) =>
+              setProjectFilter(e.target.value)
+            }
+            style={{ marginLeft: 10 }}
+          >
+            <option>All Projects</option>
+
+            {[
+              ...new Set(
+                budgets
+                  .map((b) => b.project)
+                  .filter(Boolean)
+              )
+            ].map((project) => (
+              <option
+                key={project}
+                value={project}
+              >
+                {project}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Purpose */}
         <input
           placeholder="Filter by purpose"
           value={purposeFilter}
-          onChange={(e) => setPurposeFilter(e.target.value)}
+          onChange={(e) =>
+            setPurposeFilter(e.target.value)
+          }
           style={{
             marginTop: 10
           }}
@@ -341,8 +408,13 @@ export default function Home() {
       >
         <div
           style={{
-            width: `${Math.min(quarterUtilization, 100)}%`,
-            background: getProgressColor(quarterUtilization),
+            width: `${Math.min(
+              quarterUtilization,
+              100
+            )}%`,
+            background: getProgressColor(
+              quarterUtilization
+            ),
             height: '100%',
             color: 'white',
             textAlign: 'center',
@@ -372,8 +444,13 @@ export default function Home() {
       >
         <div
           style={{
-            width: `${Math.min(yearlyUtilization, 100)}%`,
-            background: getProgressColor(yearlyUtilization),
+            width: `${Math.min(
+              yearlyUtilization,
+              100
+            )}%`,
+            background: getProgressColor(
+              yearlyUtilization
+            ),
             height: '100%',
             color: 'white',
             textAlign: 'center',
@@ -403,6 +480,7 @@ export default function Home() {
           <tr>
             <th>Year</th>
             <th>Quarter</th>
+            <th>Project</th>
             <th>Purpose</th>
             <th>Currency</th>
             <th>Original Amount</th>
@@ -415,9 +493,11 @@ export default function Home() {
             <tr key={b.id}>
               <td>{b.year}</td>
               <td>{b.quarter}</td>
+              <td>{b.project}</td>
               <td>{b.purpose}</td>
               <td>{b.currency}</td>
               <td>{b.total_budget}</td>
+
               <td>
                 kr{' '}
                 {convertToSEK(
@@ -446,6 +526,7 @@ export default function Home() {
             <th>Vendor</th>
             <th>Year</th>
             <th>Quarter</th>
+            <th>Project</th>
             <th>Purpose</th>
             <th>Currency</th>
             <th>Original Amount</th>
@@ -459,9 +540,11 @@ export default function Home() {
               <td>{e.vendor_name}</td>
               <td>{e.year}</td>
               <td>{e.quarter}</td>
+              <td>{e.project}</td>
               <td>{e.purpose}</td>
               <td>{e.currency}</td>
               <td>{e.amount}</td>
+
               <td>
                 kr{' '}
                 {convertToSEK(

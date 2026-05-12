@@ -99,11 +99,11 @@ export default function AddBudget() {
       <div style={{ marginBottom: 20 }}>
         <Link href="/"><button>Home</button></Link>
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
-          <button>Add Expense</button>
+          <button>Expense</button>
         </Link>
       </div>
 
-      <h1>{editingId ? 'Edit Budget' : 'Add Budget'}</h1>
+      <h1>{editingId ? 'Edit Budget' : 'Budget'}</h1>
 
       {/* Year */}
       <select value={year} onChange={(e) => setYear(e.target.value)}>

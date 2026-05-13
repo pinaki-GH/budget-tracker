@@ -158,7 +158,8 @@ export default function Home() {
 
   // Progress bar color
   const getProgressColor = (utilization) => {
-    if (utilization < 100) return '#4CAF50'
+    if (utilization < 95) return '#4CAF50'
+    if (utilization < 100) return '#FF9800'
     return '#F44336'
   }
 

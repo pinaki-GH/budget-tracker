@@ -125,6 +125,13 @@ export default function AddExpense() {
     setCurrency('INR')
   }
 
+  const clearFilters = () => {
+  setFilterYear('')
+  setFilterQuarter('')
+  setFilterProject('All Projects')
+  setFilterPurpose('')
+  }
+  
   // Filtered Expenses
   const filteredExpenses = expenses.filter((e) => {
     return (
@@ -315,7 +322,7 @@ export default function AddExpense() {
             </option>
           ))}
         </select>
-
+        
         <input
           placeholder="Search purpose"
           value={filterPurpose}
@@ -324,6 +331,14 @@ export default function AddExpense() {
           }
           style={{ marginLeft: 10 }}
         />
+
+        <button
+          onClick={clearFilters}
+          style={{ marginLeft: 10 }}
+        >
+          Clear Filter
+      </button>
+            
       </div>
 
       {filteredExpenses.length === 0 ? (

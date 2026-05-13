@@ -24,6 +24,15 @@ export default function AddExpense() {
   const [expenses, setExpenses] = useState([])
   const [editingId, setEditingId] = useState(null)
 
+  // Filters
+  const [filterYear, setFilterYear] = useState('')
+  const [filterQuarter, setFilterQuarter] =
+    useState('')
+  const [filterProject, setFilterProject] =
+    useState('All Projects')
+  const [filterPurpose, setFilterPurpose] =
+    useState('')
+
   useEffect(() => {
     loadExpenses()
   }, [])
@@ -116,6 +125,23 @@ export default function AddExpense() {
     setCurrency('INR')
   }
 
+  // Filtered Expenses
+  const filteredExpenses = expenses.filter((e) => {
+    return (
+      (!filterYear || e.year === filterYear) &&
+      (!filterQuarter ||
+        e.quarter === filterQuarter) &&
+
+      (filterProject === 'All Projects' ||
+        e.project === filterProject) &&
+
+      (!filterPurpose ||
+        e.purpose.toLowerCase().includes(
+          filterPurpose.toLowerCase()
+        ))
+    )
+  })
+
   return (
     <div style={{ padding: 20 }}>
 
@@ -132,7 +158,6 @@ export default function AddExpense() {
         <Link href="/forex-rates" style={{ marginLeft: 10 }}>
           <button>Forex Rates</button>
         </Link>
-        
       </div>
 
       <h1>{editingId ? 'Edit Expense' : 'Expense'}</h1>
@@ -237,8 +262,72 @@ export default function AddExpense() {
 
       <h2>Saved Expenses</h2>
 
-      {expenses.length === 0 ? (
-        <p>No expenses added yet</p>
+      {/* Filters */}
+      <div style={{ marginBottom: 20 }}>
+
+        <select
+          value={filterYear}
+          onChange={(e) =>
+            setFilterYear(e.target.value)
+          }
+        >
+          <option value="">All Years</option>
+          <option>2025</option>
+          <option>2026</option>
+          <option>2027</option>
+        </select>
+
+        <select
+          value={filterQuarter}
+          onChange={(e) =>
+            setFilterQuarter(e.target.value)
+          }
+          style={{ marginLeft: 10 }}
+        >
+          <option value="">All Quarters</option>
+          <option>Q1</option>
+          <option>Q2</option>
+          <option>Q3</option>
+          <option>Q4</option>
+        </select>
+
+        <select
+          value={filterProject}
+          onChange={(e) =>
+            setFilterProject(e.target.value)
+          }
+          style={{ marginLeft: 10 }}
+        >
+          <option>All Projects</option>
+
+          {[
+            ...new Set(
+              expenses
+                .map((e) => e.project)
+                .filter(Boolean)
+            )
+          ].map((project) => (
+            <option
+              key={project}
+              value={project}
+            >
+              {project}
+            </option>
+          ))}
+        </select>
+
+        <input
+          placeholder="Search purpose"
+          value={filterPurpose}
+          onChange={(e) =>
+            setFilterPurpose(e.target.value)
+          }
+          style={{ marginLeft: 10 }}
+        />
+      </div>
+
+      {filteredExpenses.length === 0 ? (
+        <p>No expenses found</p>
       ) : (
         <table border="1" cellPadding="8">
           <thead>
@@ -256,7 +345,7 @@ export default function AddExpense() {
           </thead>
 
           <tbody>
-            {expenses.map((e) => (
+            {filteredExpenses.map((e) => (
               <tr key={e.id}>
                 <td>{e.vendor_name}</td>
                 <td>{e.year}</td>

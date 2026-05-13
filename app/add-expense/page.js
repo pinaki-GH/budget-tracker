@@ -126,12 +126,12 @@ export default function AddExpense() {
   }
 
   const clearFilters = () => {
-  setFilterYear('')
-  setFilterQuarter('')
-  setFilterProject('All Projects')
-  setFilterPurpose('')
+    setFilterYear('')
+    setFilterQuarter('')
+    setFilterProject('All Projects')
+    setFilterPurpose('')
   }
-  
+
   // Filtered Expenses
   const filteredExpenses = expenses.filter((e) => {
     return (
@@ -148,6 +148,26 @@ export default function AddExpense() {
         ))
     )
   })
+
+  // Totals by currency
+  const expenseTotalsByCurrency = {}
+
+  filteredExpenses.forEach((e) => {
+
+    if (!expenseTotalsByCurrency[e.currency]) {
+      expenseTotalsByCurrency[e.currency] = 0
+    }
+
+    expenseTotalsByCurrency[e.currency] +=
+      Number(e.amount || 0)
+  })
+
+  const expenseTotalsText =
+    Object.entries(expenseTotalsByCurrency)
+      .map(([currency, total]) =>
+        `${currency} ${total.toFixed(2)}`
+      )
+      .join(' | ')
 
   return (
     <div style={{ padding: 20 }}>
@@ -267,7 +287,11 @@ export default function AddExpense() {
 
       <hr style={{ margin: '30px 0' }} />
 
-      <h2>Saved Expenses</h2>
+      <h2>
+        Saved Expenses
+        {expenseTotalsText &&
+          ` (${expenseTotalsText})`}
+      </h2>
 
       {/* Filters */}
       <div style={{ marginBottom: 20 }}>
@@ -322,7 +346,7 @@ export default function AddExpense() {
             </option>
           ))}
         </select>
-        
+
         <input
           placeholder="Search purpose"
           value={filterPurpose}
@@ -337,8 +361,7 @@ export default function AddExpense() {
           style={{ marginLeft: 10 }}
         >
           Clear Filter
-      </button>
-            
+        </button>
       </div>
 
       {filteredExpenses.length === 0 ? (

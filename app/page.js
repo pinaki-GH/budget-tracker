@@ -101,14 +101,34 @@ export default function Home() {
   })
 
   // Year-only filtered data
-  const yearlyBudgets = budgets.filter((b) =>
-    yearFilter.includes(b.year)
-  )
+  const yearlyBudgets = budgets.filter((b) => {
+  return (
+    yearFilter.includes(b.year) &&
 
-  const yearlyExpenses = expenses.filter((e) =>
-    yearFilter.includes(e.year)
-  )
+    (projectFilter === 'All Projects' ||
+      b.project === projectFilter) &&
 
+    (!purposeFilter ||
+      b.purpose.toLowerCase().includes(
+        purposeFilter.toLowerCase()
+      ))
+    )
+  })
+
+  const yearlyExpenses = expenses.filter((e) => {
+  return (
+    yearFilter.includes(e.year) &&
+
+    (projectFilter === 'All Projects' ||
+      e.project === projectFilter) &&
+
+    (!purposeFilter ||
+      e.purpose.toLowerCase().includes(
+        purposeFilter.toLowerCase()
+      ))
+    )
+  })
+  
   // Quarter totals
   const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
     return sum + convertToSEK(

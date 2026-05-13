@@ -179,6 +179,11 @@ export default function Home() {
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
           <button>Expense</button>
         </Link>
+        
+        <Link href="/forex-rates" style={{ marginLeft: 10 }}>
+          <button>Forex Rates</button>
+        </Link>
+        
       </div>
 
       <hr />

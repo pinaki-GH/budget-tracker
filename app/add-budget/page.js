@@ -24,7 +24,8 @@ export default function AddBudget() {
 
   // Filters
   const [filterYear, setFilterYear] = useState('')
-  const [filterQuarter, setFilterQuarter] = useState('')
+  const [filterQuarter, setFilterQuarter] =
+    useState('')
   const [filterProject, setFilterProject] =
     useState('All Projects')
   const [filterPurpose, setFilterPurpose] =
@@ -112,6 +113,13 @@ export default function AddBudget() {
     setAmount('')
   }
 
+  const clearFilters = () => {
+    setFilterYear('')
+    setFilterQuarter('')
+    setFilterProject('All Projects')
+    setFilterPurpose('')
+  }
+
   const getSymbol = (cur) => {
     if (cur === 'INR') return '₹'
     if (cur === 'USD') return '$'
@@ -119,14 +127,7 @@ export default function AddBudget() {
     if (cur === 'SEK') return 'kr'
     return ''
   }
-  
-  const clearFilters = () => {
-  setFilterYear('')
-  setFilterQuarter('')
-  setFilterProject('All Projects')
-  setFilterPurpose('')
-}
-    
+
   // Filtered Budgets
   const filteredBudgets = budgets.filter((b) => {
     return (
@@ -143,6 +144,26 @@ export default function AddBudget() {
         ))
     )
   })
+
+  // Totals by currency
+  const budgetTotalsByCurrency = {}
+
+  filteredBudgets.forEach((b) => {
+
+    if (!budgetTotalsByCurrency[b.currency]) {
+      budgetTotalsByCurrency[b.currency] = 0
+    }
+
+    budgetTotalsByCurrency[b.currency] +=
+      Number(b.total_budget || 0)
+  })
+
+  const budgetTotalsText =
+    Object.entries(budgetTotalsByCurrency)
+      .map(([currency, total]) =>
+        `${currency} ${total.toFixed(2)}`
+      )
+      .join(' | ')
 
   return (
     <div style={{ padding: 20 }}>
@@ -244,7 +265,11 @@ export default function AddBudget() {
 
       <hr style={{ margin: '30px 0' }} />
 
-      <h2>Saved Budgets</h2>
+      <h2>
+        Saved Budgets
+        {budgetTotalsText &&
+          ` (${budgetTotalsText})`}
+      </h2>
 
       {/* Filters */}
       <div style={{ marginBottom: 20 }}>
@@ -308,14 +333,13 @@ export default function AddBudget() {
           }
           style={{ marginLeft: 10 }}
         />
-        
+
         <button
           onClick={clearFilters}
           style={{ marginLeft: 10 }}
         >
           Clear Filter
         </button>
-          
       </div>
 
       {filteredBudgets.length === 0 ? (

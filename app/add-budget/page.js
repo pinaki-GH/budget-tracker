@@ -119,7 +119,14 @@ export default function AddBudget() {
     if (cur === 'SEK') return 'kr'
     return ''
   }
-
+  
+  const clearFilters = () => {
+  setFilterYear('')
+  setFilterQuarter('')
+  setFilterProject('All Projects')
+  setFilterPurpose('')
+}
+    
   // Filtered Budgets
   const filteredBudgets = budgets.filter((b) => {
     return (
@@ -301,6 +308,14 @@ export default function AddBudget() {
           }
           style={{ marginLeft: 10 }}
         />
+        
+        <button
+          onClick={clearFilters}
+          style={{ marginLeft: 10 }}
+        >
+          Clear Filter
+        </button>
+          
       </div>
 
       {filteredBudgets.length === 0 ? (

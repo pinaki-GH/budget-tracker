@@ -22,6 +22,14 @@ export default function AddBudget() {
   const [budgets, setBudgets] = useState([])
   const [editingId, setEditingId] = useState(null)
 
+  // Filters
+  const [filterYear, setFilterYear] = useState('')
+  const [filterQuarter, setFilterQuarter] = useState('')
+  const [filterProject, setFilterProject] =
+    useState('All Projects')
+  const [filterPurpose, setFilterPurpose] =
+    useState('')
+
   useEffect(() => {
     loadBudgets()
   }, [])
@@ -57,6 +65,7 @@ export default function AddBudget() {
   }
 
   const handleDelete = (id) => {
+
     if (!confirm('Delete this budget?')) return
 
     deleteBudget(id)
@@ -111,6 +120,23 @@ export default function AddBudget() {
     return ''
   }
 
+  // Filtered Budgets
+  const filteredBudgets = budgets.filter((b) => {
+    return (
+      (!filterYear || b.year === filterYear) &&
+      (!filterQuarter ||
+        b.quarter === filterQuarter) &&
+
+      (filterProject === 'All Projects' ||
+        b.project === filterProject) &&
+
+      (!filterPurpose ||
+        b.purpose.toLowerCase().includes(
+          filterPurpose.toLowerCase()
+        ))
+    )
+  })
+
   return (
     <div style={{ padding: 20 }}>
 
@@ -123,11 +149,10 @@ export default function AddBudget() {
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
           <button>Expense</button>
         </Link>
-        
+
         <Link href="/forex-rates" style={{ marginLeft: 10 }}>
           <button>Forex Rates</button>
         </Link>
-        
       </div>
 
       <h1>{editingId ? 'Edit Budget' : 'Budget'}</h1>
@@ -214,8 +239,72 @@ export default function AddBudget() {
 
       <h2>Saved Budgets</h2>
 
-      {budgets.length === 0 ? (
-        <p>No budgets added yet</p>
+      {/* Filters */}
+      <div style={{ marginBottom: 20 }}>
+
+        <select
+          value={filterYear}
+          onChange={(e) =>
+            setFilterYear(e.target.value)
+          }
+        >
+          <option value="">All Years</option>
+          <option>2025</option>
+          <option>2026</option>
+          <option>2027</option>
+        </select>
+
+        <select
+          value={filterQuarter}
+          onChange={(e) =>
+            setFilterQuarter(e.target.value)
+          }
+          style={{ marginLeft: 10 }}
+        >
+          <option value="">All Quarters</option>
+          <option>Q1</option>
+          <option>Q2</option>
+          <option>Q3</option>
+          <option>Q4</option>
+        </select>
+
+        <select
+          value={filterProject}
+          onChange={(e) =>
+            setFilterProject(e.target.value)
+          }
+          style={{ marginLeft: 10 }}
+        >
+          <option>All Projects</option>
+
+          {[
+            ...new Set(
+              budgets
+                .map((b) => b.project)
+                .filter(Boolean)
+            )
+          ].map((project) => (
+            <option
+              key={project}
+              value={project}
+            >
+              {project}
+            </option>
+          ))}
+        </select>
+
+        <input
+          placeholder="Search purpose"
+          value={filterPurpose}
+          onChange={(e) =>
+            setFilterPurpose(e.target.value)
+          }
+          style={{ marginLeft: 10 }}
+        />
+      </div>
+
+      {filteredBudgets.length === 0 ? (
+        <p>No budgets found</p>
       ) : (
         <table border="1" cellPadding="8">
           <thead>
@@ -231,7 +320,7 @@ export default function AddBudget() {
           </thead>
 
           <tbody>
-            {budgets.map((b) => (
+            {filteredBudgets.map((b) => (
               <tr key={b.id}>
                 <td>{b.year}</td>
                 <td>{b.quarter}</td>

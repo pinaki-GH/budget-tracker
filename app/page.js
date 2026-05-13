@@ -332,7 +332,7 @@ export default function Home() {
             background: '#f9f9f9'
           }}
         >
-          <h3>Total Budget</h3>
+          <h3>Total Budget (SEK)</h3>
 
           <p>
             <strong>Quarter:</strong><br />
@@ -355,7 +355,7 @@ export default function Home() {
             background: '#f9f9f9'
           }}
         >
-          <h3>Total Spend</h3>
+          <h3>Total Spend (SEK)</h3>
 
           <p>
             <strong>Quarter:</strong><br />
@@ -378,7 +378,7 @@ export default function Home() {
             background: '#f9f9f9'
           }}
         >
-          <h3>Remaining</h3>
+          <h3>Remaining (SEK)</h3>
 
           <p>
             <strong>Quarter:</strong><br />

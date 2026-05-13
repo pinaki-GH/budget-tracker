@@ -128,6 +128,11 @@ export default function AddExpense() {
         <Link href="/add-budget" style={{ marginLeft: 10 }}>
           <button>Budget</button>
         </Link>
+
+        <Link href="/forex-rates" style={{ marginLeft: 10 }}>
+          <button>Forex Rates</button>
+        </Link>
+        
       </div>
 
       <h1>{editingId ? 'Edit Expense' : 'Expense'}</h1>

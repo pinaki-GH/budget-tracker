@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { getBudgets, getExpenses } from '../lib/storage'
+
+import {
+  getBudgets,
+  getExpenses,
+  getForexRates
+} from '../lib/storage'
 
 export default function Home() {
 
@@ -29,6 +34,7 @@ export default function Home() {
 
   const [budgets, setBudgets] = useState([])
   const [expenses, setExpenses] = useState([])
+  const [forexRates, setForexRates] = useState([])
 
   // Multi-select filters
   const [yearFilter, setYearFilter] = useState([currentYear])
@@ -47,19 +53,19 @@ export default function Home() {
   function loadData() {
     setBudgets(getBudgets())
     setExpenses(getExpenses())
+    setForexRates(getForexRates())
   }
 
-  // Exchange rates to SEK
-  const exchangeRates = {
-    SEK: 1,
-    INR: 0.13,
-    USD: 10.5,
-    EUR: 11.5
-  }
-
-  // Convert currency to SEK
+  // Convert currency to SEK using saved forex rates
   const convertToSEK = (amount, currency) => {
-    return amount * (exchangeRates[currency] || 1)
+
+    const rateObj = forexRates.find(
+      (r) => r.currency === currency
+    )
+
+    const rate = rateObj ? rateObj.rate : 1
+
+    return amount * rate
   }
 
   // Filter budgets
@@ -179,11 +185,10 @@ export default function Home() {
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
           <button>Expense</button>
         </Link>
-        
+
         <Link href="/forex-rates" style={{ marginLeft: 10 }}>
           <button>Forex Rates</button>
         </Link>
-        
       </div>
 
       <hr />

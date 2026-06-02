@@ -128,6 +128,80 @@ export default function Home() {
       ))
     )
   })
+
+  // Purpose Summary Table
+
+const purposeSummaryMap = {}
+
+// Budgets
+filteredBudgets.forEach((b) => {
+
+  const key =
+    `${b.year}|${b.quarter}|${b.project}|${b.purpose}`
+
+  if (!purposeSummaryMap[key]) {
+    purposeSummaryMap[key] = {
+      year: b.year,
+      quarter: b.quarter,
+      project: b.project,
+      purpose: b.purpose,
+      budget: 0,
+      spend: 0
+    }
+  }
+
+  purposeSummaryMap[key].budget +=
+    convertToSEK(
+      Number(b.total_budget || 0),
+      b.currency
+    )
+})
+
+// Expenses
+filteredExpenses.forEach((e) => {
+
+  const key =
+    `${e.year}|${e.quarter}|${e.project}|${e.purpose}`
+
+  if (!purposeSummaryMap[key]) {
+    purposeSummaryMap[key] = {
+      year: e.year,
+      quarter: e.quarter,
+      project: e.project,
+      purpose: e.purpose,
+      budget: 0,
+      spend: 0
+    }
+  }
+
+  purposeSummaryMap[key].spend +=
+    convertToSEK(
+      Number(e.amount || 0),
+      e.currency
+    )
+})
+
+const purposeSummary =
+  Object.values(purposeSummaryMap)
+    .map((row) => ({
+      ...row,
+      remaining:
+        row.budget - row.spend
+    }))
+    .sort((a, b) => {
+
+      if (a.year !== b.year) {
+        return a.year.localeCompare(b.year)
+      }
+
+      if (a.quarter !== b.quarter) {
+        return a.quarter.localeCompare(b.quarter)
+      }
+
+      return a.purpose.localeCompare(
+        b.purpose
+      )
+    })
   
   // Quarter totals
   const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
@@ -494,100 +568,80 @@ export default function Home() {
 
       <hr style={{ margin: '30px 0' }} />
 
-      {/* Budgets Table */}
-      <h2>Budgets</h2>
+      <h2>
+  Budget vs Spend by Purpose
+</h2>
 
-      <table
-        border="1"
-        cellPadding="8"
-        style={{
-          borderCollapse: 'collapse',
-          width: '100%',
-          marginBottom: 30
-        }}
-      >
-        <thead style={{ background: '#f0f0f0' }}>
-          <tr>
-            <th>Year</th>
-            <th>Quarter</th>
-            <th>Project</th>
-            <th>Purpose</th>
-            <th>Currency</th>
-            <th>Original Amount</th>
-            <th>SEK Equivalent</th>
-          </tr>
-        </thead>
+<table
+  border="1"
+  cellPadding="8"
+  style={{
+    borderCollapse: 'collapse',
+    width: '100%'
+  }}
+>
 
-        <tbody>
-          {filteredBudgets.map((b) => (
-            <tr key={b.id}>
-              <td>{b.year}</td>
-              <td>{b.quarter}</td>
-              <td>{b.project}</td>
-              <td>{b.purpose}</td>
-              <td>{b.currency}</td>
-              <td>{b.total_budget}</td>
+  <thead
+    style={{
+      background: '#f0f0f0'
+    }}
+  >
+    <tr>
+      <th>Year</th>
+      <th>Quarter</th>
+      <th>Project</th>
+      <th>Purpose</th>
+      <th>Budget (SEK)</th>
+      <th>Spend (SEK)</th>
+      <th>Remaining (SEK)</th>
+    </tr>
+  </thead>
 
-              <td>
-                kr{' '}
-                {convertToSEK(
-                  b.total_budget,
-                  b.currency
-                ).toFixed(2)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  <tbody>
 
-      {/* Expenses Table */}
-      <h2>Expenses</h2>
+    {purposeSummary.map((row, index) => (
 
-      <table
-        border="1"
-        cellPadding="8"
-        style={{
-          borderCollapse: 'collapse',
-          width: '100%'
-        }}
-      >
-        <thead style={{ background: '#f0f0f0' }}>
-          <tr>
-            <th>Vendor</th>
-            <th>Date</th>
-            <th>Year</th>
-            <th>Quarter</th>
-            <th>Project</th>
-            <th>Purpose</th>
-            <th>Currency</th>
-            <th>Original Amount</th>
-            <th>SEK Equivalent</th>
-          </tr>
-        </thead>
+      <tr key={index}>
 
-        <tbody>
-          {filteredExpenses.map((e) => (
-            <tr key={e.id}>
-              <td>{e.vendor_name}</td>
-              <td>{e.date}</td>
-              <td>{e.year}</td>
-              <td>{e.quarter}</td>
-              <td>{e.project}</td>
-              <td>{e.purpose}</td>
-              <td>{e.currency}</td>
-              <td>{e.amount}</td>
+        <td>{row.year}</td>
 
-              <td>
-                kr{' '}
-                {convertToSEK(
-                  e.amount,
-                  e.currency
-                ).toFixed(2)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <td>{row.quarter}</td>
+
+        <td>{row.project}</td>
+
+        <td>{row.purpose}</td>
+
+        <td>
+          kr {row.budget.toFixed(2)}
+        </td>
+
+        <td>
+          kr {row.spend.toFixed(2)}
+        </td>
+
+        <td
+          style={{
+            color:
+              row.remaining < 0
+                ? 'red'
+                : 'inherit',
+            fontWeight:
+              row.remaining < 0
+                ? 'bold'
+                : 'normal'
+          }}
+        >
+          kr {row.remaining.toFixed(2)}
+        </td>
+
+      </tr>
+
+    ))}
+
+  </tbody>
+
+</table>
+      
     </div>
   )
 }

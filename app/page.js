@@ -217,6 +217,9 @@ const purposeSummary =
       )
     })
 
+  const yearlyRemainingSEK =
+    yearlyBudgetSEK - yearlySpendSEK
+  
   /* =====================================
    PROJECT RUNWAY CALCULATION
 ===================================== */
@@ -246,7 +249,7 @@ for (let i = 2; i >= 0; i--) {
 // Build purpose burn rates
 const purposeBurnRates = {}
 
-filteredExpenses.forEach((e) => {
+yearlyExpenses.forEach((e) => {
 
   const purpose = e.purpose
 
@@ -340,10 +343,7 @@ if (projectBurnRate > 0) {
     )
   }, 0)
 
-  const yearlyRemainingSEK =
-    yearlyBudgetSEK - yearlySpendSEK
-
-  // Utilization
+    // Utilization
   const quarterUtilization =
     totalBudgetSEK > 0
       ? (totalSpendSEK / totalBudgetSEK) * 100

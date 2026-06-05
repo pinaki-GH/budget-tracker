@@ -220,7 +220,40 @@ const purposeSummary =
   const yearlyRemainingSEK =
     yearlyBudgetSEK - yearlySpendSEK
   
-  /* =====================================
+   // Quarter totals
+  const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
+    return sum + convertToSEK(
+      b.total_budget,
+      b.currency
+    )
+  }, 0)
+
+  const totalSpendSEK = filteredExpenses.reduce((sum, e) => {
+    return sum + convertToSEK(
+      e.amount,
+      e.currency
+    )
+  }, 0)
+
+  const remainingSEK =
+    totalBudgetSEK - totalSpendSEK
+
+  // Year totals
+  const yearlyBudgetSEK = yearlyBudgets.reduce((sum, b) => {
+    return sum + convertToSEK(
+      b.total_budget,
+      b.currency
+    )
+  }, 0)
+
+  const yearlySpendSEK = yearlyExpenses.reduce((sum, e) => {
+    return sum + convertToSEK(
+      e.amount,
+      e.currency
+    )
+  }, 0)
+
+   /* =====================================
    PROJECT RUNWAY CALCULATION
 ===================================== */
 
@@ -310,39 +343,6 @@ if (projectBurnRate > 0) {
     projectBurnRate
 }
   
-  // Quarter totals
-  const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
-    return sum + convertToSEK(
-      b.total_budget,
-      b.currency
-    )
-  }, 0)
-
-  const totalSpendSEK = filteredExpenses.reduce((sum, e) => {
-    return sum + convertToSEK(
-      e.amount,
-      e.currency
-    )
-  }, 0)
-
-  const remainingSEK =
-    totalBudgetSEK - totalSpendSEK
-
-  // Year totals
-  const yearlyBudgetSEK = yearlyBudgets.reduce((sum, b) => {
-    return sum + convertToSEK(
-      b.total_budget,
-      b.currency
-    )
-  }, 0)
-
-  const yearlySpendSEK = yearlyExpenses.reduce((sum, e) => {
-    return sum + convertToSEK(
-      e.amount,
-      e.currency
-    )
-  }, 0)
-
     // Utilization
   const quarterUtilization =
     totalBudgetSEK > 0

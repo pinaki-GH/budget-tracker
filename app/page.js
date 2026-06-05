@@ -217,9 +217,7 @@ const purposeSummary =
       )
     })
 
-  const yearlyRemainingSEK =
-    yearlyBudgetSEK - yearlySpendSEK
-  
+    
    // Quarter totals
   const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
     return sum + convertToSEK(
@@ -253,6 +251,9 @@ const purposeSummary =
     )
   }, 0)
 
+  const yearlyRemainingSEK =
+    yearlyBudgetSEK - yearlySpendSEK
+  
    /* =====================================
    PROJECT RUNWAY CALCULATION
 ===================================== */

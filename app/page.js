@@ -68,6 +68,20 @@ export default function Home() {
     return amount * rate
   }
 
+  // Returns YYYY-MM from expense date
+  const getMonthKey = (dateString) => {
+
+  const date = new Date(dateString)
+
+  const year = date.getFullYear()
+
+  const month =
+    String(date.getMonth() + 1)
+      .padStart(2, '0')
+
+  return `${year}-${month}`
+ }
+  
   // Filter budgets
   const filteredBudgets = budgets.filter((b) => {
     return (
@@ -202,6 +216,96 @@ const purposeSummary =
         b.purpose
       )
     })
+
+  /* =====================================
+   PROJECT RUNWAY CALCULATION
+===================================== */
+
+// Last 3 calendar months
+const today = new Date()
+
+const monthKeys = []
+
+for (let i = 2; i >= 0; i--) {
+
+  const d = new Date(
+    today.getFullYear(),
+    today.getMonth() - i,
+    1
+  )
+
+  const year = d.getFullYear()
+
+  const month =
+    String(d.getMonth() + 1)
+      .padStart(2, '0')
+
+  monthKeys.push(`${year}-${month}`)
+}
+
+// Build purpose burn rates
+const purposeBurnRates = {}
+
+filteredExpenses.forEach((e) => {
+
+  const purpose = e.purpose
+
+  if (!purposeBurnRates[purpose]) {
+
+    purposeBurnRates[purpose] = {
+      purpose,
+      monthlySpend: {}
+    }
+
+    monthKeys.forEach((m) => {
+      purposeBurnRates[purpose]
+        .monthlySpend[m] = 0
+    })
+  }
+
+  const monthKey =
+    getMonthKey(e.date)
+
+  if (monthKeys.includes(monthKey)) {
+
+    purposeBurnRates[purpose]
+      .monthlySpend[monthKey] +=
+      convertToSEK(
+        Number(e.amount || 0),
+        e.currency
+      )
+  }
+})
+
+// Calculate average burn per purpose
+let projectBurnRate = 0
+
+Object.values(purposeBurnRates)
+  .forEach((purpose) => {
+
+    const values =
+      Object.values(
+        purpose.monthlySpend
+      )
+
+    const avg =
+      values.reduce(
+        (sum, v) => sum + v,
+        0
+      ) / values.length
+
+    projectBurnRate += avg
+  })
+
+// Project Runway
+let projectRunwayMonths = null
+
+if (projectBurnRate > 0) {
+
+  projectRunwayMonths =
+    yearlyRemainingSEK /
+    projectBurnRate
+}
   
   // Quarter totals
   const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
@@ -494,7 +598,68 @@ const purposeSummary =
             kr {yearlyRemainingSEK.toFixed(2)}
           </p>
         </div>
-      </div>
+      
+        {/* Budget Runway */}
+      <div
+  style={{
+    border: '1px solid #ddd',
+    borderRadius: 10,
+    padding: 20,
+    minWidth: 260,
+    background: '#f9f9f9'
+  }}
+>
+
+  <h3>Budget Runway</h3>
+
+  {projectRunwayMonths === null ? (
+
+    <p>No spend history</p>
+
+  ) : projectRunwayMonths <= 0 ? (
+
+    <p
+      style={{
+        color: 'red',
+        fontWeight: 'bold'
+      }}
+    >
+      Budget Exhausted
+    </p>
+
+  ) : (
+
+    <>
+      <p>
+        <strong>
+          Estimated Duration
+        </strong>
+      </p>
+
+      <p
+        style={{
+          fontSize: 24,
+          fontWeight: 'bold'
+        }}
+      >
+        {projectRunwayMonths.toFixed(1)}
+        {' '}
+        Months
+      </p>
+
+      <p
+        style={{
+          color: '#666'
+        }}
+      >
+        Based on rolling
+        3-month spend trend
+      </p>
+    </>
+  )}
+
+</div>      
+</div>
 
       {/* Quarter Utilization */}
       <h2>Quarter Utilization</h2>

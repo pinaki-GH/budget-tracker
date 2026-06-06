@@ -317,9 +317,6 @@ for (let i = 2; i >= 0; i--) {
   1
   )
 
-const runwayPeriod =
-  `${monthKeys[0]} to ${monthKeys[2]}`
-  
   const year = d.getFullYear()
 
   const month =
@@ -329,6 +326,9 @@ const runwayPeriod =
   monthKeys.push(`${year}-${month}`)
 }
 
+  const runwayPeriod =
+    `${monthKeys[0]} to ${monthKeys[2]}`
+  
 // Build purpose burn rates
 const purposeBurnRates = {}
 

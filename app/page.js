@@ -295,16 +295,26 @@ const yearlyRemainingSEK =
 ===================================== */
 
 // Last 3 calendar months
-const today = new Date()
+const latestExpenseDate =
+  runwayExpenses.reduce((latest, expense) => {
 
+    const expenseDate =
+      new Date(expense.date)
+
+    return expenseDate > latest
+      ? expenseDate
+      : latest
+
+  }, new Date(0))
+  
 const monthKeys = []
 
 for (let i = 2; i >= 0; i--) {
 
   const d = new Date(
-    today.getFullYear(),
-    today.getMonth() - i,
-    1
+  latestExpenseDate.getFullYear(),
+  latestExpenseDate.getMonth() - i,
+  1
   )
 
   const year = d.getFullYear()

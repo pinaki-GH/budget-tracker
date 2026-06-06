@@ -143,6 +143,24 @@ export default function Home() {
     )
   })
 
+  const runwayBudgets = budgets.filter((b) => {
+  return (
+    yearFilter.includes(b.year) &&
+
+    (projectFilter === 'All Projects' ||
+      b.project === projectFilter)
+  )
+})
+
+const runwayExpenses = expenses.filter((e) => {
+  return (
+    yearFilter.includes(e.year) &&
+
+    (projectFilter === 'All Projects' ||
+      e.project === projectFilter)
+  )
+})
+  
   // Purpose Summary Table
 
 const purposeSummaryMap = {}
@@ -237,22 +255,22 @@ const purposeSummary =
     totalBudgetSEK - totalSpendSEK
 
   // Year totals
-  const yearlyBudgetSEK = yearlyBudgets.reduce((sum, b) => {
-    return sum + convertToSEK(
-      b.total_budget,
-      b.currency
-    )
-  }, 0)
+  const runwayBudgetSEK = runwayBudgets.reduce((sum, b) => {
+  return sum + convertToSEK(
+    b.total_budget,
+    b.currency
+  )
+}, 0)
 
-  const yearlySpendSEK = yearlyExpenses.reduce((sum, e) => {
-    return sum + convertToSEK(
-      e.amount,
-      e.currency
-    )
-  }, 0)
+  const runwaySpendSEK = runwayExpenses.reduce((sum, e) => {
+  return sum + convertToSEK(
+    e.amount,
+    e.currency
+  )
+}, 0)
 
-  const yearlyRemainingSEK =
-    yearlyBudgetSEK - yearlySpendSEK
+  const runwayRemainingSEK =
+  runwayBudgetSEK - runwaySpendSEK
   
    /* =====================================
    PROJECT RUNWAY CALCULATION
@@ -283,7 +301,7 @@ for (let i = 2; i >= 0; i--) {
 // Build purpose burn rates
 const purposeBurnRates = {}
 
-yearlyExpenses.forEach((e) => {
+runwayExpenses.forEach((e) => {
 
   const purpose = e.purpose
 
@@ -340,7 +358,7 @@ let projectRunwayMonths = null
 if (projectBurnRate > 0) {
 
   projectRunwayMonths =
-    yearlyRemainingSEK /
+    runwayRemainingSEK /
     projectBurnRate
 }
   

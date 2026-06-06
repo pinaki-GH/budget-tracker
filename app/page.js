@@ -271,6 +271,24 @@ const purposeSummary =
 
   const runwayRemainingSEK =
   runwayBudgetSEK - runwaySpendSEK
+
+  const yearlyBudgetSEK = yearlyBudgets.reduce((sum, b) => {
+  return sum + convertToSEK(
+    b.total_budget,
+    b.currency
+  )
+}, 0)
+
+const yearlySpendSEK = yearlyExpenses.reduce((sum, e) => {
+  return sum + convertToSEK(
+    e.amount,
+    e.currency
+  )
+}, 0)
+
+const yearlyRemainingSEK =
+  yearlyBudgetSEK - yearlySpendSEK
+
   
    /* =====================================
    PROJECT RUNWAY CALCULATION

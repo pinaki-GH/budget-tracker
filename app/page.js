@@ -317,6 +317,9 @@ for (let i = 2; i >= 0; i--) {
   1
   )
 
+const runwayPeriod =
+  `${monthKeys[0]} to ${monthKeys[2]}`
+  
   const year = d.getFullYear()
 
   const month =
@@ -694,14 +697,38 @@ if (projectBurnRate > 0) {
         Months
       </p>
 
-      <p
-        style={{
-          color: '#666'
-        }}
-      >
-        Based on rolling
-        3-month spend trend
-      </p>
+      <div
+  style={{
+    marginTop: 20,
+    fontSize: 14,
+    color: '#666'
+  }}
+>
+  <div>
+    <strong>Project Burn Rate:</strong>
+  </div>
+
+  <div>
+    kr {projectBurnRate.toFixed(0)} / month
+  </div>
+
+  <br />
+
+  <div>
+    <strong>Calculation Period:</strong>
+  </div>
+
+  <div>
+    {runwayPeriod}
+  </div>
+
+  <br />
+
+  <div>
+    Based on rolling
+    3-month spend trend
+  </div>
+</div>
     </>
   )}
 

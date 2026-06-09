@@ -357,40 +357,40 @@ const availableMonths =
         </select>
 
         <select
-          value={filterQuarter}
-          onChange={(e) =>
-            setFilterQuarter(e.target.value)
-          }
-          style={{ marginLeft: 10 }}
-        >
+  value={filterQuarter}
+  onChange={(e) => {
+  setFilterQuarter(e.target.value)
+  setFilterMonth('')
+}}
+  style={{ marginLeft: 10 }}
+>
+  <option value="">All Quarters</option>
+  <option>Q1</option>
+  <option>Q2</option>
+  <option>Q3</option>
+  <option>Q4</option>
+</select>
 
-        <select
-          value={filterMonth}
-          onChange={(e) =>
-            setFilterMonth(e.target.value)
-          }
-          style={{ marginLeft: 10 }}
-        >
-          <option value="">
-          All Months
-          </option>
+<select
+  value={filterMonth}
+  onChange={(e) =>
+    setFilterMonth(e.target.value)
+  }
+  style={{ marginLeft: 10 }}
+>
+  <option value="">
+    All Months
+  </option>
 
-          {availableMonths.map((month) => (
-          <option
-            key={month.value}
-            value={month.value}
-          >
-          {month.label}
-          </option>
-        ))}
-      </select>
-          
-          <option value="">All Quarters</option>
-          <option>Q1</option>
-          <option>Q2</option>
-          <option>Q3</option>
-          <option>Q4</option>
-        </select>
+  {availableMonths.map((month) => (
+    <option
+      key={month.value}
+      value={month.value}
+    >
+      {month.label}
+    </option>
+  ))}
+</select>
 
         <select
           value={filterProject}

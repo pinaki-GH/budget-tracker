@@ -10,6 +10,54 @@ import {
   deleteProjection
 } from '../../lib/storage'
 
+function getWorkDaysInQuarter(
+  year,
+  quarter
+) {
+
+  const quarterMonths = {
+    Q1: [0, 1, 2],
+    Q2: [3, 4, 5],
+    Q3: [6, 7, 8],
+    Q4: [9, 10, 11]
+  }
+
+  let workDays = 0
+
+  quarterMonths[quarter].forEach(
+    (month) => {
+
+      const date =
+        new Date(
+          Number(year),
+          month,
+          1
+        )
+
+      while (
+        date.getMonth() === month
+      ) {
+
+        const day =
+          date.getDay()
+
+        if (
+          day !== 0 &&
+          day !== 6
+        ) {
+          workDays++
+        }
+
+        date.setDate(
+          date.getDate() + 1
+        )
+      }
+    }
+  )
+
+  return workDays
+}
+
 export default function ProjectionsPage() {
 
   const [projections, setProjections] = useState([])
@@ -18,7 +66,7 @@ export default function ProjectionsPage() {
   const [quarter, setQuarter] = useState('Q1')
   const [project, setProject] = useState('')
   const [resource, setResource] = useState('')
-  const [workDays, setWorkDays] = useState('')
+  const [workDays, setWorkDays] = useState(0)
   const [hoursPerDay, setHoursPerDay] = useState('8')
   const [manHourRate, setManHourRate] = useState('')
   const [currency, setCurrency] = useState('SEK')
@@ -36,6 +84,17 @@ export default function ProjectionsPage() {
     loadData()
   }, [])
 
+  useEffect(() => {
+
+  setWorkDays(
+    getWorkDaysInQuarter(
+      year,
+      quarter
+    )
+  )
+
+}, [year, quarter])
+  
   function loadData() {
     setProjections(getProjections())
   }
@@ -52,7 +111,7 @@ export default function ProjectionsPage() {
     setQuarter('Q1')
     setProject('')
     setResource('')
-    setWorkDays('')
+    setWorkDays(getWorkDaysInQuarter(year, quarter))
     setHoursPerDay('8')
     setManHourRate('')
     setCurrency('SEK')
@@ -290,14 +349,8 @@ export default function ProjectionsPage() {
         />
 
         <input
-          type="number"
-          placeholder="Work Days"
           value={workDays}
-          onChange={(e) =>
-            setWorkDays(
-              e.target.value
-            )
-          }
+          readOnly
         />
 
         <input

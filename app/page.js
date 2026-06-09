@@ -39,6 +39,7 @@ export default function Home() {
   // Multi-select filters
   const [yearFilter, setYearFilter] = useState([currentYear])
   const [quarterFilter, setQuarterFilter] = useState([currentQuarter])
+  const [monthFilter, setMonthFilter] = useState('')
 
   // Project Filter
   const [projectFilter, setProjectFilter] =
@@ -46,9 +47,55 @@ export default function Home() {
 
   const [purposeFilter, setPurposeFilter] = useState('')
 
+  const quarterMonths = {
+  Q1: [
+    { value: '01', label: 'January' },
+    { value: '02', label: 'February' },
+    { value: '03', label: 'March' }
+  ],
+  Q2: [
+    { value: '04', label: 'April' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'June' }
+  ],
+  Q3: [
+    { value: '07', label: 'July' },
+    { value: '08', label: 'August' },
+    { value: '09', label: 'September' }
+  ],
+  Q4: [
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' }
+  ]
+}
+
+const allMonths = [
+  ...quarterMonths.Q1,
+  ...quarterMonths.Q2,
+  ...quarterMonths.Q3,
+  ...quarterMonths.Q4
+]
+
+const availableMonths =
+  quarterFilter.length === 1
+    ? quarterMonths[quarterFilter[0]]
+    : allMonths
+
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+
+  if (
+    quarterFilter.length !== 1 &&
+    monthFilter
+  ) {
+    setMonthFilter('')
+  }
+
+}, [quarterFilter, monthFilter])
 
   function loadData() {
     setBudgets(getBudgets())
@@ -84,35 +131,62 @@ export default function Home() {
   
   // Filter budgets
   const filteredBudgets = budgets.filter((b) => {
-    return (
-      yearFilter.includes(b.year) &&
-      quarterFilter.includes(b.quarter) &&
 
-      (projectFilter === 'All Projects' ||
-        b.project === projectFilter) &&
+  let budgetMonthMatch = true
 
-      (!purposeFilter ||
-        b.purpose.toLowerCase().includes(
-          purposeFilter.toLowerCase()
-        ))
-    )
-  })
+  if (monthFilter) {
+
+    const quarterMonthMap = {
+      Q1: ['01', '02', '03'],
+      Q2: ['04', '05', '06'],
+      Q3: ['07', '08', '09'],
+      Q4: ['10', '11', '12']
+    }
+
+    budgetMonthMatch =
+      quarterMonthMap[b.quarter]
+        ?.includes(monthFilter)
+  }
+
+  return (
+    yearFilter.includes(b.year) &&
+    quarterFilter.includes(b.quarter) &&
+    budgetMonthMatch &&
+
+    (projectFilter === 'All Projects' ||
+      b.project === projectFilter) &&
+
+    (!purposeFilter ||
+      b.purpose.toLowerCase().includes(
+        purposeFilter.toLowerCase()
+      ))
+  )
+})
 
   // Filter expenses
   const filteredExpenses = expenses.filter((e) => {
-    return (
-      yearFilter.includes(e.year) &&
-      quarterFilter.includes(e.quarter) &&
 
-      (projectFilter === 'All Projects' ||
-        e.project === projectFilter) &&
+  const expenseMonth =
+    e.date
+      ? e.date.split('-')[1]
+      : ''
 
-      (!purposeFilter ||
-        e.purpose.toLowerCase().includes(
-          purposeFilter.toLowerCase()
-        ))
-    )
-  })
+  return (
+    yearFilter.includes(e.year) &&
+    quarterFilter.includes(e.quarter) &&
+
+    (!monthFilter ||
+      expenseMonth === monthFilter) &&
+
+    (projectFilter === 'All Projects' ||
+      e.project === projectFilter) &&
+
+    (!purposeFilter ||
+      e.purpose.toLowerCase().includes(
+        purposeFilter.toLowerCase()
+      ))
+  )
+})
 
   // Year-only filtered data
   const yearlyBudgets = budgets.filter((b) => {
@@ -413,11 +487,12 @@ if (projectBurnRate > 0) {
 
   // Clear Filters
   const clearFilters = () => {
-    setYearFilter([currentYear])
-    setQuarterFilter([currentQuarter])
-    setProjectFilter('All Projects')
-    setPurposeFilter('')
-  }
+  setYearFilter([currentYear])
+  setQuarterFilter([currentQuarter])
+  setMonthFilter('')
+  setProjectFilter('All Projects')
+  setPurposeFilter('')
+}
 
   return (
     <div style={{ padding: 20, fontFamily: 'Arial' }}>
@@ -513,6 +588,32 @@ if (projectBurnRate > 0) {
             </label>
           ))}
         </div>
+
+        {/* Month Filter */}
+<div style={{ marginBottom: 10 }}>
+  <strong>Month:</strong>
+
+  <select
+    value={monthFilter}
+    onChange={(e) =>
+      setMonthFilter(e.target.value)
+    }
+    style={{ marginLeft: 10 }}
+  >
+    <option value="">
+      All Months
+    </option>
+
+    {availableMonths.map((month) => (
+      <option
+        key={month.value}
+        value={month.value}
+      >
+        {month.label}
+      </option>
+    ))}
+  </select>
+</div>
 
         {/* Project Filter */}
         <div style={{ marginBottom: 10 }}>

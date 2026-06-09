@@ -38,7 +38,7 @@ export default function Home() {
 
   // Multi-select filters
   const [yearFilter, setYearFilter] = useState([currentYear])
-  const [quarterFilter, setQuarterFilter] = useState([currentQuarter])
+  const [quarterFilter, setQuarterFilter] = useState([])
   const [monthFilter, setMonthFilter] = useState('')
 
   // Project Filter
@@ -150,7 +150,10 @@ const availableMonths =
 
   return (
     yearFilter.includes(b.year) &&
-    quarterFilter.includes(b.quarter) &&
+    (
+      quarterFilter.length === 0 ||
+      quarterFilter.includes(b.quarter)
+    ) &&
     budgetMonthMatch &&
 
     (projectFilter === 'All Projects' ||
@@ -173,7 +176,10 @@ const availableMonths =
 
   return (
     yearFilter.includes(e.year) &&
-    quarterFilter.includes(e.quarter) &&
+    (
+      quarterFilter.length === 0 ||
+      quarterFilter.includes(e.quarter)
+    ) &&
 
     (!monthFilter ||
       expenseMonth === monthFilter) &&
@@ -488,7 +494,7 @@ if (projectBurnRate > 0) {
   // Clear Filters
   const clearFilters = () => {
   setYearFilter([currentYear])
-  setQuarterFilter([currentQuarter])
+  setQuarterFilter([])
   setMonthFilter('')
   setProjectFilter('All Projects')
   setPurposeFilter('')

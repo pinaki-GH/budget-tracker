@@ -32,7 +32,9 @@ export default function AddExpense() {
     useState('All Projects')
   const [filterPurpose, setFilterPurpose] =
     useState('')
-
+  const [filterMonth, setFilterMonth] =
+  useState('')
+  
   useEffect(() => {
     loadExpenses()
   }, [])
@@ -126,28 +128,74 @@ export default function AddExpense() {
   }
 
   const clearFilters = () => {
-    setFilterYear('')
-    setFilterQuarter('')
-    setFilterProject('All Projects')
-    setFilterPurpose('')
+  setFilterYear('')
+  setFilterQuarter('')
+  setFilterMonth('')
+  setFilterProject('All Projects')
+  setFilterPurpose('')
   }
 
+  const quarterMonths = {
+  Q1: [
+    { value: '01', label: 'January' },
+    { value: '02', label: 'February' },
+    { value: '03', label: 'March' }
+  ],
+  Q2: [
+    { value: '04', label: 'April' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'June' }
+  ],
+  Q3: [
+    { value: '07', label: 'July' },
+    { value: '08', label: 'August' },
+    { value: '09', label: 'September' }
+  ],
+  Q4: [
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' }
+  ]
+}
+
+const allMonths = [
+  ...quarterMonths.Q1,
+  ...quarterMonths.Q2,
+  ...quarterMonths.Q3,
+  ...quarterMonths.Q4
+]
+
+const availableMonths =
+  filterQuarter
+    ? quarterMonths[filterQuarter]
+    : allMonths
+  
   // Filtered Expenses
   const filteredExpenses = expenses.filter((e) => {
-    return (
-      (!filterYear || e.year === filterYear) &&
-      (!filterQuarter ||
-        e.quarter === filterQuarter) &&
 
-      (filterProject === 'All Projects' ||
-        e.project === filterProject) &&
+  const expenseMonth =
+    e.date
+      ? e.date.split('-')[1]
+      : ''
 
-      (!filterPurpose ||
-        e.purpose.toLowerCase().includes(
-          filterPurpose.toLowerCase()
-        ))
-    )
-  })
+  return (
+    (!filterYear || e.year === filterYear) &&
+
+    (!filterQuarter ||
+      e.quarter === filterQuarter) &&
+
+    (!filterMonth ||
+      expenseMonth === filterMonth) &&
+
+    (filterProject === 'All Projects' ||
+      e.project === filterProject) &&
+
+    (!filterPurpose ||
+      e.purpose.toLowerCase().includes(
+        filterPurpose.toLowerCase()
+      ))
+  )
+})
 
   // Totals by currency
   const expenseTotalsByCurrency = {}
@@ -315,6 +363,28 @@ export default function AddExpense() {
           }
           style={{ marginLeft: 10 }}
         >
+
+        <select
+          value={filterMonth}
+          onChange={(e) =>
+            setFilterMonth(e.target.value)
+          }
+          style={{ marginLeft: 10 }}
+        >
+          <option value="">
+          All Months
+          </option>
+
+          {availableMonths.map((month) => (
+          <option
+            key={month.value}
+            value={month.value}
+          >
+          {month.label}
+          </option>
+        ))}
+      </select>
+          
           <option value="">All Quarters</option>
           <option>Q1</option>
           <option>Q2</option>

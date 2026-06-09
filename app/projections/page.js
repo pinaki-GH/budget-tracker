@@ -8,7 +8,7 @@ import {
   saveProjection,
   updateProjection,
   deleteProjection
-} from '../lib/storage'
+} from '../../lib/storage'
 
 export default function ProjectionsPage() {
 

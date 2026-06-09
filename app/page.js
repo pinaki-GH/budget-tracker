@@ -78,25 +78,17 @@ const allMonths = [
 ]
 
 const availableMonths =
-  quarterFilter.length === 1
-    ? quarterMonths[quarterFilter[0]]
-    : allMonths
+  quarterFilter.length === 0
+    ? allMonths
+    : quarterFilter.length === 1
+      ? quarterMonths[quarterFilter[0]]
+      : allMonths
 
   useEffect(() => {
     loadData()
   }, [])
 
-  useEffect(() => {
-
-  if (
-    quarterFilter.length !== 1 &&
-    monthFilter
-  ) {
-    setMonthFilter('')
-  }
-
-}, [quarterFilter, monthFilter])
-
+  
   function loadData() {
     setBudgets(getBudgets())
     setExpenses(getExpenses())

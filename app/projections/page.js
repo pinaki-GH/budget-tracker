@@ -7,7 +7,8 @@ import {
   getProjections,
   saveProjection,
   updateProjection,
-  deleteProjection
+  deleteProjection,
+  getForexRates
 } from '../../lib/storage'
 
 function getWorkDaysInQuarter(
@@ -71,6 +72,7 @@ export default function ProjectionsPage() {
   const [manHourRate, setManHourRate] = useState('')
   const [currency, setCurrency] = useState('SEK')
   const [fteFactor, setFteFactor] = useState('1')
+  const [forexRates, setForexRates] = useState([])
 
   const [editingId, setEditingId] = useState(null)
 
@@ -96,9 +98,35 @@ export default function ProjectionsPage() {
 }, [year, quarter])
   
   function loadData() {
-    setProjections(getProjections())
-  }
 
+  setProjections(
+    getProjections()
+  )
+
+  setForexRates(
+    getForexRates()
+  )
+}
+
+function convertToSEK(
+  amount,
+  currency
+) {
+
+  if (currency === 'SEK')
+    return amount
+
+  const rate =
+    forexRates.find(
+      (r) =>
+        r.currency === currency
+    )
+
+  return rate
+    ? amount * rate.rate
+    : amount
+}
+  
   const projectedBudget =
     Number(workDays || 0) *
     Number(hoursPerDay || 0) *
@@ -210,22 +238,26 @@ export default function ProjectionsPage() {
       )
     })
 
-  const totalProjectedBudget =
-    filteredProjections.reduce(
-      (sum, p) => {
+  const totalProjectedBudgetSEK =
+  filteredProjections.reduce(
+    (sum, p) => {
 
-        return (
-          sum +
-          (
-            p.workDays *
-            p.hoursPerDay *
-            p.manHourRate *
-            p.fteFactor
-          )
+      const projectedBudget =
+        p.workDays *
+        p.hoursPerDay *
+        p.manHourRate *
+        p.fteFactor
+
+      return (
+        sum +
+        convertToSEK(
+          projectedBudget,
+          p.currency
         )
-      },
-      0
-    )
+      )
+    },
+    0
+  )
 
   return (
     <div
@@ -501,12 +533,14 @@ export default function ProjectionsPage() {
       <hr />
 
       <h2>
-        Saved Projections
-        {' '}
-        (
-        {totalProjectedBudget.toFixed(2)}
-        )
-      </h2>
+  Saved Projections
+  {' '}
+  (
+  SEK
+  {' '}
+  {totalProjectedBudgetSEK.toFixed(2)}
+  )
+</h2>
 
       <table
         border="1"

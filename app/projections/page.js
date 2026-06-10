@@ -86,21 +86,26 @@ export default function ProjectionsPage() {
   const [forexRates, setForexRates] = useState([])
 
   const [serviceProjections, setServiceProjections] = useState([])
-  const [serviceYear, setServiceYear] = useState(year)
+  const [serviceYear, setServiceYear] = useState('2026')
   const [serviceQuarter, setServiceQuarter] = useState('Q1')
   const [serviceProject, setServiceProject] = useState('')
   const [servicePurpose, setServicePurpose] = useState('')
   const [serviceCurrency, setServiceCurrency] = useState('SEK')
   const [serviceBudget, setServiceBudget] = useState('')
-  
   const [editingServiceId, setEditingServiceId] = useState(null)
+  
   const [editingId, setEditingId] = useState(null)
 
   // Filters
   const [filterYear, setFilterYear] = useState('')
   const [filterQuarter, setFilterQuarter] = useState('')
-  const [filterProject, setFilterProject] =
-    useState('All Projects')
+  const [filterProject, setFilterProject] = useState('All Projects')
+  const [filterPurpose, setFilterPurpose] = useState('')
+
+  const [serviceFilterYear, setServiceFilterYear] = useState('')
+  const [serviceFilterQuarter, setServiceFilterQuarter] = useState('')
+  const [serviceFilterProject, setServiceFilterProject] = useState('All Projects')
+  const [serviceFilterPurpose, setServiceFilterPurpose] = useState('')
 
   useEffect(() => {
     loadData()
@@ -190,6 +195,23 @@ const totalServiceSEK =
     setEditingId(null)
   }
 
+  function clearServiceForm() {
+
+  setServiceYear('2026')
+
+  setServiceQuarter('Q1')
+
+  setServiceProject('')
+
+  setServicePurpose('')
+
+  setServiceCurrency('SEK')
+
+  setServiceBudget('')
+
+  setEditingServiceId(null)
+}
+  
   function handleSave() {
 
     const record = {
@@ -273,6 +295,8 @@ const totalServiceSEK =
   }
 
   loadData()
+
+  clearServiceForm()
 }
   
   function handleEdit(item) {
@@ -295,6 +319,39 @@ const totalServiceSEK =
     setFteFactor(item.fteFactor)
   }
 
+  function handleEditService(
+  item
+) {
+
+  setEditingServiceId(
+    item.id
+  )
+
+  setServiceYear(
+    item.year
+  )
+
+  setServiceQuarter(
+    item.quarter
+  )
+
+  setServiceProject(
+    item.project
+  )
+
+  setServicePurpose(
+    item.purpose
+  )
+
+  setServiceCurrency(
+    item.currency
+  )
+
+  setServiceBudget(
+    item.projectedBudget
+  )
+}
+  
   function handleDelete(id) {
 
     if (
@@ -310,6 +367,25 @@ const totalServiceSEK =
     loadData()
   }
 
+  function handleDeleteService(
+  id
+) {
+
+  if (
+    !confirm(
+      'Delete service projection?'
+    )
+  ) {
+    return
+  }
+
+  deleteServiceProjection(
+    id
+  )
+
+  loadData()
+}
+  
   const filteredProjections =
     projections.filter((p) => {
 
@@ -330,6 +406,47 @@ const totalServiceSEK =
         )
       )
     })
+
+  const filteredServiceProjections =
+  serviceProjections.filter(
+    (item) => {
+
+      return (
+
+        (!serviceFilterYear ||
+          item.year ===
+          serviceFilterYear)
+
+        &&
+
+        (!serviceFilterQuarter ||
+          item.quarter ===
+          serviceFilterQuarter)
+
+        &&
+
+        (!serviceFilterProject ||
+
+          item.project
+            .toLowerCase()
+            .includes(
+              serviceFilterProject
+                .toLowerCase()
+            ))
+
+        &&
+
+        (!serviceFilterPurpose ||
+
+          item.purpose
+            .toLowerCase()
+            .includes(
+              serviceFilterPurpose
+                .toLowerCase()
+            ))
+      )
+    }
+  )
 
   const totalProjectedBudgetSEK =
   filteredProjections.reduce(
@@ -352,6 +469,22 @@ const totalServiceSEK =
     0
   )
 
+  const totalServiceSEK =
+  filteredServiceProjections.reduce(
+    (sum, item) => {
+
+      return (
+        sum +
+        convertToSEK(
+          item.projectedBudget,
+          item.currency
+        )
+      )
+
+    },
+    0
+  )
+  
   return (
     <div
       style={{

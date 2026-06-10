@@ -104,7 +104,7 @@ export default function ProjectionsPage() {
 
   const [serviceFilterYear, setServiceFilterYear] = useState('')
   const [serviceFilterQuarter, setServiceFilterQuarter] = useState('')
-  const [serviceFilterProject, setServiceFilterProject] = useState('All Projects')
+  const [serviceFilterProject, setServiceFilterProject] = useState('')
   const [serviceFilterPurpose, setServiceFilterPurpose] = useState('')
 
   useEffect(() => {

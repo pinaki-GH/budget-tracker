@@ -534,7 +534,7 @@ function convertToSEK(
       <hr />
 
       <h2>
-        Add Projection
+        Add Staff Cost Projection
       </h2>
 
       <div
@@ -892,7 +892,7 @@ function convertToSEK(
 </h1>
 
 <h2>
-  Add Service Projection
+  Add Service Cost Projection
 </h2>
 
 <div
@@ -1078,13 +1078,11 @@ function convertToSEK(
     <hr />
 
 <h2>
-  Saved Service Cost Projections
+  Saved Projections (Service Cost):
   {' '}
-  (
   SEK
   {' '}
   {totalServiceSEK.toFixed(2)}
-  )
 </h2>
 
 <table

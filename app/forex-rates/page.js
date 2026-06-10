@@ -99,7 +99,7 @@ export default function ForexRates() {
       <div style={{ marginBottom: 20 }}>
 
         <Link href="/">
-          <button>Home</button>
+          <button>Dashboard</button>
         </Link>
 
         <Link href="/add-budget" style={{ marginLeft: 10 }}>
@@ -109,6 +109,11 @@ export default function ForexRates() {
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
           <button>Expense</button>
         </Link>
+
+        <Link href="/projections" style={{ marginLeft: 10 }}>
+          <button>Projections</button>
+        </Link>
+        
       </div>
 
       <h1>Forex Rates</h1>

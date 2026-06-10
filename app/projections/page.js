@@ -561,7 +561,7 @@ function convertToSEK(
   Saved Projections (Staff Cost):
   {' '}
   (
-  SEK
+    SEK
   {' '}
   {totalProjectedBudgetSEK.toFixed(2)}
   )

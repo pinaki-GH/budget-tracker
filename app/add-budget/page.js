@@ -181,6 +181,11 @@ export default function AddBudget() {
         <Link href="/forex-rates" style={{ marginLeft: 10 }}>
           <button>Forex Rates</button>
         </Link>
+
+        <Link href="/projections" style={{ marginLeft: 10 }}>
+          <button>Projections</button>
+        </Link>
+        
       </div>
 
       <h1>{editingId ? 'Edit Budget' : 'Budget'}</h1>

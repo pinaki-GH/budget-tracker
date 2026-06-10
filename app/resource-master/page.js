@@ -14,30 +14,24 @@ export default function ResourceMasterPage() {
 
   const [resources, setResources] = useState([])
 
-  const [resourceName, setResourceName] =
-    useState('')
+  const [resourceName, setResourceName] = useState('')
 
-  const [hoursPerDay, setHoursPerDay] =
-    useState('8')
+  const [purpose, setPurpose] = useState('')
 
-  const [manHourRate, setManHourRate] =
-    useState('')
+  const [hoursPerDay, setHoursPerDay] = useState('8')
 
-  const [currency, setCurrency] =
-    useState('SEK')
+  const [manHourRate, setManHourRate] = useState('')
 
-  const [active, setActive] =
-    useState(true)
+  const [currency, setCurrency] = useState('SEK')
 
-  const [editingId, setEditingId] =
-    useState(null)
+  const [active, setActive] = useState(true)
+
+  const [editingId, setEditingId] = useState(null)
 
   // Filters
-  const [filterResource, setFilterResource] =
-    useState('')
+  const [filterResource, setFilterResource] = useState('')
 
-  const [filterCurrency, setFilterCurrency] =
-    useState('')
+  const [filterCurrency, setFilterCurrency] = useState('')
 
   useEffect(() => {
     loadData()
@@ -50,6 +44,7 @@ export default function ResourceMasterPage() {
   function clearForm() {
 
     setResourceName('')
+    setPurpose('')
     setHoursPerDay('8')
     setManHourRate('')
     setCurrency('SEK')
@@ -71,27 +66,34 @@ export default function ResourceMasterPage() {
       return
     }
 
+    if (!purpose.trim()) {
+      alert('Please enter Purpose')
+      return
+    }
+    
     if (!manHourRate) {
       alert('Please enter Man Hour Rate')
       return
     }
 
     const record = {
-      id: editingId || Date.now(),
+  id: editingId || Date.now(),
 
-      resourceName:
-        resourceName.trim(),
+  resourceName:
+    resourceName.trim(),
 
-      hoursPerDay:
-        Number(hoursPerDay),
+  purpose,
 
-      manHourRate:
-        Number(manHourRate),
+  hoursPerDay:
+    Number(hoursPerDay),
 
-      currency,
+  manHourRate:
+    Number(manHourRate),
 
-      active
-    }
+  currency,
+
+  active
+}
 
     if (editingId) {
 
@@ -115,6 +117,10 @@ export default function ResourceMasterPage() {
 
     setResourceName(
       resource.resourceName
+    )
+
+    setPurpose(
+      resource.purpose || ''
     )
 
     setHoursPerDay(
@@ -263,6 +269,16 @@ export default function ResourceMasterPage() {
           value={resourceName}
           onChange={(e) =>
             setResourceName(
+              e.target.value
+            )
+          }
+        />
+
+        <input
+          placeholder="Purpose"
+          value={purpose}
+          onChange={(e) =>
+            setPurpose(
               e.target.value
             )
           }
@@ -432,6 +448,10 @@ export default function ResourceMasterPage() {
             </th>
 
             <th>
+              Purpose
+            </th>
+            
+            <th>
               Hours / Day
             </th>
 
@@ -465,6 +485,12 @@ export default function ResourceMasterPage() {
                 <td>
                   {
                     resource.resourceName
+                  }
+                </td>
+
+                <td>
+                  {
+                    resource.purpose
                   }
                 </td>
 

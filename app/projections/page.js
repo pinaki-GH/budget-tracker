@@ -315,6 +315,10 @@ function convertToSEK(
           </button>
         </Link>
 
+        <Link href="/resource-master" style={{ marginLeft: 10 }}>
+          <button>Resource Master</button>
+        </Link>
+
       </div>
 
       <hr />

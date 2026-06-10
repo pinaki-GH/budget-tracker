@@ -81,6 +81,15 @@ export default function ProjectionsPage() {
   const [fteFactor, setFteFactor] = useState('1')
   const [forexRates, setForexRates] = useState([])
 
+  const [serviceProjections, setServiceProjections] = useState([])
+  const [serviceYear, setServiceYear] = useState(year)
+  const [serviceQuarter, setServiceQuarter] = useState('Q1')
+  const [serviceProject, setServiceProject] = useState('')
+  const [servicePurpose, setServicePurpose] = useState('')
+  const [serviceCurrency, setServiceCurrency] = useState('SEK')
+  const [serviceBudget, setServiceBudget] = useState('')
+  
+  const [editingServiceId, setEditingServiceId] = useState(null)
   const [editingId, setEditingId] = useState(null)
 
   // Filters
@@ -117,6 +126,11 @@ export default function ProjectionsPage() {
   setResources(
     getResources()
   )
+
+  setServiceProjections(
+    getServiceProjections()
+  )
+
 }
 
 function convertToSEK(
@@ -144,6 +158,22 @@ function convertToSEK(
     Number(manHourRate || 0) *
     Number(fteFactor || 0)
 
+const totalServiceSEK =
+  serviceProjections.reduce(
+    (sum, item) => {
+
+      return (
+        sum +
+        convertToSEK(
+          item.projectedBudget,
+          item.currency
+        )
+      )
+
+    },
+    0
+  )
+  
   function clearForm() {
 
     setYear('2026')
@@ -196,6 +226,54 @@ function convertToSEK(
     clearForm()
   }
 
+  function handleSaveService() {
+
+  const record = {
+
+    id:
+      editingServiceId ||
+      Date.now(),
+
+    year:
+      serviceYear,
+
+    quarter:
+      serviceQuarter,
+
+    project:
+      serviceProject,
+
+    purpose:
+      servicePurpose,
+
+    currency:
+      serviceCurrency,
+
+    projectedBudget:
+      Number(
+        serviceBudget
+      )
+  }
+
+  if (
+    editingServiceId
+  ) {
+
+    updateServiceProjection(
+      editingServiceId,
+      record
+    )
+
+  } else {
+
+    saveServiceProjection(
+      record
+    )
+  }
+
+  loadData()
+}
+  
   function handleEdit(item) {
 
     setEditingId(item.id)
@@ -564,6 +642,14 @@ function convertToSEK(
   {' '}
   {totalProjectedBudgetSEK.toFixed(2)}
 </h2>
+
+  <h2>
+  Service Cost Projections
+  {' '}
+  SEK
+  {' '}
+  {totalServiceSEK.toFixed(2)}
+  </h2>
 
       <table
         border="1"

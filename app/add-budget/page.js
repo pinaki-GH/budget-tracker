@@ -182,6 +182,10 @@ export default function AddBudget() {
           <button>Forex Rates</button>
         </Link>
 
+        <Link href="/resource-master" style={{ marginLeft: 10 }}>
+          <button>Resource Master</button>
+        </Link>
+
         <Link href="/projections" style={{ marginLeft: 10 }}>
           <button>Projections</button>
         </Link>

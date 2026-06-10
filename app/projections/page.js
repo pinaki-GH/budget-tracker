@@ -9,7 +9,11 @@ import {
   updateProjection,
   deleteProjection,
   getForexRates,
-  getResources
+  getResources,
+  getServiceProjections,
+  saveServiceProjection,
+  updateServiceProjection,
+  deleteServiceProjection
 } from '../../lib/storage'
 
 function getWorkDaysInQuarter(
@@ -181,9 +185,6 @@ const totalServiceSEK =
     setProject('')
     setResource('')
     setWorkDays(getWorkDaysInQuarter(year, quarter))
-    setHoursPerDay('8')
-    setManHourRate('')
-    setCurrency('SEK')
     setFteFactor('1')
 
     setEditingId(null)
@@ -284,7 +285,7 @@ const totalServiceSEK =
     setProject(item.project)
     setResource(item.resource)
 
-    setWorkDays(item.workDays)
+    // setWorkDays(item.workDays)
     // setHoursPerDay(item.hoursPerDay)
 
     // setManHourRate(item.manHourRate)

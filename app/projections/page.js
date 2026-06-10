@@ -560,11 +560,9 @@ function convertToSEK(
       <h2>
   Saved Projections (Staff Cost):
   {' '}
-  (
-    SEK
+  SEK
   {' '}
   {totalProjectedBudgetSEK.toFixed(2)}
-  )
 </h2>
 
       <table

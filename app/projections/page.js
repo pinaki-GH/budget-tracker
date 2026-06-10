@@ -167,22 +167,6 @@ function convertToSEK(
     Number(manHourRate || 0) *
     Number(fteFactor || 0)
 
-const totalServiceSEK =
-  serviceProjections.reduce(
-    (sum, item) => {
-
-      return (
-        sum +
-        convertToSEK(
-          item.projectedBudget,
-          item.currency
-        )
-      )
-
-    },
-    0
-  )
-  
   function clearForm() {
 
     setYear('2026')
@@ -777,14 +761,6 @@ const totalServiceSEK =
   {totalProjectedBudgetSEK.toFixed(2)}
 </h2>
 
-  <h2>
-  Service Cost Projections
-  {' '}
-  SEK
-  {' '}
-  {totalServiceSEK.toFixed(2)}
-  </h2>
-
       <table
         border="1"
         cellPadding="8"
@@ -909,6 +885,296 @@ const totalServiceSEK =
 
       </table>
 
+    <hr />
+
+<h1>
+  Service Cost Projection
+</h1>
+
+<h2>
+  Add Service Projection
+</h2>
+
+<div
+  style={{
+    display: 'grid',
+    gridTemplateColumns:
+      'repeat(3, 1fr)',
+    gap: 10,
+    maxWidth: 900
+  }}
+>
+
+  <select
+    value={serviceYear}
+    onChange={(e) =>
+      setServiceYear(
+        e.target.value
+      )
+    }
+  >
+    <option>2025</option>
+    <option>2026</option>
+    <option>2027</option>
+  </select>
+
+  <select
+    value={serviceQuarter}
+    onChange={(e) =>
+      setServiceQuarter(
+        e.target.value
+      )
+    }
+  >
+    <option>Q1</option>
+    <option>Q2</option>
+    <option>Q3</option>
+    <option>Q4</option>
+  </select>
+
+  <input
+    placeholder="Project"
+    value={serviceProject}
+    onChange={(e) =>
+      setServiceProject(
+        e.target.value
+      )
+    }
+  />
+
+  <input
+    placeholder="Purpose"
+    value={servicePurpose}
+    onChange={(e) =>
+      setServicePurpose(
+        e.target.value
+      )
+    }
+  />
+
+  <select
+    value={serviceCurrency}
+    onChange={(e) =>
+      setServiceCurrency(
+        e.target.value
+      )
+    }
+  >
+    <option>SEK</option>
+    <option>USD</option>
+    <option>EUR</option>
+    <option>INR</option>
+  </select>
+
+  <input
+    type="number"
+    placeholder="Projected Budget"
+    value={serviceBudget}
+    onChange={(e) =>
+      setServiceBudget(
+        e.target.value
+      )
+    }
+  />
+
+</div>
+
+<br />
+
+<button
+  onClick={handleSaveService}
+>
+  {editingServiceId
+    ? 'Update Service Projection'
+    : 'Save Service Projection'}
+</button>
+
+  <hr />
+
+<h2>
+  Service Cost Filters
+</h2>
+
+<select
+  value={serviceFilterYear}
+  onChange={(e) =>
+    setServiceFilterYear(
+      e.target.value
+    )
+  }
+>
+  <option value="">
+    All Years
+  </option>
+
+  <option>2025</option>
+  <option>2026</option>
+  <option>2027</option>
+</select>
+
+<select
+  value={serviceFilterQuarter}
+  onChange={(e) =>
+    setServiceFilterQuarter(
+      e.target.value
+    )
+  }
+  style={{
+    marginLeft: 10
+  }}
+>
+  <option value="">
+    All Quarters
+  </option>
+
+  <option>Q1</option>
+  <option>Q2</option>
+  <option>Q3</option>
+  <option>Q4</option>
+</select>
+
+<input
+  placeholder="Project"
+  value={serviceFilterProject}
+  onChange={(e) =>
+    setServiceFilterProject(
+      e.target.value
+    )
+  }
+  style={{
+    marginLeft: 10
+  }}
+/>
+
+<input
+  placeholder="Purpose"
+  value={serviceFilterPurpose}
+  onChange={(e) =>
+    setServiceFilterPurpose(
+      e.target.value
+    )
+  }
+  style={{
+    marginLeft: 10
+  }}
+/>
+
+<button
+  onClick={() => {
+
+    setServiceFilterYear('')
+    setServiceFilterQuarter('')
+    setServiceFilterProject('')
+    setServiceFilterPurpose('')
+
+  }}
+  style={{
+    marginLeft: 10
+  }}
+>
+  Clear Filter
+</button>
+
+    <hr />
+
+<h2>
+  Saved Service Cost Projections
+  {' '}
+  (
+  SEK
+  {' '}
+  {totalServiceSEK.toFixed(2)}
+  )
+</h2>
+
+<table
+  border="1"
+  cellPadding="8"
+  style={{
+    borderCollapse:
+      'collapse',
+    width: '100%'
+  }}
+>
+
+  <thead>
+    <tr>
+      <th>Year</th>
+      <th>Quarter</th>
+      <th>Project</th>
+      <th>Purpose</th>
+      <th>Currency</th>
+      <th>Budget</th>
+      <th>Budget (SEK)</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    {filteredServiceProjections.map(
+      (item) => (
+
+        <tr key={item.id}>
+
+          <td>{item.year}</td>
+
+          <td>{item.quarter}</td>
+
+          <td>{item.project}</td>
+
+          <td>{item.purpose}</td>
+
+          <td>{item.currency}</td>
+
+          <td>
+            {item.projectedBudget}
+          </td>
+
+          <td>
+            {
+              convertToSEK(
+                item.projectedBudget,
+                item.currency
+              ).toFixed(2)
+            }
+          </td>
+
+          <td>
+
+            <button
+              onClick={() =>
+                handleEditService(
+                  item
+                )
+              }
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={() =>
+                handleDeleteService(
+                  item.id
+                )
+              }
+              style={{
+                marginLeft: 5
+              }}
+            >
+              Delete
+            </button>
+
+          </td>
+
+        </tr>
+      )
+    )}
+
+  </tbody>
+
+</table>
+          
     </div>
   )
 }

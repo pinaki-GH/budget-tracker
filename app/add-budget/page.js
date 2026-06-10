@@ -171,7 +171,7 @@ export default function AddBudget() {
       {/* Navigation */}
       <div style={{ marginBottom: 20 }}>
         <Link href="/">
-          <button>Home</button>
+          <button>Dashboard</button>
         </Link>
 
         <Link href="/add-expense" style={{ marginLeft: 10 }}>

@@ -8,7 +8,8 @@ import {
   saveProjection,
   updateProjection,
   deleteProjection,
-  getForexRates
+  getForexRates,
+  getResources
 } from '../../lib/storage'
 
 function getWorkDaysInQuarter(
@@ -62,15 +63,21 @@ function getWorkDaysInQuarter(
 export default function ProjectionsPage() {
 
   const [projections, setProjections] = useState([])
+  const [resources, setResources] = useState([])
 
   const [year, setYear] = useState('2026')
   const [quarter, setQuarter] = useState('Q1')
   const [project, setProject] = useState('')
   const [resource, setResource] = useState('')
+  const selectedResource = resources.find((r) => r.resourceName === resource)
+  const hoursPerDay = selectedResource?.hoursPerDay || 0
+  const manHourRate = selectedResource?.manHourRate || 0
+  const currency = selectedResource?.currency || ''
+  const purpose = selectedResource?.purpose || ''
   const [workDays, setWorkDays] = useState(0)
-  const [hoursPerDay, setHoursPerDay] = useState('8')
-  const [manHourRate, setManHourRate] = useState('')
-  const [currency, setCurrency] = useState('SEK')
+  // const [hoursPerDay, setHoursPerDay] = useState('8')
+  // const [manHourRate, setManHourRate] = useState('')
+  // const [currency, setCurrency] = useState('SEK')
   const [fteFactor, setFteFactor] = useState('1')
   const [forexRates, setForexRates] = useState([])
 
@@ -105,6 +112,10 @@ export default function ProjectionsPage() {
 
   setForexRates(
     getForexRates()
+  )
+
+  setResources(
+    getResources()
   )
 }
 
@@ -151,23 +162,26 @@ function convertToSEK(
   function handleSave() {
 
     const record = {
-      id: editingId || Date.now(),
+  id: editingId || Date.now(),
 
-      year,
-      quarter,
+  year,
+  quarter,
 
-      project,
-      resource,
+  project,
 
-      workDays: Number(workDays),
-      hoursPerDay: Number(hoursPerDay),
+  resource,
+  purpose,
 
-      manHourRate: Number(manHourRate),
+  workDays,
 
-      currency,
+  hoursPerDay,
 
-      fteFactor: Number(fteFactor)
-    }
+  manHourRate,
+
+  currency,
+
+  fteFactor
+}
 
     if (editingId) {
       updateProjection(
@@ -193,11 +207,11 @@ function convertToSEK(
     setResource(item.resource)
 
     setWorkDays(item.workDays)
-    setHoursPerDay(item.hoursPerDay)
+    // setHoursPerDay(item.hoursPerDay)
 
-    setManHourRate(item.manHourRate)
+    // setManHourRate(item.manHourRate)
 
-    setCurrency(item.currency)
+    // setCurrency(item.currency)
 
     setFteFactor(item.fteFactor)
   }
@@ -374,15 +388,43 @@ function convertToSEK(
           }
         />
 
-        <input
-          placeholder="Resource"
-          value={resource}
-          onChange={(e) =>
-            setResource(
-              e.target.value
-            )
-          }
-        />
+        <select
+  value={resource}
+  onChange={(e) =>
+    setResource(
+      e.target.value
+    )
+  }
+>
+
+  <option value="">
+    Select Resource
+  </option>
+
+  {resources
+    .filter(
+      (r) => r.active
+    )
+    .map((r) => (
+
+      <option
+        key={r.id}
+        value={
+          r.resourceName
+        }
+      >
+        {r.resourceName}
+      </option>
+
+    ))}
+
+</select>
+
+      <input
+  value={purpose}
+  readOnly
+  placeholder="Purpose"
+/>
 
         <input
           value={workDays}
@@ -390,40 +432,19 @@ function convertToSEK(
         />
 
         <input
-          type="number"
-          placeholder="Hours Per Day"
-          value={hoursPerDay}
-          onChange={(e) =>
-            setHoursPerDay(
-              e.target.value
-            )
-          }
-        />
+  value={hoursPerDay}
+  readOnly
+/>
 
         <input
-          type="number"
-          placeholder="Man Hour Rate"
-          value={manHourRate}
-          onChange={(e) =>
-            setManHourRate(
-              e.target.value
-            )
-          }
-        />
+  value={manHourRate}
+  readOnly
+/>
 
-        <select
-          value={currency}
-          onChange={(e) =>
-            setCurrency(
-              e.target.value
-            )
-          }
-        >
-          <option>SEK</option>
-          <option>USD</option>
-          <option>EUR</option>
-          <option>INR</option>
-        </select>
+        <input
+  value={currency}
+  readOnly
+/>
 
         <input
           type="number"
@@ -562,6 +583,7 @@ function convertToSEK(
             <th>Quarter</th>
             <th>Project</th>
             <th>Resource</th>
+            <th>Purpose</th>
             <th>Days</th>
             <th>Hours</th>
             <th>Rate</th>
@@ -605,6 +627,10 @@ function convertToSEK(
                     {item.resource}
                   </td>
 
+                  <td>
+                    {item.purpose}
+                  </td>
+            
                   <td>
                     {item.workDays}
                   </td>

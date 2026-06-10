@@ -558,7 +558,7 @@ function convertToSEK(
       <hr />
 
       <h2>
-  Saved Projections
+  Saved Projections (Staff Cost)
   {' '}
   (
   SEK

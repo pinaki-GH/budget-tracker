@@ -128,6 +128,9 @@ export default function ProjectionsPage() {
   actions: true
 })
 
+  const centerCell = {
+  textAlign: 'center'
+}
   // const [serviceFilterYear, setServiceFilterYear] = useState('')
   // const [serviceFilterQuarter, setServiceFilterQuarter] = useState('')
   // const [serviceFilterProject, setServiceFilterProject] = useState('')
@@ -1173,40 +1176,40 @@ function convertToSEK(
           <tr>
 
   {staffColumns.year &&
-    <th>Year</th>}
+    <th style={centerCell}>Year</th>}
 
   {staffColumns.quarter &&
-    <th>Quarter</th>}
+    <th style={centerCell}>Quarter</th>}
 
   {staffColumns.project &&
-    <th>Project</th>}
+    <th style={centerCell}>Project</th>}
 
   {staffColumns.resource &&
-    <th>Resource</th>}
+    <th style={centerCell}>Resource</th>}
 
   {staffColumns.purpose &&
-    <th>Purpose</th>}
+    <th style={centerCell}>Purpose</th>}
 
   {staffColumns.days &&
-    <th>Days</th>}
+    <th style={centerCell}>Days</th>}
 
   {staffColumns.hours &&
-    <th>Hours</th>}
+    <th style={centerCell}>Hours</th>}
 
   {staffColumns.rate &&
-    <th>Rate</th>}
+    <th style={centerCell}>Rate</th>}
 
   {staffColumns.currency &&
-    <th>Currency</th>}
+    <th style={centerCell}>Currency</th>}
 
   {staffColumns.fte &&
-    <th>FTE</th>}
+    <th style={centerCell}>FTE</th>}
 
   {staffColumns.budget &&
-    <th>Projected Budget</th>}
+    <th style={centerCell}>Projected Budget</th>}
 
   {staffColumns.actions &&
-    <th>Actions</th>}
+    <th style={centerCell}>Actions</th>}
 
 </tr>
         </thead>
@@ -1229,21 +1232,15 @@ function convertToSEK(
                 >
 
                 {staffColumns.year &&
-                  <td>
-                    {item.year}
-                  </td>
+                  <td style={centerCell}>{item.year}</td>
                 }
 
                 {staffColumns.quarter &&
-                  <td>
-                    {item.quarter}
-                  </td>
+                  <td style={centerCell}>{item.quarter}</td>
                 }
 
                {staffColumns.project &&
-                  <td>
-                    {item.project}
-                  </td>
+                  <td style={centerCell}>{item.project}</td>
                }
 
                {staffColumns.resource &&
@@ -1259,43 +1256,31 @@ function convertToSEK(
                }
 
                {staffColumns.days &&
-                  <td>
-                    {item.workDays}
-                  </td>
+                  <td style={centerCell}>{item.workDays}</td>
                }
 
                {staffColumns.hours &&
-                  <td>
-                    {item.hoursPerDay}
-                  </td>
+                  <td style={centerCell}>{item.hoursPerDay}</td>
                }
 
                {staffColumns.rate &&
-                  <td>
-                    {item.manHourRate}
-                  </td>
+                  <td style={centerCell}>{item.manHourRate}</td>
                }
 
                {staffColumns.currency &&
-                  <td>
-                    {item.currency}
-                  </td>
+                  <td style={centerCell}>{item.currency}</td>
                }
 
                {staffColumns.fte &&
-                  <td>
-                    {item.fteFactor}
-                  </td>
+                  <td style={centerCell}>{item.fteFactor}</td>
                }
    
                 {staffColumns.budget &&
-                  <td>
-                    {budget.toFixed(2)}
-                  </td>
+                  <td style={centerCell}>{budget.toFixed(2)}</td>
                 }
 
                   {staffColumns.actions &&
-  <td>
+  <td style={centerCell}>
 
     <button
       onClick={() =>
@@ -1453,13 +1438,13 @@ function convertToSEK(
 
   <thead>
     <tr>
-      <th>Year</th>
-      <th>Quarter</th>
-      <th>Project</th>
-      <th>Purpose</th>
-      <th>Currency</th>
-      <th>Projected Budget</th>
-      <th>Actions</th>
+      <th style={centerCell}>Year</th>
+      <th style={centerCell}>Quarter</th>
+      <th style={centerCell}>Project</th>
+      <th style={centerCell}>Purpose</th>
+      <th style={centerCell}>Currency</th>
+      <th style={centerCell}>Projected Budget</th>
+      <th style={centerCell}>Actions</th>
     </tr>
   </thead>
 
@@ -1470,19 +1455,19 @@ function convertToSEK(
 
         <tr key={item.id}>
 
-          <td>{item.year}</td>
+          <td style={centerCell}>{item.year}</td>
 
-          <td>{item.quarter}</td>
+          <td style={centerCell}>{item.quarter}</td>
 
-          <td>{item.project}</td>
+          <td style={centerCell}>{item.project}</td>
 
           <td>{item.purpose}</td>
 
-          <td>{item.currency}</td>
+          <td style={centerCell}>{item.currency}</td>
 
-          <td>{Number(item.projectedBudget).toFixed(2)}</td>
+          <td style={centerCell}>{Number(item.projectedBudget).toFixed(2)}</td>
 
-          <td>
+          <td style={centerCell}>
 
             <button
               onClick={() =>

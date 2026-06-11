@@ -973,19 +973,19 @@ function convertToSEK(
                   </td>
                }
 
-               {staffColumns.workDays &&
+               {staffColumns.days &&
                   <td>
                     {item.workDays}
                   </td>
                }
 
-               {staffColumns.hoursPerDay &&
+               {staffColumns.hours &&
                   <td>
                     {item.hoursPerDay}
                   </td>
                }
 
-               {staffColumns.manHourRate &&
+               {staffColumns.rate &&
                   <td>
                     {item.manHourRate}
                   </td>
@@ -997,43 +997,42 @@ function convertToSEK(
                   </td>
                }
 
-               {staffColumns.fteFactor &&
+               {staffColumns.fte &&
                   <td>
                     {item.fteFactor}
                   </td>
                }
    
+                {staffColumns.budget &&
                   <td>
                     {budget.toFixed(2)}
                   </td>
+                }
 
-                  <td>
+                  {staffColumns.actions &&
+  <td>
 
-                    <button
-                      onClick={() =>
-                        handleEdit(
-                          item
-                        )
-                      }
-                    >
-                      Edit
-                    </button>
+    <button
+      onClick={() =>
+        handleEdit(item)
+      }
+    >
+      Edit
+    </button>
 
-                    <button
-                      onClick={() =>
-                        handleDelete(
-                          item.id
-                        )
-                      }
-                      style={{
-                        marginLeft: 5
-                      }}
-                    >
-                      Delete
-                    </button>
+    <button
+      onClick={() =>
+        handleDelete(item.id)
+      }
+      style={{
+        marginLeft: 5
+      }}
+    >
+      Delete
+    </button>
 
-                  </td>
-
+  </td>
+}
                 </tr>
               )
             }

@@ -102,6 +102,32 @@ export default function ProjectionsPage() {
   const [filterProject, setFilterProject] = useState('All Projects')
   const [filterPurpose, setFilterPurpose] = useState('')
 
+  const [staffColumns, setStaffColumns] = useState({
+  year: true,
+  quarter: true,
+  project: true,
+  resource: true,
+  purpose: true,
+  days: true,
+  hours: true,
+  rate: true,
+  currency: true,
+  fte: true,
+  budget: true,
+  actions: true
+})
+
+  const [serviceColumns, setServiceColumns] = useState({
+  year: true,
+  quarter: true,
+  project: true,
+  purpose: true,
+  currency: true,
+  budget: true,
+  budgetSEK: true,
+  actions: true
+})
+
   // const [serviceFilterYear, setServiceFilterYear] = useState('')
   // const [serviceFilterQuarter, setServiceFilterQuarter] = useState('')
   // const [serviceFilterProject, setServiceFilterProject] = useState('')
@@ -794,7 +820,52 @@ function convertToSEK(
         
       <hr />
 
-       
+<div
+  style={{
+    marginBottom: 15,
+    padding: 10,
+    border: '1px solid #ddd'
+  }}
+>
+  <strong>
+    Show / Hide Staff Cost Columns
+  </strong>
+
+  <div
+    style={{
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: 10,
+      marginTop: 10
+    }}
+  >
+
+    {Object.keys(staffColumns).map((key) => (
+
+      <label key={key}>
+
+        <input
+          type="checkbox"
+          checked={staffColumns[key]}
+          onChange={() =>
+            setStaffColumns({
+              ...staffColumns,
+              [key]:
+                !staffColumns[key]
+            })
+          }
+        />
+
+        {' '}
+        {key}
+
+      </label>
+
+    ))}
+
+  </div>
+</div>
+    
       <h2>
   Saved Projections (Staff Cost):
   {' '}
@@ -815,19 +886,44 @@ function convertToSEK(
 
         <thead>
           <tr>
-            <th>Year</th>
-            <th>Quarter</th>
-            <th>Project</th>
-            <th>Resource</th>
-            <th>Purpose</th>
-            <th>Days</th>
-            <th>Hours</th>
-            <th>Rate</th>
-            <th>Currency</th>
-            <th>FTE</th>
-            <th>Projected Budget</th>
-            <th>Actions</th>
-          </tr>
+
+  {staffColumns.year &&
+    <th>Year</th>}
+
+  {staffColumns.quarter &&
+    <th>Quarter</th>}
+
+  {staffColumns.project &&
+    <th>Project</th>}
+
+  {staffColumns.resource &&
+    <th>Resource</th>}
+
+  {staffColumns.purpose &&
+    <th>Purpose</th>}
+
+  {staffColumns.days &&
+    <th>Days</th>}
+
+  {staffColumns.hours &&
+    <th>Hours</th>}
+
+  {staffColumns.rate &&
+    <th>Rate</th>}
+
+  {staffColumns.currency &&
+    <th>Currency</th>}
+
+  {staffColumns.fte &&
+    <th>FTE</th>}
+
+  {staffColumns.budget &&
+    <th>Projected Budget</th>}
+
+  {staffColumns.actions &&
+    <th>Actions</th>}
+
+</tr>
         </thead>
 
         <tbody>
@@ -847,46 +943,66 @@ function convertToSEK(
                   key={item.id}
                 >
 
+                {staffColumns.year &&
                   <td>
                     {item.year}
                   </td>
+                }
 
+                {staffColumns.quarter &&
                   <td>
                     {item.quarter}
                   </td>
+                }
 
+               {staffColumns.project &&
                   <td>
                     {item.project}
                   </td>
+               }
 
+               {staffColumns.resource &&
                   <td>
                     {item.resource}
                   </td>
+               }
 
+               {staffColumns.purpose &&
                   <td>
                     {item.purpose}
                   </td>
-            
+               }
+
+               {staffColumns.workDays &&
                   <td>
                     {item.workDays}
                   </td>
+               }
 
+               {staffColumns.hoursPerDay &&
                   <td>
                     {item.hoursPerDay}
                   </td>
+               }
 
+               {staffColumns.manHourRate &&
                   <td>
                     {item.manHourRate}
                   </td>
+               }
 
+               {staffColumns.currency &&
                   <td>
                     {item.currency}
                   </td>
+               }
 
+               {staffColumns.fteFactor &&
                   <td>
                     {item.fteFactor}
                   </td>
-
+               }
+   
                   <td>
                     {budget.toFixed(2)}
                   </td>

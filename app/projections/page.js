@@ -395,7 +395,252 @@ function convertToSEK(
 
   loadData()
 }
-  
+
+  function exportStaffCostCSV() {
+
+  const rows = filteredProjections.map(
+    (item) => {
+
+      const budget =
+        item.workDays *
+        item.hoursPerDay *
+        item.manHourRate *
+        item.fteFactor
+
+      return [
+        item.year,
+        item.quarter,
+        item.project,
+        item.resource,
+        item.purpose,
+        item.workDays,
+        item.hoursPerDay,
+        item.manHourRate,
+        item.currency,
+        item.fteFactor,
+        budget.toFixed(2)
+      ]
+    }
+  )
+
+  const csv = [
+
+    [
+      'Year',
+      'Quarter',
+      'Project',
+      'Resource',
+      'Purpose',
+      'Days',
+      'Hours',
+      'Rate',
+      'Currency',
+      'FTE',
+      'Projected Budget'
+    ],
+
+    ...rows
+
+  ]
+    .map((row) =>
+      row.join(',')
+    )
+    .join('\n')
+
+  const blob =
+    new Blob(
+      [csv],
+      {
+        type:
+          'text/csv;charset=utf-8;'
+      }
+    )
+
+  const link =
+    document.createElement('a')
+
+  link.href =
+    URL.createObjectURL(blob)
+
+  link.download =
+    'StaffCostProjections.csv'
+
+  link.click()
+}
+
+  function exportServiceCostCSV() {
+
+  const rows =
+    filteredServiceProjections.map(
+      (item) => [
+
+        item.year,
+        item.quarter,
+        item.project,
+        item.purpose,
+        item.currency,
+        item.projectedBudget,
+
+        convertToSEK(
+          item.projectedBudget,
+          item.currency
+        ).toFixed(2)
+
+      ]
+    )
+
+  const csv = [
+
+    [
+      'Year',
+      'Quarter',
+      'Project',
+      'Purpose',
+      'Currency',
+      'Budget',
+      'Budget SEK'
+    ],
+
+    ...rows
+
+  ]
+    .map((row) =>
+      row.join(',')
+    )
+    .join('\n')
+
+  const blob =
+    new Blob(
+      [csv],
+      {
+        type:
+          'text/csv;charset=utf-8;'
+      }
+    )
+
+  const link =
+    document.createElement('a')
+
+  link.href =
+    URL.createObjectURL(blob)
+
+  link.download =
+    'ServiceCostProjections.csv'
+
+  link.click()
+}
+
+  function exportAllProjectionsCSV() {
+
+  const rows = []
+
+  rows.push([
+    'STAFF COST PROJECTIONS'
+  ])
+
+  rows.push([
+    'Year',
+    'Quarter',
+    'Project',
+    'Resource',
+    'Purpose',
+    'Days',
+    'Hours',
+    'Rate',
+    'Currency',
+    'FTE',
+    'Projected Budget'
+  ])
+
+  filteredProjections.forEach(
+    (item) => {
+
+      const budget =
+        item.workDays *
+        item.hoursPerDay *
+        item.manHourRate *
+        item.fteFactor
+
+      rows.push([
+        item.year,
+        item.quarter,
+        item.project,
+        item.resource,
+        item.purpose,
+        item.workDays,
+        item.hoursPerDay,
+        item.manHourRate,
+        item.currency,
+        item.fteFactor,
+        budget.toFixed(2)
+      ])
+    }
+  )
+
+  rows.push([])
+  rows.push([])
+
+  rows.push([
+    'SERVICE COST PROJECTIONS'
+  ])
+
+  rows.push([
+    'Year',
+    'Quarter',
+    'Project',
+    'Purpose',
+    'Currency',
+    'Budget',
+    'Budget SEK'
+  ])
+
+  filteredServiceProjections.forEach(
+    (item) => {
+
+      rows.push([
+        item.year,
+        item.quarter,
+        item.project,
+        item.purpose,
+        item.currency,
+        item.projectedBudget,
+
+        convertToSEK(
+          item.projectedBudget,
+          item.currency
+        ).toFixed(2)
+      ])
+    }
+  )
+
+  const csv =
+    rows
+      .map((row) =>
+        row.join(',')
+      )
+      .join('\n')
+
+  const blob =
+    new Blob(
+      [csv],
+      {
+        type:
+          'text/csv;charset=utf-8;'
+      }
+    )
+
+  const link =
+    document.createElement('a')
+
+  link.href =
+    URL.createObjectURL(blob)
+
+  link.download =
+    'ProjectionPlanning.csv'
+
+  link.click()
+}
+
   const filteredProjections =
   projections.filter((p) => {
 
@@ -827,6 +1072,46 @@ function convertToSEK(
     border: '1px solid #ddd'
   }}
 >
+  
+<div
+  style={{
+    marginTop: 15,
+    marginBottom: 15
+  }}
+>
+
+  <button
+    onClick={
+      exportStaffCostCSV
+    }
+  >
+    Export Staff Cost
+  </button>
+
+  <button
+    onClick={
+      exportServiceCostCSV
+    }
+    style={{
+      marginLeft: 10
+    }}
+  >
+    Export Service Cost
+  </button>
+
+  <button
+    onClick={
+      exportAllProjectionsCSV
+    }
+    style={{
+      marginLeft: 10
+    }}
+  >
+    Export All Projections
+  </button>
+
+</div>
+  
   <strong>
     Show / Hide Staff Cost Columns
   </strong>

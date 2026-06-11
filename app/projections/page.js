@@ -102,10 +102,10 @@ export default function ProjectionsPage() {
   const [filterProject, setFilterProject] = useState('All Projects')
   const [filterPurpose, setFilterPurpose] = useState('')
 
-  const [serviceFilterYear, setServiceFilterYear] = useState('')
-  const [serviceFilterQuarter, setServiceFilterQuarter] = useState('')
-  const [serviceFilterProject, setServiceFilterProject] = useState('')
-  const [serviceFilterPurpose, setServiceFilterPurpose] = useState('')
+  // const [serviceFilterYear, setServiceFilterYear] = useState('')
+  // const [serviceFilterQuarter, setServiceFilterQuarter] = useState('')
+  // const [serviceFilterProject, setServiceFilterProject] = useState('')
+  // const [serviceFilterPurpose, setServiceFilterPurpose] = useState('')
 
   useEffect(() => {
     loadData()
@@ -397,35 +397,32 @@ function convertToSEK(
 
       return (
 
-        (!serviceFilterYear ||
-          item.year ===
-          serviceFilterYear)
+        (!filterYear ||
+          item.year === filterYear)
 
         &&
 
-        (!serviceFilterQuarter ||
-          item.quarter ===
-          serviceFilterQuarter)
+        (!filterQuarter ||
+          item.quarter === filterQuarter)
 
         &&
 
-        (!serviceFilterProject ||
+        (
+          filterProject ===
+            'All Projects' ||
 
-          item.project
-            .toLowerCase()
-            .includes(
-              serviceFilterProject
-                .toLowerCase()
-            ))
+          item.project ===
+            filterProject
+        )
 
         &&
 
-        (!serviceFilterPurpose ||
+        (!filterPurpose ||
 
           item.purpose
             .toLowerCase()
             .includes(
-              serviceFilterPurpose
+              filterPurpose
                 .toLowerCase()
             ))
       )
@@ -584,6 +581,19 @@ function convertToSEK(
           }
         />
 
+        <input
+  placeholder="Purpose"
+  value={filterPurpose}
+  onChange={(e) =>
+    setFilterPurpose(
+      e.target.value
+    )
+  }
+  style={{
+    marginLeft: 10
+  }}
+/>
+            
         <select
   value={resource}
   onChange={(e) =>
@@ -753,6 +763,7 @@ function convertToSEK(
 
       <hr />
 
+       
       <h2>
   Saved Projections (Staff Cost):
   {' '}
@@ -990,92 +1001,6 @@ function convertToSEK(
 </button>
 
   <hr />
-
-<h2>
-  Service Cost Filters
-</h2>
-
-<select
-  value={serviceFilterYear}
-  onChange={(e) =>
-    setServiceFilterYear(
-      e.target.value
-    )
-  }
->
-  <option value="">
-    All Years
-  </option>
-
-  <option>2025</option>
-  <option>2026</option>
-  <option>2027</option>
-</select>
-
-<select
-  value={serviceFilterQuarter}
-  onChange={(e) =>
-    setServiceFilterQuarter(
-      e.target.value
-    )
-  }
-  style={{
-    marginLeft: 10
-  }}
->
-  <option value="">
-    All Quarters
-  </option>
-
-  <option>Q1</option>
-  <option>Q2</option>
-  <option>Q3</option>
-  <option>Q4</option>
-</select>
-
-<input
-  placeholder="Project"
-  value={serviceFilterProject}
-  onChange={(e) =>
-    setServiceFilterProject(
-      e.target.value
-    )
-  }
-  style={{
-    marginLeft: 10
-  }}
-/>
-
-<input
-  placeholder="Purpose"
-  value={serviceFilterPurpose}
-  onChange={(e) =>
-    setServiceFilterPurpose(
-      e.target.value
-    )
-  }
-  style={{
-    marginLeft: 10
-  }}
-/>
-
-<button
-  onClick={() => {
-
-    setServiceFilterYear('')
-    setServiceFilterQuarter('')
-    setServiceFilterProject('')
-    setServiceFilterPurpose('')
-
-  }}
-  style={{
-    marginLeft: 10
-  }}
->
-  Clear Filter
-</button>
-
-    <hr />
 
 <h2>
   Saved Projections (Service Cost):

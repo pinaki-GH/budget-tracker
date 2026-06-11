@@ -943,7 +943,7 @@ function convertToSEK(
                   key={item.id}
                 >
 
-                {staffColumns.year &&
+                {staffColumns.Year &&
                   <td>
                     {item.year}
                   </td>

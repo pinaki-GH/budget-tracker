@@ -1459,7 +1459,6 @@ function convertToSEK(
       <th>Purpose</th>
       <th>Currency</th>
       <th>Projected Budget</th>
-   // <th>Budget (SEK)</th>
       <th>Actions</th>
     </tr>
   </thead>

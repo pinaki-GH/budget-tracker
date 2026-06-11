@@ -371,25 +371,40 @@ function convertToSEK(
 }
   
   const filteredProjections =
-    projections.filter((p) => {
+  projections.filter((p) => {
 
-      return (
+    return (
 
-        (!filterYear ||
-          p.year === filterYear) &&
+      (!filterYear ||
+        p.year === filterYear)
 
-        (!filterQuarter ||
-          p.quarter === filterQuarter) &&
+      &&
 
-        (
-          filterProject ===
-            'All Projects' ||
+      (!filterQuarter ||
+        p.quarter === filterQuarter)
 
-          p.project ===
-            filterProject
-        )
+      &&
+
+      (
+        filterProject ===
+          'All Projects' ||
+
+        p.project ===
+          filterProject
       )
-    })
+
+      &&
+
+      (!filterPurpose ||
+
+        p.purpose
+          .toLowerCase()
+          .includes(
+            filterPurpose
+              .toLowerCase()
+          ))
+    )
+  })
 
   const filteredServiceProjections =
   serviceProjections.filter(
@@ -581,19 +596,6 @@ function convertToSEK(
           }
         />
 
-        <input
-  placeholder="Purpose"
-  value={filterPurpose}
-  onChange={(e) =>
-    setFilterPurpose(
-      e.target.value
-    )
-  }
-  style={{
-    marginLeft: 10
-  }}
-/>
-            
         <select
   value={resource}
   onChange={(e) =>
@@ -737,6 +739,36 @@ function convertToSEK(
           marginLeft: 10
         }}
       >
+
+        <input
+  placeholder="Purpose"
+  value={filterPurpose}
+  onChange={(e) =>
+    setFilterPurpose(
+      e.target.value
+    )
+  }
+  style={{
+    marginLeft: 10
+  }}
+/>
+
+<button
+  onClick={() => {
+
+    setFilterYear('')
+    setFilterQuarter('')
+    setFilterProject('All Projects')
+    setFilterPurpose('')
+
+  }}
+  style={{
+    marginLeft: 10
+  }}
+>
+  Clear Filter
+</button>
+        
         <option>
           All Projects
         </option>

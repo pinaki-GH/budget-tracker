@@ -1458,8 +1458,8 @@ function convertToSEK(
       <th>Project</th>
       <th>Purpose</th>
       <th>Currency</th>
-      <th>Budget</th>
-      <th>Budget (SEK)</th>
+      <th>Projected Budget</th>
+   // <th>Budget (SEK)</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -1481,18 +1481,7 @@ function convertToSEK(
 
           <td>{item.currency}</td>
 
-          <td>
-            {item.projectedBudget}
-          </td>
-
-          <td>
-            {
-              convertToSEK(
-                item.projectedBudget,
-                item.currency
-              ).toFixed(2)
-            }
-          </td>
+          <td>{Number(item.projectedBudget).toFixed(2)}</td>
 
           <td>
 

@@ -729,83 +729,40 @@ function convertToSEK(
       </select>
 
       <select
-        <option>
-  All Projects
-</option>
-
-{[
-  ...new Set(
-    projections
-      .map(
-        (p) => p.project
-      )
-      .filter(Boolean)
-  )
-].map((project) => (
-
-  <option
-    key={project}
-    value={project}
-  >
-    {project}
-  </option>
-
-))}
-      >
-
-        <input
-  placeholder="Purpose"
-  value={filterPurpose}
+  value={filterProject}
   onChange={(e) =>
-    setFilterPurpose(
+    setFilterProject(
       e.target.value
     )
   }
   style={{
     marginLeft: 10
   }}
-/>
-
-<button
-  onClick={() => {
-
-    setFilterYear('')
-    setFilterQuarter('')
-    setFilterProject('All Projects')
-    setFilterPurpose('')
-
-  }}
-  style={{
-    marginLeft: 10
-  }}
 >
-  Clear Filter
-</button>
-        
-        <option>
-          All Projects
-        </option>
+  <option>
+    All Projects
+  </option>
 
-        {[
-          ...new Set(
-            projections
-              .map(
-                (p) => p.project
-              )
-              .filter(Boolean)
-          )
-        ].map((project) => (
+  {[
+    ...new Set(
+      projections
+        .map(
+          (p) => p.project
+        )
+        .filter(Boolean)
+    )
+  ].map((project) => (
 
-          <option
-            key={project}
-            value={project}
-          >
-            {project}
-          </option>
+    <option
+      key={project}
+      value={project}
+    >
+      {project}
+    </option>
 
-        ))}
-      </select>
-
+  ))}
+</select>
+  
 <input
   placeholder="Purpose"
   value={filterPurpose}

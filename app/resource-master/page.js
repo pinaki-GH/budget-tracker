@@ -209,7 +209,7 @@ export default function ResourceMasterPage() {
           }}
         >
           <button>
-            Budget
+            Projected Spend
           </button>
         </Link>
 
@@ -220,7 +220,7 @@ export default function ResourceMasterPage() {
           }}
         >
           <button>
-            Expense
+            Expense Tracking
           </button>
         </Link>
 
@@ -242,7 +242,7 @@ export default function ResourceMasterPage() {
           }}
         >
           <button>
-            Projection
+            Projection Planning
           </button>
         </Link>
 

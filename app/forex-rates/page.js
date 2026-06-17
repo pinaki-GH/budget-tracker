@@ -103,11 +103,11 @@ export default function ForexRates() {
         </Link>
 
         <Link href="/add-budget" style={{ marginLeft: 10 }}>
-          <button>Budget</button>
+          <button>Projected Spend</button>
         </Link>
 
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
-          <button>Expense</button>
+          <button>Expense Tracking</button>
         </Link>
 
         <Link href="/resource-master" style={{ marginLeft: 10 }}>
@@ -115,7 +115,7 @@ export default function ForexRates() {
         </Link>
 
         <Link href="/projections" style={{ marginLeft: 10 }}>
-          <button>Projections</button>
+          <button>Projection Planning</button>
         </Link>
         
       </div>

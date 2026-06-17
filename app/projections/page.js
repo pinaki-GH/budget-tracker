@@ -103,18 +103,18 @@ export default function ProjectionsPage() {
   const [filterPurpose, setFilterPurpose] = useState('')
 
   const [staffColumns, setStaffColumns] = useState({
-  year: true,
-  quarter: true,
-  project: true,
-  resource: true,
-  purpose: true,
-  days: true,
-  hours: true,
-  rate: true,
-  currency: true,
-  fte: true,
-  budget: true,
-  actions: true
+  Year: true,
+  Quarter: true,
+  Project: true,
+  Resource: true,
+  Purpose: true,
+  Days: true,
+  Hours: true,
+  Rate: true,
+  Currency: true,
+  FTE: true,
+  Spend: true,
+  Actions: true
 })
 
   const [serviceColumns, setServiceColumns] = useState({
@@ -439,7 +439,7 @@ function convertToSEK(
       'Rate',
       'Currency',
       'FTE',
-      'Projected Budget'
+      'Projected Spend'
     ],
 
     ...rows
@@ -500,8 +500,8 @@ function convertToSEK(
       'Project',
       'Purpose',
       'Currency',
-      'Budget',
-      'Budget SEK'
+      'Projected Spend',
+      'Projected Spend SEK'
     ],
 
     ...rows
@@ -552,7 +552,7 @@ function convertToSEK(
     'Rate',
     'Currency',
     'FTE',
-    'Projected Budget'
+    'Projected Spend'
   ])
 
   filteredProjections.forEach(
@@ -593,8 +593,8 @@ function convertToSEK(
     'Project',
     'Purpose',
     'Currency',
-    'Budget',
-    'Budget SEK'
+    'Projected Spend',
+    'Projected Spend SEK'
   ])
 
   filteredServiceProjections.forEach(
@@ -945,7 +945,7 @@ function convertToSEK(
       <br />
 
       <h3>
-        Projected Budget:
+        Projected Spend:
         {' '}
         {projectedBudget.toFixed(2)}
         {' '}
@@ -1175,40 +1175,40 @@ function convertToSEK(
         <thead>
           <tr>
 
-  {staffColumns.year &&
+  {staffColumns.Year &&
     <th style={centerCell}>Year</th>}
 
-  {staffColumns.quarter &&
+  {staffColumns.Quarter &&
     <th style={centerCell}>Quarter</th>}
 
-  {staffColumns.project &&
+  {staffColumns.Project &&
     <th style={centerCell}>Project</th>}
 
-  {staffColumns.resource &&
+  {staffColumns.Resource &&
     <th style={centerCell}>Resource</th>}
 
-  {staffColumns.purpose &&
+  {staffColumns.Purpose &&
     <th style={centerCell}>Purpose</th>}
 
-  {staffColumns.days &&
+  {staffColumns.Days &&
     <th style={centerCell}>Days</th>}
 
-  {staffColumns.hours &&
+  {staffColumns.Hours &&
     <th style={centerCell}>Hours</th>}
 
-  {staffColumns.rate &&
+  {staffColumns.Rate &&
     <th style={centerCell}>Rate</th>}
 
-  {staffColumns.currency &&
+  {staffColumns.Currency &&
     <th style={centerCell}>Currency</th>}
 
-  {staffColumns.fte &&
+  {staffColumns.FTE &&
     <th style={centerCell}>FTE</th>}
 
-  {staffColumns.budget &&
-    <th style={centerCell}>Projected Budget</th>}
+  {staffColumns.Spend &&
+    <th style={centerCell}>Projected Spend</th>}
 
-  {staffColumns.actions &&
+  {staffColumns.Actions &&
     <th style={centerCell}>Actions</th>}
 
 </tr>
@@ -1395,7 +1395,7 @@ function convertToSEK(
 
   <input
     type="number"
-    placeholder="Projected Budget"
+    placeholder="Projected Spend"
     value={serviceBudget}
     onChange={(e) =>
       setServiceBudget(
@@ -1413,7 +1413,7 @@ function convertToSEK(
 >
   {editingServiceId
     ? 'Update Service Projection'
-    : 'Save Service Projection'}
+    : 'Save Service Cost Projection'}
 </button>
 
   <hr />
@@ -1443,7 +1443,7 @@ function convertToSEK(
       <th style={centerCell}>Project</th>
       <th style={centerCell}>Purpose</th>
       <th style={centerCell}>Currency</th>
-      <th style={centerCell}>Projected Budget</th>
+      <th style={centerCell}>Projected Spend</th>
       <th style={centerCell}>Actions</th>
     </tr>
   </thead>

@@ -175,7 +175,7 @@ export default function AddBudget() {
         </Link>
 
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
-          <button>Expense</button>
+          <button>Expense Tracking</button>
         </Link>
 
         <Link href="/forex-rates" style={{ marginLeft: 10 }}>
@@ -187,12 +187,12 @@ export default function AddBudget() {
         </Link>
 
         <Link href="/projections" style={{ marginLeft: 10 }}>
-          <button>Projections</button>
+          <button>Projection Planning</button>
         </Link>
         
       </div>
 
-      <h1>{editingId ? 'Edit Budget' : 'Budget'}</h1>
+      <h1>{editingId ? 'Edit Projected Spend' : 'Projected Spend'}</h1>
 
       {/* Year */}
       <select

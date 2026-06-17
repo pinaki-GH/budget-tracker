@@ -956,7 +956,7 @@ function convertToSEK(
         onClick={handleSave}
       >
         {editingId
-          ? 'Update Projection'
+          ? 'Update Staff Cost Projection'
           : 'Save Staff Cost Projection'}
       </button>
 
@@ -1412,7 +1412,7 @@ function convertToSEK(
   onClick={handleSaveService}
 >
   {editingServiceId
-    ? 'Update Service Projection'
+    ? 'Update Service Cost Projection'
     : 'Save Service Cost Projection'}
 </button>
 

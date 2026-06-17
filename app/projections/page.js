@@ -785,7 +785,7 @@ function convertToSEK(
           }}
         >
           <button>
-            Budget
+            Projected Spend
           </button>
         </Link>
 
@@ -796,7 +796,7 @@ function convertToSEK(
           }}
         >
           <button>
-            Expense
+            Expense Tracking
           </button>
         </Link>
 

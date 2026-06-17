@@ -957,7 +957,7 @@ function convertToSEK(
       >
         {editingId
           ? 'Update Projection'
-          : 'Save Projection'}
+          : 'Save Staff Cost Projection'}
       </button>
 
       <hr />

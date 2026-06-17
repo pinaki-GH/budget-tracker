@@ -495,16 +495,16 @@ if (projectBurnRate > 0) {
   return (
     <div style={{ padding: 20, fontFamily: 'Arial' }}>
 
-      <h1>PMO Budget Dashboard</h1>
+      <h1>Financial Planning Dashboard</h1>
 
       {/* Navigation */}
       <div style={{ marginBottom: 20 }}>
         <Link href="/add-budget">
-          <button>Budget</button>
+          <button>Projected Spend</button>
         </Link>
 
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
-          <button>Expense</button>
+          <button>Expense Tracking</button>
         </Link>
 
         <Link href="/forex-rates" style={{ marginLeft: 10 }}>
@@ -516,7 +516,7 @@ if (projectBurnRate > 0) {
         </Link>
 
         <Link href="/projections" style={{ marginLeft: 10 }}>
-          <button>Projections</button>
+          <button>Projection Planning</button>
         </Link>
       </div>
 

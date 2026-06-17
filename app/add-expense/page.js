@@ -227,7 +227,7 @@ const availableMonths =
         </Link>
 
         <Link href="/add-budget" style={{ marginLeft: 10 }}>
-          <button>Budget</button>
+          <button>Projected Spend</button>
         </Link>
 
         <Link href="/forex-rates" style={{ marginLeft: 10 }}>
@@ -239,12 +239,12 @@ const availableMonths =
         </Link>
 
         <Link href="/projections" style={{ marginLeft: 10 }}>
-          <button>Projections</button>
+          <button>Projection Planning</button>
         </Link>
         
       </div>
 
-      <h1>{editingId ? 'Edit Expense' : 'Expense'}</h1>
+      <h1>{editingId ? 'Edit Expense' : 'Expense Tracking'}</h1>
 
       {/* Vendor */}
       <input

@@ -103,18 +103,18 @@ export default function ProjectionsPage() {
   const [filterPurpose, setFilterPurpose] = useState('')
 
   const [staffColumns, setStaffColumns] = useState({
-  Year: true,
-  Quarter: true,
-  Project: true,
-  Resource: true,
-  Purpose: true,
-  Days: true,
-  Hours: true,
-  Rate: true,
-  Currency: true,
-  FTE: true,
-  Spend: true,
-  Actions: true
+  year: true,
+  quarter: true,
+  project: true,
+  resource: true,
+  purpose: true,
+  days: true,
+  hours: true,
+  rate: true,
+  currency: true,
+  fte: true,
+  spend: true,
+  actions: true
 })
 
   const [serviceColumns, setServiceColumns] = useState({

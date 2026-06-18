@@ -10,7 +10,7 @@ import {
   updateProjectBudget
 } from '../../lib/storage'
 
-export default function AddBudget() {
+export default function ProjectBudgetsPage() {
 
   const [year, setYear] = useState('')
   const [quarter, setQuarter] = useState('')
@@ -107,20 +107,12 @@ export default function AddBudget() {
   }
 
   const clearFilters = () => {
-    setFilterYear('')
-    setFilterQuarter('')
-    setFilterProject('All Projects')
-    setFilterPurpose('')
+  setFilterYear('')
+  setFilterQuarter('')
+  setFilterProject('All Projects')
   }
 
-  const getSymbol = (cur) => {
-    if (cur === 'INR') return '₹'
-    if (cur === 'USD') return '$'
-    if (cur === 'EUR') return '€'
-    if (cur === 'SEK') return 'kr'
-    return ''
-  }
-
+  
   // Filtered Budgets
   const filteredBudgets = budgets.filter((b) => {
   return (
@@ -139,6 +131,8 @@ export default function AddBudget() {
         filteredBudgets.reduce(
           (sum, b) =>
           sum + Number(b.budget || 0), 0)
+      return (
+        <div style={{ padding: 20 }}>
 
       {/* Navigation */}
       <div style={{ marginBottom: 20 }}>
@@ -210,8 +204,6 @@ export default function AddBudget() {
 
       <br /><br />
 
-      <br /><br />
-
       {/* Amount */}
       <input
         type="number"
@@ -234,12 +226,7 @@ export default function AddBudget() {
 
       <hr style={{ margin: '30px 0' }} />
 
-      <h2>
-        Saved Project Budgets
-          {' '}
-        (SEK {totalBudget.toFixed(2)})
-      </h2>
-
+      
       {/* Filters */}
       <div style={{ marginBottom: 20 }}>
 

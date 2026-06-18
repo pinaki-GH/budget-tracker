@@ -174,6 +174,10 @@ export default function AddBudget() {
           <button>Dashboard</button>
         </Link>
 
+        <Link href="/project-budgets" style={{ marginLeft: 10 }}>
+          <button>Project Budgets</button>
+        </Link>
+        
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
           <button>Expense Tracking</button>
         </Link>

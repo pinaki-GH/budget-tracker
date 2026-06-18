@@ -347,40 +347,162 @@ const purposeSummary =
       )
     })
 
-  const totalProjectBudgetSEK =
-  filteredProjectBudgets.reduce(
-    (sum, b) =>
-      sum +
-      Number(
-        b.budget || 0
-      ),
-    0
-  )
+  const quarterOrder = {
+  Q1: 1,
+  Q2: 2,
+  Q3: 3,
+  Q4: 4
+}
 
-const yearlyProjectBudgetSEK =
-  projectBudgets
-    .filter((b) =>
-      yearFilter.includes(
-        b.year
-      ) &&
+const selectedQuarter =
+  quarterFilter.length === 1
+    ? quarterFilter[0]
+    : null
 
-      (
-        projectFilter ===
-          'All Projects' ||
-        b.project ===
-          projectFilter
+let quarterAllocatedBudget = 0
+let quarterCarryForward = 0
+let quarterAvailableBudget = 0
+
+let yearlyAllocatedBudget = 0
+let yearlyActualSpend = 0
+let yearlyRemainingBudget = 0
+
+  if (
+  selectedQuarter &&
+  yearFilter.length === 1
+) {
+
+  const selectedYear =
+    yearFilter[0]
+
+  const selectedQuarterOrder =
+    quarterOrder[selectedQuarter]
+
+  quarterAllocatedBudget =
+    projectBudgets
+      .filter(
+        (b) =>
+          b.year === selectedYear &&
+
+          b.quarter === selectedQuarter &&
+
+          (
+            projectFilter === 'All Projects' ||
+            b.project === projectFilter
+          )
       )
-    )
-    .reduce(
-      (sum, b) =>
-        sum +
-        Number(
-          b.budget || 0
-        ),
-      0
-    )
-  
-   // Quarter totals
+      .reduce(
+        (sum, b) =>
+          sum + Number(b.budget || 0),
+        0
+      )
+
+  const previousBudgetTotal =
+    projectBudgets
+      .filter(
+        (b) =>
+          b.year === selectedYear &&
+
+          quarterOrder[b.quarter] <
+          selectedQuarterOrder &&
+
+          (
+            projectFilter === 'All Projects' ||
+            b.project === projectFilter
+          )
+      )
+      .reduce(
+        (sum, b) =>
+          sum + Number(b.budget || 0),
+        0
+      )
+
+  const previousSpendTotal =
+    expenses
+      .filter(
+        (e) =>
+          e.year === selectedYear &&
+
+          quarterOrder[e.quarter] <
+          selectedQuarterOrder &&
+
+          (
+            projectFilter === 'All Projects' ||
+            e.project === projectFilter
+          )
+      )
+      .reduce(
+        (sum, e) =>
+          sum +
+          convertToSEK(
+            Number(e.amount || 0),
+            e.currency
+          ),
+        0
+      )
+
+  quarterCarryForward =
+    previousBudgetTotal -
+    previousSpendTotal
+
+  if (quarterCarryForward < 0) {
+    quarterCarryForward = 0
+  }
+
+  quarterAvailableBudget =
+    quarterAllocatedBudget +
+    quarterCarryForward
+}
+
+  if (yearFilter.length === 1) {
+
+  const selectedYear =
+    yearFilter[0]
+
+  yearlyAllocatedBudget =
+    projectBudgets
+      .filter(
+        (b) =>
+          b.year === selectedYear &&
+
+          (
+            projectFilter === 'All Projects' ||
+            b.project === projectFilter
+          )
+      )
+      .reduce(
+        (sum, b) =>
+          sum + Number(b.budget || 0),
+        0
+      )
+
+  yearlyActualSpend =
+    expenses
+      .filter(
+        (e) =>
+          e.year === selectedYear &&
+
+          (
+            projectFilter === 'All Projects' ||
+            e.project === projectFilter
+          )
+      )
+      .reduce(
+        (sum, e) =>
+          sum +
+          convertToSEK(
+            Number(e.amount || 0),
+            e.currency
+          ),
+        0
+      )
+
+  yearlyRemainingBudget =
+    yearlyAllocatedBudget -
+    yearlyActualSpend
+}
+
+  // Quarter totals
   const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
     return sum + convertToSEK(
       b.total_budget,
@@ -773,34 +895,59 @@ if (projectBurnRate > 0) {
     border: '1px solid #ddd',
     borderRadius: 10,
     padding: 20,
-    minWidth: 260,
+    minWidth: 280,
     background: '#f9f9f9'
   }}
 >
+
   <h3>
     Project Budget (SEK)
   </h3>
 
   <p>
-    <strong>
-      Quarter:
-    </strong>
-    <br />
-    kr {
-      totalProjectBudgetSEK
-        .toFixed(2)
-    }
+    <strong>Quarter</strong>
   </p>
 
   <p>
-    <strong>
-      Year:
-    </strong>
+    Allocated:
     <br />
-    kr {
-      yearlyProjectBudgetSEK
-        .toFixed(2)
-    }
+    kr {quarterAllocatedBudget.toFixed(2)}
+  </p>
+
+  <p>
+    Carry Forward:
+    <br />
+    kr {quarterCarryForward.toFixed(2)}
+  </p>
+
+  <p>
+    Available:
+    <br />
+    kr {quarterAvailableBudget.toFixed(2)}
+  </p>
+
+  <hr />
+
+  <p>
+    <strong>Year</strong>
+  </p>
+
+  <p>
+    Allocated:
+    <br />
+    kr {yearlyAllocatedBudget.toFixed(2)}
+  </p>
+
+  <p>
+    Actual Spend:
+    <br />
+    kr {yearlyActualSpend.toFixed(2)}
+  </p>
+
+  <p>
+    Remaining:
+    <br />
+    kr {yearlyRemainingBudget.toFixed(2)}
   </p>
 
 </div>

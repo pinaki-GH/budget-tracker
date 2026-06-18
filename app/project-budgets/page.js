@@ -141,6 +141,10 @@ export default function ProjectBudgetsPage() {
           <button>Dashboard</button>
         </Link>
 
+        <Link href="/add-budget" style={{ marginLeft: 10 }}>
+          <button>Projected Spend</button>
+        </Link>
+        
         <Link href="/add-expense" style={{ marginLeft: 10 }}>
           <button>Expense Tracking</button>
         </Link>

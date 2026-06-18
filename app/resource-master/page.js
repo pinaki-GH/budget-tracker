@@ -202,6 +202,10 @@ export default function ResourceMasterPage() {
           </button>
         </Link>
 
+        <Link href="/project-budgets" style={{ marginLeft: 10 }}>
+          <button>Project Budgets</button>
+        </Link>
+        
         <Link
           href="/add-budget"
           style={{

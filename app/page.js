@@ -499,6 +499,11 @@ if (projectBurnRate > 0) {
 
       {/* Navigation */}
       <div style={{ marginBottom: 20 }}>
+        
+        <Link href="/project-budgets" style={{ marginLeft: 10 }}>
+          <button>Project Budgets</button>
+        </Link>
+        
         <Link href="/add-budget">
           <button>Projected Spend</button>
         </Link>
@@ -518,6 +523,8 @@ if (projectBurnRate > 0) {
         <Link href="/projections" style={{ marginLeft: 10 }}>
           <button>Projection Planning</button>
         </Link>
+
+        
       </div>
 
       <hr />

@@ -504,7 +504,7 @@ if (projectBurnRate > 0) {
           <button>Project Budgets</button>
         </Link>
         
-        <Link href="/add-budget">
+        <Link href="/add-budget" style={{ marginLeft: 10 }}>
           <button>Projected Spend</button>
         </Link>
 

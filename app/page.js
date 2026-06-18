@@ -567,7 +567,7 @@ if (projectBurnRate > 0) {
   return (
     <div style={{ padding: 20, fontFamily: 'Arial' }}>
 
-      <h1>Financial Planning Dashboard</h1>
+      <h1>Financial Planning Dashboard - TEST</h1>
 
       {/* Navigation */}
       <div style={{ marginBottom: 20 }}>

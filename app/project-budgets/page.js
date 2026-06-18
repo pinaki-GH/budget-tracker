@@ -45,7 +45,7 @@ export default function AddBudget() {
       !year ||
       !quarter ||
       !project ||
-      !amount ||      
+      !amount      
     ) {
       alert('Please fill all fields')
       return

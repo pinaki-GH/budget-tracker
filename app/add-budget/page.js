@@ -275,7 +275,7 @@ export default function AddBudget() {
       <hr style={{ margin: '30px 0' }} />
 
       <h2>
-        Saved Budgets
+        Saved Projected Spends
         {budgetTotalsText &&
           ` (${budgetTotalsText})`}
       </h2>

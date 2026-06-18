@@ -225,7 +225,11 @@ const availableMonths =
         <Link href="/">
           <button>Dashboard</button>
         </Link>
-
+      
+        <Link href="/project-budgets" style={{ marginLeft: 10 }}>
+          <button>Project Budgets</button>
+        </Link>
+        
         <Link href="/add-budget" style={{ marginLeft: 10 }}>
           <button>Projected Spend</button>
         </Link>

@@ -6,7 +6,8 @@ import Link from 'next/link'
 import {
   getBudgets,
   getExpenses,
-  getForexRates
+  getForexRates,
+  getProjectBudgets
 } from '../lib/storage'
 
 export default function Home() {
@@ -32,6 +33,7 @@ export default function Home() {
     currentQuarter = 'Q4'
   }
 
+  const [projectBudgets, setProjectBudgets] = useState([])
   const [budgets, setBudgets] = useState([])
   const [expenses, setExpenses] = useState([])
   const [forexRates, setForexRates] = useState([])
@@ -90,10 +92,23 @@ const availableMonths =
 
   
   function loadData() {
-    setBudgets(getBudgets())
-    setExpenses(getExpenses())
-    setForexRates(getForexRates())
-  }
+
+  setProjectBudgets(
+    getProjectBudgets()
+  )
+
+  setBudgets(
+    getBudgets()
+  )
+
+  setExpenses(
+    getExpenses()
+  )
+
+  setForexRates(
+    getForexRates()
+  )
+}
 
   // Convert currency to SEK using saved forex rates
   const convertToSEK = (amount, currency) => {
@@ -185,6 +200,31 @@ const availableMonths =
       ))
   )
 })
+
+  // Filter project budgets
+  const filteredProjectBudgets =
+  projectBudgets.filter((b) => {
+
+    return (
+      yearFilter.includes(
+        b.year
+      ) &&
+
+      (
+        quarterFilter.length === 0 ||
+        quarterFilter.includes(
+          b.quarter
+        )
+      ) &&
+
+      (
+        projectFilter ===
+          'All Projects' ||
+        b.project ===
+          projectFilter
+      )
+    )
+  })
 
   // Year-only filtered data
   const yearlyBudgets = budgets.filter((b) => {
@@ -307,7 +347,39 @@ const purposeSummary =
       )
     })
 
-    
+  const totalProjectBudgetSEK =
+  filteredProjectBudgets.reduce(
+    (sum, b) =>
+      sum +
+      Number(
+        b.budget || 0
+      ),
+    0
+  )
+
+const yearlyProjectBudgetSEK =
+  projectBudgets
+    .filter((b) =>
+      yearFilter.includes(
+        b.year
+      ) &&
+
+      (
+        projectFilter ===
+          'All Projects' ||
+        b.project ===
+          projectFilter
+      )
+    )
+    .reduce(
+      (sum, b) =>
+        sum +
+        Number(
+          b.budget || 0
+        ),
+      0
+    )
+  
    // Quarter totals
   const totalBudgetSEK = filteredBudgets.reduce((sum, b) => {
     return sum + convertToSEK(
@@ -694,6 +766,45 @@ if (projectBurnRate > 0) {
         }}
       >
 
+        {/* Project Budget */}
+
+<div
+  style={{
+    border: '1px solid #ddd',
+    borderRadius: 10,
+    padding: 20,
+    minWidth: 260,
+    background: '#f9f9f9'
+  }}
+>
+  <h3>
+    Project Budget (SEK)
+  </h3>
+
+  <p>
+    <strong>
+      Quarter:
+    </strong>
+    <br />
+    kr {
+      totalProjectBudgetSEK
+        .toFixed(2)
+    }
+  </p>
+
+  <p>
+    <strong>
+      Year:
+    </strong>
+    <br />
+    kr {
+      yearlyProjectBudgetSEK
+        .toFixed(2)
+    }
+  </p>
+
+</div>
+
         {/* Total Budget */}
         <div
           style={{
@@ -704,7 +815,7 @@ if (projectBurnRate > 0) {
             background: '#f9f9f9'
           }}
         >
-          <h3>Total Budget (SEK)</h3>
+          <h3>Projected Spend (SEK)</h3>
 
           <p>
             <strong>Quarter:</strong><br />
@@ -727,7 +838,7 @@ if (projectBurnRate > 0) {
             background: '#f9f9f9'
           }}
         >
-          <h3>Total Spend (SEK)</h3>
+          <h3>Actual Spend (SEK)</h3>
 
           <p>
             <strong>Quarter:</strong><br />

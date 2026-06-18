@@ -123,16 +123,17 @@ export default function AddBudget() {
 
   // Filtered Budgets
   const filteredBudgets = budgets.filter((b) => {
-    return (
-      (!filterYear || b.year === filterYear) &&
-      (!filterQuarter ||
-        b.quarter === filterQuarter) &&
+  return (
+    (!filterYear || b.year === filterYear) &&
+    (!filterQuarter ||
+      b.quarter === filterQuarter) &&
 
-      (filterProject === 'All Projects' ||
-        b.project === filterProject) &&
-
-      )
-  })
+    (
+      filterProject === 'All Projects' ||
+      b.project === filterProject
+    )
+  )
+})
 
       const totalBudget =
         filteredBudgets.reduce(

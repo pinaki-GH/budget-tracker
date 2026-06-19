@@ -668,15 +668,22 @@ if (projectBurnRate > 0) {
 }
   
     // Utilization
-  const quarterUtilization =
-    totalBudgetSEK > 0
-      ? (totalSpendSEK / totalBudgetSEK) * 100
-      : 0
 
-  const yearlyUtilization =
-    yearlyBudgetSEK > 0
-      ? (yearlySpendSEK / yearlyBudgetSEK) * 100
-      : 0
+const quarterUtilization =
+  quarterAvailableBudget > 0
+    ? (
+        totalSpendSEK /
+        quarterAvailableBudget
+      ) * 100
+    : 0
+
+const yearlyUtilization =
+  yearlyAllocatedBudget > 0
+    ? (
+        yearlyActualSpend /
+        yearlyAllocatedBudget
+      ) * 100
+    : 0
 
   // Progress bar color
   const getProgressColor = (utilization) => {
@@ -1233,7 +1240,7 @@ Budget Runway</h3>
 </div>
 
       {/* Quarter Utilization */}
-      <h2>Quarter Utilization</h2>
+      <h2>Quarter Budget Utilization</h2>
 
       <div
         style={{
@@ -1269,7 +1276,7 @@ Budget Runway</h3>
       <br />
 
       {/* Year Utilization */}
-      <h2>Year Utilization</h2>
+      <h2>Year Budget Utilization</h2>
 
       <div
         style={{

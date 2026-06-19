@@ -295,7 +295,7 @@ filteredBudgets.forEach((b) => {
     }
   }
 
-  purposeSummaryMap[key].budget +=
+  purposeSummaryMap[key].projectedSpend +=
     convertToSEK(
       Number(b.total_budget || 0),
       b.currency
@@ -309,21 +309,21 @@ filteredExpenses.forEach((e) => {
     `${e.year}|${e.quarter}|${e.project}|${e.purpose}`
 
   if (!purposeSummaryMap[key]) {
-    purposeSummaryMap[key] = {
-      year: e.year,
-      quarter: e.quarter,
-      project: e.project,
-      purpose: e.purpose,
-      budget: 0,
-      spend: 0
-    }
+  purposeSummaryMap[key] = {
+    year: e.year,
+    quarter: e.quarter,
+    project: e.project,
+    purpose: e.purpose,
+    projectedSpend: 0,
+    actualSpend: 0
   }
+}
 
-  purposeSummaryMap[key].spend +=
-    convertToSEK(
-      Number(e.amount || 0),
-      e.currency
-    )
+  purposeSummaryMap[key].actualSpend +=
+  convertToSEK(
+    Number(e.amount || 0),
+    e.currency
+  )
 })
 
 const purposeSummary =
@@ -331,7 +331,7 @@ const purposeSummary =
     .map((row) => ({
       ...row,
       variance:
-        row.budget - row.spend
+  row.projectedSpend - row.actualSpend
     }))
     .sort((a, b) => {
 
@@ -1355,11 +1355,11 @@ Budget Runway</h3>
         <td>{row.purpose}</td>
 
         <td>
-          kr {row.budget.toFixed(2)}
+          kr {row.projectedSpend.toFixed(2)}
         </td>
 
         <td>
-          kr {row.spend.toFixed(2)}
+          kr {row.actualSpend.toFixed(2)}
         </td>
 
         <td

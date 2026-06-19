@@ -948,7 +948,12 @@ if (projectBurnRate > 0) {
   }}
 >
 
-  <h3>
+  <h3
+  style={{
+    marginTop: 0,
+    marginBottom: 5
+  }}
+>
     Approved Budget (SEK)
   </h3>
 
@@ -1021,7 +1026,7 @@ if (projectBurnRate > 0) {
           <h3
   style={{
     marginTop: 0,
-    marginBottom: 2
+    marginBottom: 5
   }}
 >
   Projected Spend (SEK)
@@ -1031,7 +1036,7 @@ if (projectBurnRate > 0) {
   style={{
     fontSize: 12,
     color: '#666',
-    marginBottom: 10
+    marginBottom: 15
   }}
 >
   Forecasted Consumption
@@ -1058,7 +1063,13 @@ if (projectBurnRate > 0) {
             background: '#f9f9f9'
           }}
         >
-          <h3>Actual Spend (SEK)</h3>
+          <h3
+  style={{
+    marginTop: 0,
+    marginBottom: 5
+  }}
+>
+Actual Spend (SEK)</h3>
 
           <p>
   kr {
@@ -1082,7 +1093,12 @@ if (projectBurnRate > 0) {
   }}
 >
 
-  <h3>
+  <h3
+  style={{
+    marginTop: 0,
+    marginBottom: 5
+  }}
+>
     Budget Variance (SEK)
   </h3>
 
@@ -1135,7 +1151,13 @@ if (projectBurnRate > 0) {
   }}
 >
 
-  <h3>Budget Runway</h3>
+  <h3
+  style={{
+    marginTop: 0,
+    marginBottom: 5
+  }}
+>
+Budget Runway</h3>
 
   {projectRunwayMonths === null ? (
 

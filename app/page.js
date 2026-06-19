@@ -290,8 +290,8 @@ filteredBudgets.forEach((b) => {
       quarter: b.quarter,
       project: b.project,
       purpose: b.purpose,
-      budget: 0,
-      spend: 0
+      projectedSpend: 0,
+      actualSpend: 0
     }
   }
 
@@ -330,7 +330,7 @@ const purposeSummary =
   Object.values(purposeSummaryMap)
     .map((row) => ({
       ...row,
-      remaining:
+      variance:
         row.budget - row.spend
     }))
     .sort((a, b) => {
@@ -1312,7 +1312,7 @@ Budget Runway</h3>
       <hr style={{ margin: '30px 0' }} />
 
       <h2>
-  Budget vs Spend by Purpose
+  Projected vs Actual Spend
 </h2>
 
 <table
@@ -1325,20 +1325,20 @@ Budget Runway</h3>
 >
 
   <thead
-    style={{
-      background: '#f0f0f0'
-    }}
-  >
-    <tr>
-      <th>Year</th>
-      <th>Quarter</th>
-      <th>Project</th>
-      <th>Purpose</th>
-      <th>Budget (SEK)</th>
-      <th>Spend (SEK)</th>
-      <th>Remaining (SEK)</th>
-    </tr>
-  </thead>
+  style={{
+    background: '#f0f0f0'
+  }}
+>
+  <tr>
+    <th>Year</th>
+    <th>Quarter</th>
+    <th>Project</th>
+    <th>Purpose</th>
+    <th>Projected Spend (SEK)</th>
+    <th>Actual Spend (SEK)</th>
+    <th>Forecast Variance (SEK)</th>
+  </tr>
+</thead>
 
   <tbody>
 
@@ -1363,19 +1363,19 @@ Budget Runway</h3>
         </td>
 
         <td
-          style={{
-            color:
-              row.remaining < 0
-                ? 'red'
-                : 'inherit',
-            fontWeight:
-              row.remaining < 0
-                ? 'bold'
-                : 'normal'
-          }}
-        >
-          kr {row.remaining.toFixed(2)}
-        </td>
+  style={{
+    color:
+      row.variance < 0
+        ? 'red'
+        : 'inherit',
+    fontWeight:
+      row.variance < 0
+        ? 'bold'
+        : 'normal'
+  }}
+>
+  kr {row.variance.toFixed(2)}
+</td>
 
       </tr>
 

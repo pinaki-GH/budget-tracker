@@ -48,7 +48,8 @@ export default function Home() {
     useState('All Projects')
 
   const [purposeFilter, setPurposeFilter] = useState('')
-
+  const [kpiView, setKpiView] = useState('quarter')
+  
   const quarterMonths = {
   Q1: [
     { value: '01', label: 'January' },
@@ -877,6 +878,46 @@ if (projectBurnRate > 0) {
 
       <hr />
 
+      {/* KPI View Toggle */}
+
+<div
+  style={{
+    marginBottom: 20
+  }}
+>
+  <strong>KPI View:</strong>
+
+  <button
+    onClick={() =>
+      setKpiView('quarter')
+    }
+    style={{
+      marginLeft: 10,
+      fontWeight:
+        kpiView === 'quarter'
+          ? 'bold'
+          : 'normal'
+    }}
+  >
+    Quarter
+  </button>
+
+  <button
+    onClick={() =>
+      setKpiView('year')
+    }
+    style={{
+      marginLeft: 10,
+      fontWeight:
+        kpiView === 'year'
+          ? 'bold'
+          : 'normal'
+    }}
+  >
+    Year
+  </button>
+</div>
+            
       {/* KPI Cards */}
       <div
         style={{
@@ -904,48 +945,59 @@ if (projectBurnRate > 0) {
     Approved Budget (SEK)
   </h3>
 
-  <p>
-    <strong>Quarter</strong>
-  </p>
+  {kpiView === 'quarter' ? (
+  <>
+    <p>
+      <strong>
+        Allocated Budget
+      </strong>
+      <br />
+      kr {quarterAllocatedBudget.toFixed(2)}
+    </p>
 
-  <p>
-    Allocated:
-    <br />
-    kr {quarterAllocatedBudget.toFixed(2)}
-  </p>
+    <p>
+      <strong>
+        Carry Forward
+      </strong>
+      <br />
+      kr {quarterCarryForward.toFixed(2)}
+    </p>
 
-  <p>
-    Carry Forward:
-    <br />
-    kr {quarterCarryForward.toFixed(2)}
-  </p>
+    <p>
+      <strong>
+        Available Budget
+      </strong>
+      <br />
+      kr {quarterAvailableBudget.toFixed(2)}
+    </p>
+  </>
+) : (
+  <>
+    <p>
+      <strong>
+        Approved Budget
+      </strong>
+      <br />
+      kr {yearlyAllocatedBudget.toFixed(2)}
+    </p>
 
-  <p>
-    Available:
-    <br />
-    kr {quarterAvailableBudget.toFixed(2)}
-  </p>
+    <p>
+      <strong>
+        Budget Consumed
+      </strong>
+      <br />
+      kr {yearlyActualSpend.toFixed(2)}
+    </p>
 
-  <hr />
-
-  <p>
-    <strong>Year</strong>
-  </p>
-
-  <p>
-    Allocated:
-    <br />
-    kr {yearlyAllocatedBudget.toFixed(2)}
-  </p>
-
-  <p>
-    Budget Consumed:
-    <br />
-    kr {yearlyActualSpend.toFixed(2)}
-  </p>
-
-  <p>
-    Budget Remaining:
+    <p>
+      <strong>
+        Budget Remaining
+      </strong>
+      <br />
+      kr {yearlyRemainingBudget.toFixed(2)}
+    </p>
+  </>
+)}
     <br />
     kr {yearlyRemainingBudget.toFixed(2)}
   </p>
@@ -975,14 +1027,14 @@ if (projectBurnRate > 0) {
 </div>
     
           <p>
-            <strong>Quarter:</strong><br />
-            kr {totalBudgetSEK.toFixed(2)}
-          </p>
-
-          <p>
-            <strong>Year:</strong><br />
-            kr {yearlyBudgetSEK.toFixed(2)}
-          </p>
+  kr {
+    (
+      kpiView === 'quarter'
+        ? totalBudgetSEK
+        : yearlyBudgetSEK
+    ).toFixed(2)
+  }
+</p>
         </div>
 
         {/* Total Spend */}
@@ -998,14 +1050,14 @@ if (projectBurnRate > 0) {
           <h3>Actual Spend (SEK)</h3>
 
           <p>
-            <strong>Quarter:</strong><br />
-            kr {totalSpendSEK.toFixed(2)}
-          </p>
-
-          <p>
-            <strong>Year:</strong><br />
-            kr {yearlySpendSEK.toFixed(2)}
-          </p>
+  kr {
+    (
+      kpiView === 'quarter'
+        ? totalSpendSEK
+        : yearlySpendSEK
+    ).toFixed(2)
+  }
+</p>
         </div>
 
         {/* Remaining */}
@@ -1034,42 +1086,30 @@ if (projectBurnRate > 0) {
   </div>
 
   <p>
-    <strong>
-      Quarter:
-    </strong>
-    <br />
 
-    <span
-      style={{
-        color:
-          remainingSEK >= 0
-            ? 'green'
-            : 'red',
-        fontWeight: 'bold'
-      }}
-    >
-      kr {remainingSEK.toFixed(2)}
-    </span>
-  </p>
+  <span
+    style={{
+      color:
+        (
+          kpiView === 'quarter'
+            ? remainingSEK
+            : yearlyRemainingSEK
+        ) >= 0
+          ? 'green'
+          : 'red',
+      fontWeight: 'bold'
+    }}
+  >
+    kr {
+      (
+        kpiView === 'quarter'
+          ? remainingSEK
+          : yearlyRemainingSEK
+      ).toFixed(2)
+    }
+  </span>
 
-  <p>
-    <strong>
-      Year:
-    </strong>
-    <br />
-
-    <span
-      style={{
-        color:
-          yearlyRemainingSEK >= 0
-            ? 'green'
-            : 'red',
-        fontWeight: 'bold'
-      }}
-    >
-      kr {yearlyRemainingSEK.toFixed(2)}
-    </span>
-  </p>
+</p>
 
 </div>
       

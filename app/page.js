@@ -901,7 +901,7 @@ if (projectBurnRate > 0) {
 >
 
   <h3>
-    Project Budget (SEK)
+    Approved Budget (SEK)
   </h3>
 
   <p>
@@ -939,13 +939,13 @@ if (projectBurnRate > 0) {
   </p>
 
   <p>
-    Actual Spend:
+    Budget Consumed:
     <br />
     kr {yearlyActualSpend.toFixed(2)}
   </p>
 
   <p>
-    Remaining:
+    Budget Remaining:
     <br />
     kr {yearlyRemainingBudget.toFixed(2)}
   </p>
@@ -964,6 +964,16 @@ if (projectBurnRate > 0) {
         >
           <h3>Projected Spend (SEK)</h3>
 
+          <div
+  style={{
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 15
+  }}
+>
+  Forecasted Consumption
+</div>
+    
           <p>
             <strong>Quarter:</strong><br />
             kr {totalBudgetSEK.toFixed(2)}
@@ -1000,26 +1010,68 @@ if (projectBurnRate > 0) {
 
         {/* Remaining */}
         <div
-          style={{
-            border: '1px solid #ddd',
-            borderRadius: 10,
-            padding: 20,
-            minWidth: 260,
-            background: '#f9f9f9'
-          }}
-        >
-          <h3>Remaining (SEK)</h3>
+  style={{
+    border: '1px solid #ddd',
+    borderRadius: 10,
+    padding: 20,
+    minWidth: 260,
+    background: '#f9f9f9'
+  }}
+>
 
-          <p>
-            <strong>Quarter:</strong><br />
-            kr {remainingSEK.toFixed(2)}
-          </p>
+  <h3>
+    Forecast Variance (SEK)
+  </h3>
 
-          <p>
-            <strong>Year:</strong><br />
-            kr {yearlyRemainingSEK.toFixed(2)}
-          </p>
-        </div>
+  <div
+    style={{
+      fontSize: 12,
+      color: '#666',
+      marginBottom: 15
+    }}
+  >
+    Projected Spend - Actual Spend
+  </div>
+
+  <p>
+    <strong>
+      Quarter:
+    </strong>
+    <br />
+
+    <span
+      style={{
+        color:
+          remainingSEK >= 0
+            ? 'green'
+            : 'red',
+        fontWeight: 'bold'
+      }}
+    >
+      kr {remainingSEK.toFixed(2)}
+    </span>
+  </p>
+
+  <p>
+    <strong>
+      Year:
+    </strong>
+    <br />
+
+    <span
+      style={{
+        color:
+          yearlyRemainingSEK >= 0
+            ? 'green'
+            : 'red',
+        fontWeight: 'bold'
+      }}
+    >
+      kr {yearlyRemainingSEK.toFixed(2)}
+    </span>
+  </p>
+
+</div>
       
         {/* Budget Runway */}
       <div

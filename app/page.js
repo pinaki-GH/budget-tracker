@@ -929,7 +929,7 @@ if (projectBurnRate > 0) {
         }}
       >
 
-        {/* Project Budget */}
+        {/* Approved Budget */}
 
 <div
   style={{
@@ -998,10 +998,7 @@ if (projectBurnRate > 0) {
     </p>
   </>
 )}
-    <br />
-    kr {yearlyRemainingBudget.toFixed(2)}
-  </p>
-
+   
 </div>
 
         {/* Total Budget */}

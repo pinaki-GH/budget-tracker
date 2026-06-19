@@ -556,6 +556,13 @@ const yearlySpendSEK = yearlyExpenses.reduce((sum, e) => {
 const yearlyRemainingSEK =
   yearlyBudgetSEK - yearlySpendSEK
 
+const quarterBudgetVariance =
+  quarterAvailableBudget -
+  totalSpendSEK
+
+const yearlyBudgetVariance =
+  yearlyRemainingBudget
+
   
    /* =====================================
    PROJECT RUNWAY CALCULATION
@@ -1069,7 +1076,7 @@ if (projectBurnRate > 0) {
 >
 
   <h3>
-    Forecast Variance (SEK)
+    Budget Variance (SEK)
   </h3>
 
   <div
@@ -1079,7 +1086,7 @@ if (projectBurnRate > 0) {
       marginBottom: 15
     }}
   >
-    Projected Spend - Actual Spend
+    Available Budget - Actual Spend
   </div>
 
   <p>
@@ -1087,11 +1094,11 @@ if (projectBurnRate > 0) {
   <span
     style={{
       color:
-        (
-          kpiView === 'quarter'
-            ? remainingSEK
-            : yearlyRemainingSEK
-        ) >= 0
+  (
+    kpiView === 'quarter'
+      ? quarterBudgetVariance
+      : yearlyBudgetVariance
+  ) >= 0
           ? 'green'
           : 'red',
       fontWeight: 'bold'
@@ -1099,10 +1106,10 @@ if (projectBurnRate > 0) {
   >
     kr {
       (
-        kpiView === 'quarter'
-          ? remainingSEK
-          : yearlyRemainingSEK
-      ).toFixed(2)
+  kpiView === 'quarter'
+    ? quarterBudgetVariance
+    : yearlyBudgetVariance
+).toFixed(2)
     }
   </span>
 

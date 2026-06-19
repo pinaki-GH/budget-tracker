@@ -1024,7 +1024,7 @@ if (projectBurnRate > 0) {
   style={{
     fontSize: 12,
     color: '#666',
-    marginBottom: 15
+    marginBottom: 10
   }}
 >
   Forecasted Consumption

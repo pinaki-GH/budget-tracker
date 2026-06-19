@@ -1027,14 +1027,15 @@ if (projectBurnRate > 0) {
   Projected Spend (SEK)
 </h3>
 
-          <h3
+<div
   style={{
-    marginTop: 0,
-    marginBottom: 2
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 10
   }}
 >
-  Projected Spend (SEK)
-</h3>
+  Forecasted Consumption
+</div>
     
           <p>
   kr {

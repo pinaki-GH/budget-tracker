@@ -114,9 +114,10 @@ export default function ProjectionsPage() {
   currency: true,
   fte: true,
   projectedSpend: true,
+  projectedSpendSEK: true,
   actions: true
 })
-
+  
   const [serviceColumns, setServiceColumns] = useState({
   year: true,
   quarter: true,
@@ -421,7 +422,8 @@ function convertToSEK(
         item.manHourRate,
         item.currency,
         item.fteFactor,
-        budget.toFixed(2)
+        budget.toFixed(2),
+        convertToSEK(budget,item.currency).toFixed(2)
       ]
     }
   )
@@ -439,7 +441,8 @@ function convertToSEK(
       'Rate',
       'Currency',
       'FTE',
-      'Projected Spend'
+      'Projected Spend',
+      'Projected Spend SEK'
     ],
 
     ...rows
@@ -1212,6 +1215,10 @@ function convertToSEK(
   {staffColumns.projectedSpend &&
     <th style={centerCell}>Projected Spend</th>}
 
+   {staffColumns.projectedSpendSEK &&
+    <th style={centerCell}>Projected Spend (SEK)</th>
+  }
+
   {staffColumns.actions &&
     <th style={centerCell}>Actions</th>}
 
@@ -1229,6 +1236,9 @@ function convertToSEK(
                 item.manHourRate *
                 item.fteFactor
 
+              const budgetSEK =
+                convertToSEK(budget,item.currency)
+              
               return (
 
                 <tr
@@ -1281,6 +1291,10 @@ function convertToSEK(
    
                 {staffColumns.projectedSpend &&
                   <td style={centerCell}>{budget.toFixed(2)}</td>
+                
+               {staffColumns.projectedSpendSEK &&
+                  <td style={centerCell}>{budgetSEK.toFixed(2)}</td>
+              }
 }
 
                   {staffColumns.actions &&

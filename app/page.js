@@ -970,7 +970,9 @@ const yearlyUtilization =
       <strong>
         Allocated Budget
       </strong>
-      <br />
+    </p>
+    
+    <p>  
       kr {quarterAllocatedBudget.toFixed(2)}
     </p>
 

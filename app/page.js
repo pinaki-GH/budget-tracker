@@ -982,7 +982,7 @@ const yearlyUtilization =
   style={{
     fontSize: 12,
     color: '#666',
-    marginBottom: 50
+    marginBottom: 1
   }}
 >
   From previous quarter within the year

@@ -978,6 +978,15 @@ const yearlyUtilization =
       <strong>
         Carry Forward
       </strong>
+      <div
+  style={{
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 15
+  }}
+>
+  From previous quarter within the year
+</div>
       <br />
       kr {quarterCarryForward.toFixed(2)}
     </p>

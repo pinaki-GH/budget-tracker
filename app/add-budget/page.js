@@ -15,6 +15,8 @@ export default function AddBudget() {
   const [year, setYear] = useState('')
   const [quarter, setQuarter] = useState('')
   const [project, setProject] = useState('')
+  const [sowId, setSowId] = useState('')
+  const [poNumber, setPoNumber] = useState('')
   const [amount, setAmount] = useState('')
   const [purpose, setPurpose] = useState('')
   const [currency, setCurrency] = useState('INR')
@@ -56,6 +58,8 @@ export default function AddBudget() {
       year,
       quarter,
       project,
+      sowId,
+      poNumber,
       purpose,
       currency,
       total_budget: Number(amount)
@@ -80,6 +84,8 @@ export default function AddBudget() {
     setYear(b.year)
     setQuarter(b.quarter)
     setProject(b.project || '')
+    setSowId(b.sowId || '')
+    setPoNumber(b.poNumber || '')
     setPurpose(b.purpose)
     setCurrency(b.currency)
     setAmount(b.total_budget)
@@ -92,6 +98,8 @@ export default function AddBudget() {
       year,
       quarter,
       project,
+      sowId,
+      poNumber,
       purpose,
       currency,
       total_budget: Number(amount)
@@ -108,6 +116,8 @@ export default function AddBudget() {
     setYear('')
     setQuarter('')
     setProject('')
+    setSowId('')
+    setPoNumber('')
     setPurpose('')
     setCurrency('INR')
     setAmount('')
@@ -234,6 +244,24 @@ export default function AddBudget() {
 
       <br /><br />
 
+      {/* SoW ID */}
+      <input
+        placeholder="SoW ID"
+        value={sowId}
+        onChange={(e) => setSowId(e.target.value)}
+      />
+
+      <br /><br />
+
+      {/* PO Number */}
+      <input
+        placeholder="PO Number"
+        value={poNumber}
+        onChange={(e) => setPoNumber(e.target.value)}
+      />
+
+      <br /><br />
+    
       {/* Purpose */}
       <input
         placeholder="Purpose"
@@ -364,6 +392,8 @@ export default function AddBudget() {
               <th>Year</th>
               <th>Quarter</th>
               <th>Project</th>
+              <th>SoW ID</th>
+              <th>PO Number</th>
               <th>Purpose</th>
               <th>Currency</th>
               <th>Amount</th>
@@ -377,6 +407,8 @@ export default function AddBudget() {
                 <td>{b.year}</td>
                 <td>{b.quarter}</td>
                 <td>{b.project}</td>
+                <td>{b.sowId}</td>
+                <td>{b.poNumber}</td>
                 <td>{b.purpose}</td>
                 <td>{b.currency}</td>
 

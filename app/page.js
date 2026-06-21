@@ -976,9 +976,8 @@ const yearlyUtilization =
       kr {quarterAllocatedBudget.toFixed(2)}
     </p>
     
-    <p>
-    </p>  
-    
+    <br />
+      
     <p>
       <strong>
         Carry Forward
@@ -996,8 +995,7 @@ const yearlyUtilization =
       kr {quarterCarryForward.toFixed(2)}
     </p>
 
-    <p>
-    </p>
+    <br />
       
     <p>
       <strong>

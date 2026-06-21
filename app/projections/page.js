@@ -113,7 +113,7 @@ export default function ProjectionsPage() {
   rate: true,
   currency: true,
   fte: true,
-  spend: true,
+  projectedSpend: true,
   actions: true
 })
 
@@ -1179,40 +1179,40 @@ function convertToSEK(
         <thead>
           <tr>
 
-  {staffColumns.Year &&
+  {staffColumns.year &&
     <th style={centerCell}>Year</th>}
 
-  {staffColumns.Quarter &&
+  {staffColumns.quarter &&
     <th style={centerCell}>Quarter</th>}
 
-  {staffColumns.Project &&
+  {staffColumns.project &&
     <th style={centerCell}>Project</th>}
 
-  {staffColumns.Resource &&
+  {staffColumns.resource &&
     <th style={centerCell}>Resource</th>}
 
-  {staffColumns.Purpose &&
+  {staffColumns.purpose &&
     <th style={centerCell}>Purpose</th>}
 
-  {staffColumns.Days &&
+  {staffColumns.days &&
     <th style={centerCell}>Days</th>}
 
-  {staffColumns.Hours &&
+  {staffColumns.hours &&
     <th style={centerCell}>Hours</th>}
 
-  {staffColumns.Rate &&
+  {staffColumns.rate &&
     <th style={centerCell}>Rate</th>}
 
-  {staffColumns.Currency &&
+  {staffColumns.currency &&
     <th style={centerCell}>Currency</th>}
 
-  {staffColumns.FTE &&
+  {staffColumns.fte &&
     <th style={centerCell}>FTE</th>}
 
-  {staffColumns.Spend &&
+  {staffColumns.projectedSpend &&
     <th style={centerCell}>Projected Spend</th>}
 
-  {staffColumns.Actions &&
+  {staffColumns.actions &&
     <th style={centerCell}>Actions</th>}
 
 </tr>
@@ -1279,9 +1279,9 @@ function convertToSEK(
                   <td style={centerCell}>{item.fteFactor}</td>
                }
    
-                {staffColumns.budget &&
+                {staffColumns.projectedSpend &&
                   <td style={centerCell}>{budget.toFixed(2)}</td>
-                }
+}
 
                   {staffColumns.actions &&
   <td style={centerCell}>

@@ -1291,11 +1291,11 @@ function convertToSEK(
    
                 {staffColumns.projectedSpend &&
                   <td style={centerCell}>{budget.toFixed(2)}</td>
-                
+                }
+   
                {staffColumns.projectedSpendSEK &&
                   <td style={centerCell}>{budgetSEK.toFixed(2)}</td>
-              }
-}
+               }
 
                   {staffColumns.actions &&
   <td style={centerCell}>

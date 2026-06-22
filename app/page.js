@@ -446,10 +446,6 @@ let yearlyRemainingBudget = 0
     previousBudgetTotal -
     previousSpendTotal
 
-  if (quarterCarryForward < 0) {
-    quarterCarryForward = 0
-  }
-
   quarterAvailableBudget =
     quarterAllocatedBudget +
     quarterCarryForward
@@ -992,7 +988,17 @@ const yearlyUtilization =
   From previous quarter within the year
 </div>
       <br />
-      kr {quarterCarryForward.toFixed(2)}
+      <span
+  style={{
+    color:
+      quarterCarryForward >= 0
+        ? 'green'
+        : 'red',
+    fontWeight: 'bold'
+  }}
+>
+  kr {quarterCarryForward.toFixed(2)}
+</span>
     </p>
 
     <br />

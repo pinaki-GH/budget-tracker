@@ -697,6 +697,56 @@ const yearlyUtilization =
   setPurposeFilter('')
 }
 
+const exportProjectedVsActualCSV = () => {
+
+  const headers = [
+    'Year',
+    'Quarter',
+    'Project',
+    'Purpose',
+    'Projected Spend (SEK)',
+    'Actual Spend (SEK)',
+    'Forecast Variance (SEK)'
+  ]
+
+  const rows = purposeSummary.map((row) => [
+    row.year,
+    row.quarter,
+    row.project,
+    row.purpose,
+    row.projectedSpend.toFixed(2),
+    row.actualSpend.toFixed(2),
+    row.variance.toFixed(2)
+  ])
+
+  const csvContent = [
+    headers,
+    ...rows
+  ]
+    .map((r) => r.join(','))
+    .join('\n')
+
+  const blob = new Blob(
+    [csvContent],
+    { type: 'text/csv;charset=utf-8;' }
+  )
+
+  const url =
+    window.URL.createObjectURL(blob)
+
+  const link =
+    document.createElement('a')
+
+  link.href = url
+
+  link.download =
+    'projected-vs-actual-spend.csv'
+
+  link.click()
+
+  window.URL.revokeObjectURL(url)
+}
+  
   return (
     <div style={{ padding: 20, fontFamily: 'Arial' }}>
 
@@ -1334,9 +1384,24 @@ Budget Runway</h3>
 
       <hr style={{ margin: '30px 0' }} />
 
-      <h2>
-  Projected vs Actual Spend
-</h2>
+      <div
+  style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
+  }}
+>
+  <h2>
+    Projected vs Actual Spend
+  </h2>
+
+  <button
+    onClick={exportProjectedVsActualCSV}
+  >
+    Export CSV
+  </button>
+</div>
 
 <table
   border="1"

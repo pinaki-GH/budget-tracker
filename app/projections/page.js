@@ -137,6 +137,13 @@ export default function ProjectionsPage() {
   const centerCell = {
   textAlign: 'center'
 }
+
+  const fieldLabel = {
+  display: 'block',
+  fontWeight: 'bold',
+  marginBottom: 4
+}
+  
   // const [serviceFilterYear, setServiceFilterYear] = useState('')
   // const [serviceFilterQuarter, setServiceFilterQuarter] = useState('')
   // const [serviceFilterProject, setServiceFilterProject] = useState('')
@@ -860,19 +867,29 @@ function convertToSEK(
         }}
       >
 
-        <select
-          value={year}
-          onChange={(e) =>
-            setYear(
-              e.target.value
-            )
-          }
-        >
+        <div>
+  <label style={fieldLabel}>
+    Year
+  </label>
+
+  <select
+    value={year}
+    onChange={(e) =>
+      setYear(
+        e.target.value
+      )
+    }
+  >
           <option>2025</option>
           <option>2026</option>
           <option>2027</option>
-        </select>
+      </select>
+</div>
 
+      <div>
+  <label style={fieldLabel}>
+    Quarter
+  </label>
         <select
           value={quarter}
           onChange={(e) =>
@@ -886,17 +903,27 @@ function convertToSEK(
           <option>Q3</option>
           <option>Q4</option>
         </select>
+      </div>
 
-        <input
-          placeholder="Project"
-          value={project}
-          onChange={(e) =>
-            setProject(
-              e.target.value
-            )
-          }
-        />
+        <div>
+  <label style={fieldLabel}>
+    Project
+  </label>
 
+  <input
+    value={project}
+    onChange={(e) =>
+      setProject(
+        e.target.value
+      )
+    }
+  />
+</div>
+
+      <div>
+  <label style={fieldLabel}>
+    Resource
+  </label>
         <select
   value={resource}
   onChange={(e) =>
@@ -928,71 +955,122 @@ function convertToSEK(
     ))}
 
 </select>
+      </div>
 
-      <input
-  value={purpose}
-  readOnly
-  placeholder="Purpose"
-/>
-
-        <input
-          value={workDays}
-          readOnly
-        />
+      <div>
+  <label style={fieldLabel}>
+    Purpose
+  </label>
 
   <input
-  type="number"
-  placeholder="Holiday Days"
-  value={holidayDays}
-  onChange={(e) =>
-    setHolidayDays(
-      Number(e.target.value || 0)
-    )
-  }
-/>
+    value={purpose}
+    readOnly
+  />
+</div>
 
-<input
-  type="number"
-  placeholder="Leave Days"
-  value={leaveDays}
-  onChange={(e) =>
-    setLeaveDays(
-      Number(e.target.value || 0)
-    )
-  }
-/>
+        <div>
+  <label style={fieldLabel}>
+    Total Work Days
+  </label>
 
-<input
-  value={availableDays}
-  readOnly
-/>
+  <input
+    value={workDays}
+    readOnly
+  />
+</div>
+
+  <div>
+  <label style={fieldLabel}>
+    Holiday Days
+  </label>
+
+  <input
+    type="number"
+    value={holidayDays}
+    onChange={(e) =>
+      setHolidayDays(
+        Number(e.target.value || 0)
+      )
+    }
+  />
+</div>
+
+<div>
+  <label style={fieldLabel}>
+    Leave Days
+  </label>
+
+  <input
+    type="number"
+    value={leaveDays}
+    onChange={(e) =>
+      setLeaveDays(
+        Number(e.target.value || 0)
+      )
+    }
+  />
+</div>
+      
+<div>
+  <label style={fieldLabel}>
+    Available Days
+  </label>
+
+  <input
+    value={availableDays}
+    readOnly
+  />
+</div>
     
-        <input
-  value={hoursPerDay}
-  readOnly
-/>
+        <div>
+  <label style={fieldLabel}>
+    Hours / Day
+  </label>
 
-        <input
-  value={manHourRate}
-  readOnly
-/>
+  <input
+    value={hoursPerDay}
+    readOnly
+  />
+</div>
 
-        <input
-  value={currency}
-  readOnly
-/>
+       <div>
+  <label style={fieldLabel}>
+    Man Hour Rate
+  </label>
 
-        <input
-          type="number"
-          step="0.1"
-          placeholder="FTE Factor"
-          value={fteFactor}
-          onChange={(e) =>
-            setFteFactor(
-              e.target.value
-            )
-          }
-        />
+  <input
+    value={manHourRate}
+    readOnly
+  />
+</div>
+
+       <div>
+  <label style={fieldLabel}>
+    Currency
+  </label>
+
+  <input
+    value={currency}
+    readOnly
+  />
+</div>
+
+        <div>
+  <label style={fieldLabel}>
+    FTE Factor
+  </label>
+
+  <input
+    type="number"
+    step="0.1"
+    value={fteFactor}
+    onChange={(e) =>
+      setFteFactor(
+        e.target.value
+      )
+    }
+  />
+</div>
 
       </div>
 
@@ -1408,7 +1486,7 @@ function convertToSEK(
   style={{
     display: 'grid',
     gridTemplateColumns:
-      'repeat(3, 1fr)',
+      'repeat(4, 1fr)',
     gap: 10,
     maxWidth: 900
   }}

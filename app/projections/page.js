@@ -79,6 +79,8 @@ export default function ProjectionsPage() {
   const currency = selectedResource?.currency || ''
   const purpose = selectedResource?.purpose || ''
   const [workDays, setWorkDays] = useState(0)
+  const [holidayDays, setHolidayDays] = useState(0)
+  const [leaveDays, setLeaveDays] = useState(0)
   // const [hoursPerDay, setHoursPerDay] = useState('8')
   // const [manHourRate, setManHourRate] = useState('')
   // const [currency, setCurrency] = useState('SEK')
@@ -109,6 +111,9 @@ export default function ProjectionsPage() {
   resource: true,
   purpose: true,
   days: true,
+  holidayDays: true,
+  leaveDays: true,
+  availableDays: true,  
   hours: true,
   rate: true,
   currency: true,
@@ -191,11 +196,19 @@ function convertToSEK(
     : amount
 }
   
+  const availableDays =
+  Math.max(
+    0,
+    Number(workDays || 0) -
+    Number(holidayDays || 0) -
+    Number(leaveDays || 0)
+  )
+
   const projectedBudget =
-    Number(workDays || 0) *
-    Number(hoursPerDay || 0) *
-    Number(manHourRate || 0) *
-    Number(fteFactor || 0)
+  availableDays *
+  Number(hoursPerDay || 0) *
+  Number(manHourRate || 0) *
+  Number(fteFactor || 0)
 
   function clearForm() {
 
@@ -205,6 +218,8 @@ function convertToSEK(
     setResource('')
     setWorkDays(getWorkDaysInQuarter(year, quarter))
     setFteFactor('1')
+    setHolidayDays(0)
+    setLeaveDays(0)
 
     setEditingId(null)
   }
@@ -240,11 +255,12 @@ function convertToSEK(
   purpose,
 
   workDays,
+  holidayDays,
+  leaveDays,
+  availableDays,
 
   hoursPerDay,
-
   manHourRate,
-
   currency,
 
   fteFactor
@@ -330,6 +346,8 @@ function convertToSEK(
 
     // setCurrency(item.currency)
 
+    setHolidayDays(item.holidayDays || 0)
+    setLeaveDays(item.leaveDays || 0)
     setFteFactor(item.fteFactor)
   }
 
@@ -406,7 +424,8 @@ function convertToSEK(
     (item) => {
 
       const budget =
-        item.workDays *
+        (item.availableDays ??
+        item.workDays) *
         item.hoursPerDay *
         item.manHourRate *
         item.fteFactor
@@ -726,7 +745,8 @@ function convertToSEK(
     (sum, p) => {
 
       const projectedBudget =
-        p.workDays *
+        (p.availableDays ??
+        p.workDays) *
         p.hoursPerDay *
         p.manHourRate *
         p.fteFactor
@@ -920,6 +940,33 @@ function convertToSEK(
           readOnly
         />
 
+  <input
+  type="number"
+  placeholder="Holiday Days"
+  value={holidayDays}
+  onChange={(e) =>
+    setHolidayDays(
+      Number(e.target.value || 0)
+    )
+  }
+/>
+
+<input
+  type="number"
+  placeholder="Leave Days"
+  value={leaveDays}
+  onChange={(e) =>
+    setLeaveDays(
+      Number(e.target.value || 0)
+    )
+  }
+/>
+
+<input
+  value={availableDays}
+  readOnly
+/>
+    
         <input
   value={hoursPerDay}
   readOnly
@@ -1200,6 +1247,15 @@ function convertToSEK(
   {staffColumns.days &&
     <th style={centerCell}>Days</th>}
 
+   {staffColumns.holidayDays &&
+    <th style={centerCell}>Holiday Days</th>}
+
+  {staffColumns.leaveDays &&
+    <th style={centerCell}>Leave Days</th>}
+
+  {staffColumns.availableDays &&
+    <th style={centerCell}>Available Days</th>}
+
   {staffColumns.hours &&
     <th style={centerCell}>Hours</th>}
 
@@ -1258,21 +1314,29 @@ function convertToSEK(
                }
 
                {staffColumns.resource &&
-                  <td>
-                    {item.resource}
-                  </td>
+                  <td>{item.resource}</td>
                }
 
                {staffColumns.purpose &&
-                  <td>
-                    {item.purpose}
-                  </td>
+                  <td>{item.purpose}</td>
                }
 
                {staffColumns.days &&
                   <td style={centerCell}>{item.workDays}</td>
                }
 
+              {staffColumns.holidayDays &&
+                  <td style={centerCell}>{item.holidayDays || 0}</td>
+              }
+
+              {staffColumns.leaveDays &&
+                  <td style={centerCell}>{item.leaveDays || 0}</td>
+              }
+
+              {staffColumns.availableDays &&
+                  <td style={centerCell}>{item.availableDays ??item.workDays}</td>
+              }
+               
                {staffColumns.hours &&
                   <td style={centerCell}>{item.hoursPerDay}</td>
                }

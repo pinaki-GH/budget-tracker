@@ -462,7 +462,10 @@ function convertToSEK(
       'Project',
       'Resource',
       'Purpose',
-      'Days',
+      'Work Days',
+      'Holiday Days',
+      'Leave Days',
+      'Available Days',
       'Hours',
       'Rate',
       'Currency',
@@ -576,7 +579,10 @@ function convertToSEK(
     'Project',
     'Resource',
     'Purpose',
-    'Days',
+    'Work Days',
+    'Holiday Days',
+    'Leave Days',
+    'Available Days',
     'Hours',
     'Rate',
     'Currency',
@@ -588,7 +594,8 @@ function convertToSEK(
     (item) => {
 
       const budget =
-        item.workDays *
+        (item.availableDays ??
+        item.workDays) *
         item.hoursPerDay *
         item.manHourRate *
         item.fteFactor
@@ -1365,13 +1372,17 @@ function convertToSEK(
             (item) => {
 
               const budget =
-                item.workDays *
+                (item.availableDays ??
+                item.workDays) *
                 item.hoursPerDay *
                 item.manHourRate *
                 item.fteFactor
-
+              
               const budgetSEK =
-                convertToSEK(budget,item.currency)
+                convertToSEK(
+                budget,
+                item.currency
+              )
               
               return (
 

@@ -206,7 +206,7 @@ export default function AddBudget() {
         
       </div>
 
-      <h1>{editingId ? 'Edit Projected Spend' : 'Projected Spend'}</h1>
+      <h1>{editingId ? 'Edit Projected Spend' : 'Projected Spend (based on POs)'}</h1>
 
       {/* Year */}
       <select

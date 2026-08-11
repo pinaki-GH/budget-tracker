@@ -248,7 +248,7 @@ const availableMonths =
         
       </div>
 
-      <h1>{editingId ? 'Edit Expense' : 'Expense Tracking'}</h1>
+      <h1>{editingId ? 'Edit Expense' : 'Expense Tracking (based on Actual Consumption)'}</h1>
 
       {/* Vendor */}
       <input

@@ -1006,74 +1006,73 @@ export default function ProjectionsPage() {
 
     loadData()
   }
-    function getProjectionDisplayMetrics(
-    item
+    function getProjectionDisplayMetrics(item) {
+
+  const resourceRecord =
+    resources.find(
+      (r) =>
+        r.resourceName ===
+        item.resource
+    )
+
+  const leaveTrackerMember =
+    resourceRecord?.leaveTrackerMember ||
+    item.leaveTrackerMember ||
+    ''
+
+  /*
+    If Leave Data is not available or
+    the resource is not mapped to a
+    Leave Tracker Member, retain the
+    saved projection values.
+  */
+  if (
+    !leaveTrackerMember ||
+    leaveData.length === 0
   ) {
 
-    const resourceRecord =
-      resources.find(
-        (r) =>
-          r.resourceName ===
-          item.resource
+    const available =
+      Number(
+        item.availableDays ??
+        item.workDays ??
+        0
       )
 
-    const leaveTrackerMember =
-      resourceRecord
-        ?.leaveTrackerMember ||
-      item.leaveTrackerMember ||
-      ''
+    const budget =
+      available *
+      Number(item.hoursPerDay || 0) *
+      Number(item.manHourRate || 0) *
+      Number(item.fteFactor || 0)
 
-    // Quarterly view.
-    if (
-      !filterMonth ||
-      !leaveTrackerMember ||
-      leaveData.length === 0
-    ) {
-
-      const available =
+    return {
+      workDays:
         Number(
-          item.availableDays ??
-          item.workDays ??
-          0
-        )
+          item.workDays || 0
+        ),
 
-      const budget =
-        available *
+      holidayDays:
         Number(
-          item.hoursPerDay || 0
-        ) *
+          item.holidayDays || 0
+        ),
+
+      leaveDays:
         Number(
-          item.manHourRate || 0
-        ) *
-        Number(
-          item.fteFactor || 0
-        )
+          item.leaveDays || 0
+        ),
 
-      return {
+      availableDays:
+        available,
 
-        workDays:
-          Number(
-            item.workDays || 0
-          ),
-
-        holidayDays:
-          Number(
-            item.holidayDays || 0
-          ),
-
-        leaveDays:
-          Number(
-            item.leaveDays || 0
-          ),
-
-        availableDays:
-          available,
-
-        budget
-      }
+      budget
     }
+  }
 
-    // Monthly view.
+  /*
+    MONTH VIEW
+    Calculate only the selected month.
+  */
+  if (filterMonth !== '') {
+
     const monthIndex =
       Number(filterMonth)
 
@@ -1088,31 +1087,21 @@ export default function ProjectionsPage() {
 
     const budget =
       Number(
-        availability.availableDays ||
-        0
+        availability.availableDays || 0
       ) *
-      Number(
-        item.hoursPerDay || 0
-      ) *
-      Number(
-        item.manHourRate || 0
-      ) *
-      Number(
-        item.fteFactor || 0
-      )
+      Number(item.hoursPerDay || 0) *
+      Number(item.manHourRate || 0) *
+      Number(item.fteFactor || 0)
 
     return {
-
       workDays:
         availability.workDays,
 
       holidayDays:
-        availability
-          .companyHolidayDays,
+        availability.companyHolidayDays,
 
       leaveDays:
-        availability
-          .personalLeaveDays,
+        availability.personalLeaveDays,
 
       availableDays:
         availability.availableDays,
@@ -1120,6 +1109,77 @@ export default function ProjectionsPage() {
       budget
     }
   }
+
+  /*
+    QUARTER VIEW
+    Calculate the quarter dynamically
+    from its three individual months.
+
+    This makes:
+
+    Q4 =
+    October + November + December
+  */
+
+  const quarterMonths =
+    getQuarterMonths(
+      item.quarter
+    )
+
+  const monthlyAvailability =
+    quarterMonths.map(
+      (monthIndex) =>
+        calculateLeaveAvailability(
+          leaveData,
+          leaveTrackerMember,
+          item.year,
+          monthIndex,
+          monthIndex
+        )
+    )
+
+  const workDays =
+    monthlyAvailability.reduce(
+      (sum, month) =>
+        sum + month.workDays,
+      0
+    )
+
+  const holidayDays =
+    monthlyAvailability.reduce(
+      (sum, month) =>
+        sum + month.companyHolidayDays,
+      0
+    )
+
+  const leaveDays =
+    monthlyAvailability.reduce(
+      (sum, month) =>
+        sum + month.personalLeaveDays,
+      0
+    )
+
+  const availableDays =
+    monthlyAvailability.reduce(
+      (sum, month) =>
+        sum + month.availableDays,
+      0
+    )
+
+  const budget =
+    availableDays *
+    Number(item.hoursPerDay || 0) *
+    Number(item.manHourRate || 0) *
+    Number(item.fteFactor || 0)
+
+  return {
+    workDays,
+    holidayDays,
+    leaveDays,
+    availableDays,
+    budget
+  }
+}
 
   function exportStaffCostCSV() {
 

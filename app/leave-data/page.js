@@ -197,6 +197,138 @@ function getRecordDatesInMonth(
   )
 }
 
+function getDateKey(date) {
+  return `${date.getFullYear()}-${String(
+    date.getMonth() + 1
+  ).padStart(2, '0')}-${String(
+    date.getDate()
+  ).padStart(2, '0')}`
+}
+
+function calculateAvailabilityForPeriod(
+  records,
+  member,
+  year,
+  startMonthIndex,
+  endMonthIndex
+) {
+  const periodStart = new Date(
+    Number(year),
+    Number(startMonthIndex),
+    1
+  )
+
+  const periodEnd = new Date(
+    Number(year),
+    Number(endMonthIndex) + 1,
+    0
+  )
+
+  let workDays = 0
+  const current = new Date(periodStart)
+
+  while (current <= periodEnd) {
+    if (isWeekday(current)) {
+      workDays++
+    }
+
+    current.setDate(
+      current.getDate() + 1
+    )
+  }
+
+  const companyHolidayDates = new Set()
+  const personalLeaveDates = new Set()
+
+  records
+    .filter(
+      (record) =>
+        record['Member Name'] === member &&
+        record['Status']
+          ?.trim()
+          .toLowerCase() === 'confirmed'
+    )
+    .forEach((record) => {
+      const leaveType =
+        record['Leave Type']
+          ?.trim()
+          .toLowerCase()
+
+      if (
+        leaveType !== 'company holiday' &&
+        leaveType !== 'personal leave'
+      ) {
+        return
+      }
+
+      for (
+        let monthIndex = startMonthIndex;
+        monthIndex <= endMonthIndex;
+        monthIndex++
+      ) {
+        const dates =
+          getRecordDatesInMonth(
+            record,
+            year,
+            monthIndex
+          )
+
+        dates
+          .filter((date) => isWeekday(date))
+          .forEach((date) => {
+            const key = getDateKey(date)
+
+            if (
+              leaveType ===
+              'company holiday'
+            ) {
+              companyHolidayDates.add(key)
+            } else {
+              personalLeaveDates.add(key)
+            }
+          })
+      }
+    })
+
+  personalLeaveDates.forEach((key) => {
+    if (companyHolidayDates.has(key)) {
+      personalLeaveDates.delete(key)
+    }
+  })
+
+  const companyHolidayDays =
+    companyHolidayDates.size
+
+  const personalLeaveDays =
+    personalLeaveDates.size
+
+  const availableDays =
+    Math.max(
+      0,
+      workDays -
+        companyHolidayDays -
+        personalLeaveDays
+    )
+
+  return {
+    workDays,
+    companyHolidayDays,
+    personalLeaveDays,
+    availableDays
+  }
+}
+
+function getQuarterMonths(quarterIndex) {
+  const startMonth =
+    Number(quarterIndex) * 3
+
+  return [
+    startMonth,
+    startMonth + 1,
+    startMonth + 2
+  ]
+}
+
 export default function LeaveDataPage() {
 
   const [leaveData, setLeaveData] =
@@ -219,6 +351,15 @@ export default function LeaveDataPage() {
       new Date().getMonth()
     ))
 
+  const [selectedQuarter, setSelectedQuarter] =
+  useState(
+    String(
+      Math.floor(
+        new Date().getMonth() / 3
+      )
+    )
+  )
+  
   useEffect(() => {
     loadData()
   }, [])
@@ -628,110 +769,86 @@ export default function LeaveDataPage() {
     )
 
   const monthlyAvailability =
-    useMemo(
-      () => {
+  useMemo(
+    () => {
+      if (!selectedMember) {
+        return null
+      }
 
-        if (!selectedMember) {
-          return null
-        }
-
-        const year =
-          Number(selectedYear)
-
-        const monthIndex =
-          Number(selectedMonth)
-
-        const workDays =
-          getWorkDaysInMonth(
-            year,
-            monthIndex
-          )
-
-        let companyHolidayDays = 0
-        let personalLeaveDays = 0
-
-        const matchingRecords =
-          leaveData.filter(
-            (record) => {
-
-              return (
-                record['Member Name'] ===
-                  selectedMember &&
-                record['Status']
-                  ?.trim()
-                  .toLowerCase() ===
-                  'confirmed'
-              )
-            }
-          )
-
-        matchingRecords.forEach(
-          (record) => {
-
-            const dates =
-              getRecordDatesInMonth(
-                record,
-                year,
-                monthIndex
-              )
-
-            if (dates.length === 0) {
-              return
-            }
-
-            const applicableWeekdays =
-              dates.filter(
-                (date) =>
-                  isWeekday(date)
-              )
-
-            if (
-              record['Leave Type']
-                ?.trim()
-                .toLowerCase() ===
-                'company holiday'
-            ) {
-
-              companyHolidayDays +=
-                applicableWeekdays.length
-
-            } else if (
-              record['Leave Type']
-                ?.trim()
-                .toLowerCase() ===
-                'personal leave'
-            ) {
-
-              personalLeaveDays +=
-                applicableWeekdays.length
-            }
-          }
-        )
-
-        const availableDays =
-          Math.max(
-            0,
-            workDays -
-            companyHolidayDays -
-            personalLeaveDays
-          )
-
-        return {
-          workDays,
-          companyHolidayDays,
-          personalLeaveDays,
-          availableDays
-        }
-
-      },
-      [
+      return calculateAvailabilityForPeriod(
         leaveData,
         selectedMember,
         selectedYear,
-        selectedMonth
-      ]
-    )
+        Number(selectedMonth),
+        Number(selectedMonth)
+      )
+    },
+    [
+      leaveData,
+      selectedMember,
+      selectedYear,
+      selectedMonth
+    ]
+  )
 
+const quarterlyAvailability =
+  useMemo(
+    () => {
+      if (!selectedMember) {
+        return null
+      }
+
+      const quarterMonths =
+        getQuarterMonths(
+          selectedQuarter
+        )
+
+      const monthly =
+        quarterMonths.map(
+          (monthIndex) => ({
+            monthIndex,
+            ...calculateAvailabilityForPeriod(
+              leaveData,
+              selectedMember,
+              selectedYear,
+              monthIndex,
+              monthIndex
+            )
+          })
+        )
+
+      const quarterCalculation =
+        calculateAvailabilityForPeriod(
+          leaveData,
+          selectedMember,
+          selectedYear,
+          quarterMonths[0],
+          quarterMonths[2]
+        )
+
+      const monthlyAvailableDays =
+        monthly.reduce(
+          (total, month) =>
+            total + month.availableDays,
+          0
+        )
+
+      return {
+        monthly,
+        quarterCalculation,
+        monthlyAvailableDays,
+        reconciliationMatches:
+          monthlyAvailableDays ===
+          quarterCalculation.availableDays
+      }
+    },
+    [
+      leaveData,
+      selectedMember,
+      selectedYear,
+      selectedQuarter
+    ]
+  )
   const monthlyRecords =
     useMemo(
       () => {

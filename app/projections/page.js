@@ -16,54 +16,6 @@ import {
   deleteServiceProjection
 } from '../../lib/storage'
 
-function getWorkDaysInQuarter(
-  year,
-  quarter
-) {
-
-  const quarterMonths = {
-    Q1: [0, 1, 2],
-    Q2: [3, 4, 5],
-    Q3: [6, 7, 8],
-    Q4: [9, 10, 11]
-  }
-
-  let workDays = 0
-
-  quarterMonths[quarter].forEach(
-    (month) => {
-
-      const date =
-        new Date(
-          Number(year),
-          month,
-          1
-        )
-
-      while (
-        date.getMonth() === month
-      ) {
-
-        const day =
-          date.getDay()
-
-        if (
-          day !== 0 &&
-          day !== 6
-        ) {
-          workDays++
-        }
-
-        date.setDate(
-          date.getDate() + 1
-        )
-      }
-    }
-  )
-
-  return workDays
-}
-
 const LEAVE_DATA_STORAGE_KEY =
   'budgetTracker:leaveData'
 
@@ -82,49 +34,54 @@ const MONTH_NAMES = [
   'December'
 ]
 
-function parseLeaveDate(dateString) {
-  if (!dateString) {
+const QUARTER_MONTHS = {
+  Q1: [0, 1, 2],
+  Q2: [3, 4, 5],
+  Q3: [6, 7, 8],
+  Q4: [9, 10, 11]
+}
+
+const centerCell = {
+  textAlign: 'center'
+}
+
+const fieldLabel = {
+  display: 'block',
+  fontWeight: 'bold',
+  marginBottom: 4
+}
+
+function getQuarterMonths(quarter) {
+  return QUARTER_MONTHS[quarter] || []
+}
+
+function isWeekday(date) {
+  const day = date.getDay()
+
+  return day !== 0 && day !== 6
+}
+
+function parseDate(value) {
+  if (!value) {
     return null
   }
 
   const parts =
-    dateString.split('-')
-
-  if (parts.length !== 3) {
-    return null
-  }
-
-  const year =
-    Number(parts[0])
-
-  const month =
-    Number(parts[1])
-
-  const day =
-    Number(parts[2])
+    String(value).split('-').map(Number)
 
   if (
-    !year ||
-    !month ||
-    !day
+    parts.length !== 3 ||
+    !parts[0] ||
+    !parts[1] ||
+    !parts[2]
   ) {
     return null
   }
 
   return new Date(
-    year,
-    month - 1,
-    day
-  )
-}
-
-function isWeekday(date) {
-  const day =
-    date.getDay()
-
-  return (
-    day !== 0 &&
-    day !== 6
+    parts[0],
+    parts[1] - 1,
+    parts[2]
   )
 }
 
@@ -136,158 +93,78 @@ function getDateKey(date) {
   ).padStart(2, '0')}`
 }
 
-function getRecordDatesInMonth(
-  record,
+function getMonthStart(
   year,
-  monthIndex
+  month
 ) {
-
-  const startDate =
-    parseLeaveDate(
-      record['Start Date']
-    )
-
-  const endDate =
-    parseLeaveDate(
-      record['End Date']
-    )
-
-  if (
-    !startDate ||
-    !endDate
-  ) {
-    return []
-  }
-
-  const monthStart =
-    new Date(
-      Number(year),
-      Number(monthIndex),
-      1
-    )
-
-  const monthEnd =
-    new Date(
-      Number(year),
-      Number(monthIndex) + 1,
-      0
-    )
-
-  const effectiveStart =
-    startDate > monthStart
-      ? startDate
-      : monthStart
-
-  const effectiveEnd =
-    endDate < monthEnd
-      ? endDate
-      : monthEnd
-
-  if (
-    effectiveStart >
-    effectiveEnd
-  ) {
-    return []
-  }
-
-  const dates = []
-
-  const current =
-    new Date(effectiveStart)
-
-  while (
-    current <= effectiveEnd
-  ) {
-
-    dates.push(
-      new Date(current)
-    )
-
-    current.setDate(
-      current.getDate() + 1
-    )
-  }
-
-  return dates
-}
-
-function getQuarterMonths(
-  quarter
-) {
-
-  const quarterMonths = {
-    Q1: [0, 1, 2],
-    Q2: [3, 4, 5],
-    Q3: [6, 7, 8],
-    Q4: [9, 10, 11]
-  }
-
-  return (
-    quarterMonths[quarter] ||
-    []
+  return new Date(
+    Number(year),
+    Number(month),
+    1
   )
 }
 
-function getQuarterForMonth(
-  monthIndex
+function getMonthEnd(
+  year,
+  month
 ) {
-
-  if (
-    monthIndex < 3
-  ) {
-    return 'Q1'
-  }
-
-  if (
-    monthIndex < 6
-  ) {
-    return 'Q2'
-  }
-
-  if (
-    monthIndex < 9
-  ) {
-    return 'Q3'
-  }
-
-  return 'Q4'
+  return new Date(
+    Number(year),
+    Number(month) + 1,
+    0
+  )
 }
 
-function calculateLeaveAvailability(
-  records,
-  member,
+function getQuarterStart(
   year,
-  startMonthIndex,
-  endMonthIndex
+  quarter
 ) {
+  const months =
+    getQuarterMonths(quarter)
 
-  const periodStart =
-    new Date(
-      Number(year),
-      Number(startMonthIndex),
-      1
-    )
+  return getMonthStart(
+    year,
+    months[0]
+  )
+}
 
-  const periodEnd =
-    new Date(
-      Number(year),
-      Number(endMonthIndex) + 1,
-      0
-    )
+function getQuarterEnd(
+  year,
+  quarter
+) {
+  const months =
+    getQuarterMonths(quarter)
 
-  let workDays = 0
+  return getMonthEnd(
+    year,
+    months[2]
+  )
+}
+
+function getWorkDaysInPeriod(
+  startDate,
+  endDate
+) {
+  if (
+    !startDate ||
+    !endDate ||
+    startDate > endDate
+  ) {
+    return 0
+  }
+
+  let count = 0
 
   const current =
-    new Date(periodStart)
+    new Date(startDate)
 
   while (
-    current <= periodEnd
+    current <= endDate
   ) {
-
     if (
       isWeekday(current)
     ) {
-      workDays++
+      count++
     }
 
     current.setDate(
@@ -295,94 +172,230 @@ function calculateLeaveAvailability(
     )
   }
 
+  return count
+}
+
+function getWorkDaysInQuarter(
+  year,
+  quarter
+) {
+  return getWorkDaysInPeriod(
+    getQuarterStart(
+      year,
+      quarter
+    ),
+    getQuarterEnd(
+      year,
+      quarter
+    )
+  )
+}
+
+/*
+  Leave availability now respects:
+
+  1. Project Start Date
+  2. Project Last Working Day
+  3. Confirmed Leave Data
+  4. Company Holidays
+  5. Personal Leave
+  6. Weekends
+
+  Blank Project Start Date means:
+  active from the beginning of the
+  requested period.
+
+  Blank Project Last Working Day means:
+  active until the end of the
+  requested period.
+*/
+function calculateLeaveAvailability(
+  records,
+  member,
+  year,
+  startMonthIndex,
+  endMonthIndex,
+  projectStartDate = '',
+  projectLastWorkingDay = ''
+) {
+  let periodStart =
+    getMonthStart(
+      year,
+      startMonthIndex
+    )
+
+  let periodEnd =
+    getMonthEnd(
+      year,
+      endMonthIndex
+    )
+
+  const assignmentStart =
+    parseDate(
+      projectStartDate
+    )
+
+  const assignmentEnd =
+    parseDate(
+      projectLastWorkingDay
+    )
+
+  if (
+    assignmentStart &&
+    assignmentStart > periodStart
+  ) {
+    periodStart = assignmentStart
+  }
+
+  if (
+    assignmentEnd &&
+    assignmentEnd < periodEnd
+  ) {
+    periodEnd = assignmentEnd
+  }
+
+  /*
+    Resource is not active during
+    this period.
+  */
+  if (
+    periodStart > periodEnd
+  ) {
+    return {
+      workDays: 0,
+      companyHolidayDays: 0,
+      personalLeaveDays: 0,
+      availableDays: 0
+    }
+  }
+
+  const workDays =
+    getWorkDaysInPeriod(
+      periodStart,
+      periodEnd
+    )
+
   const companyHolidayDates =
     new Set()
 
   const personalLeaveDates =
     new Set()
 
-  records
-    .filter(
+  const confirmedRecords =
+    records.filter(
       (record) =>
         record['Member Name'] ===
           member &&
-        record['Status']
-          ?.trim()
+        String(
+          record.Status || ''
+        )
+          .trim()
           .toLowerCase() ===
           'confirmed'
     )
-    .forEach(
-      (record) => {
 
-        const leaveType =
-          record['Leave Type']
-            ?.trim()
-            .toLowerCase()
+  confirmedRecords.forEach(
+    (record) => {
+      const leaveType =
+        String(
+          record['Leave Type'] || ''
+        )
+          .trim()
+          .toLowerCase()
 
-        if (
-          leaveType !==
-            'company holiday' &&
-          leaveType !==
-            'personal leave'
-        ) {
-          return
-        }
-
-        for (
-          let monthIndex =
-            startMonthIndex;
-          monthIndex <=
-            endMonthIndex;
-          monthIndex++
-        ) {
-
-          getRecordDatesInMonth(
-            record,
-            year,
-            monthIndex
-          )
-            .filter(
-              (date) =>
-                isWeekday(date)
-            )
-            .forEach(
-              (date) => {
-
-                const key =
-                  getDateKey(date)
-
-                if (
-                  leaveType ===
-                  'company holiday'
-                ) {
-
-                  companyHolidayDates.add(
-                    key
-                  )
-
-                } else {
-
-                  personalLeaveDates.add(
-                    key
-                  )
-                }
-              }
-            )
-        }
+      if (
+        leaveType !==
+          'company holiday' &&
+        leaveType !==
+          'personal leave'
+      ) {
+        return
       }
-    )
 
-  // Prevent the same calendar day from
-  // being deducted twice.
+      const leaveStart =
+        parseDate(
+          record['Start Date']
+        )
+
+      const leaveEnd =
+        parseDate(
+          record['End Date']
+        )
+
+      if (
+        !leaveStart ||
+        !leaveEnd
+      ) {
+        return
+      }
+
+      const effectiveStart =
+        leaveStart > periodStart
+          ? leaveStart
+          : periodStart
+
+      const effectiveEnd =
+        leaveEnd < periodEnd
+          ? leaveEnd
+          : periodEnd
+
+      if (
+        effectiveStart >
+        effectiveEnd
+      ) {
+        return
+      }
+
+      const current =
+        new Date(
+          effectiveStart
+        )
+
+      while (
+        current <= effectiveEnd
+      ) {
+        if (
+          isWeekday(current)
+        ) {
+          const key =
+            getDateKey(current)
+
+          if (
+            leaveType ===
+            'company holiday'
+          ) {
+            companyHolidayDates.add(
+              key
+            )
+          } else {
+            personalLeaveDates.add(
+              key
+            )
+          }
+        }
+
+        current.setDate(
+          current.getDate() + 1
+        )
+      }
+    }
+  )
+
+  /*
+    A calendar day can only be
+    deducted once.
+
+    If a Company Holiday and
+    Personal Leave overlap,
+    Company Holiday takes precedence.
+  */
   personalLeaveDates.forEach(
     (key) => {
-
       if (
         companyHolidayDates.has(
           key
         )
       ) {
-
         personalLeaveDates.delete(
           key
         )
@@ -413,7 +426,6 @@ function calculateLeaveAvailability(
 }
 
 export default function ProjectionsPage() {
-
   const [
     projections,
     setProjections
@@ -534,8 +546,6 @@ export default function ProjectionsPage() {
     setEditingId
   ] = useState(null)
 
-  // Filters
-
   const [
     filterYear,
     setFilterYear
@@ -584,59 +594,31 @@ export default function ProjectionsPage() {
     projectedSpendSEK: true,
     actions: true
   })
-
-  const [
-    serviceColumns,
-    setServiceColumns
-  ] = useState({
-    year: true,
-    quarter: true,
-    project: true,
-    purpose: true,
-    currency: true,
-    budget: true,
-    budgetSEK: true,
-    actions: true
-  })
-
-  const centerCell = {
-    textAlign: 'center'
-  }
-
-  const fieldLabel = {
-    display: 'block',
-    fontWeight: 'bold',
-    marginBottom: 4
-  }
-
-  useEffect(() => {
+    useEffect(() => {
     loadData()
   }, [])
 
+  /*
+    Calculate the Staff Cost form's
+    quarterly availability using the
+    Resource Master assignment window.
+  */
   useEffect(() => {
-
-    setWorkDays(
-      getWorkDaysInQuarter(
-        year,
-        quarter
+    if (!selectedResource) {
+      setWorkDays(
+        getWorkDaysInQuarter(
+          year,
+          quarter
+        )
       )
-    )
 
-  }, [
-    year,
-    quarter
-  ])
+      setHolidayDays(0)
+      setLeaveDays(0)
 
-  useEffect(() => {
-
-    if (
-      !selectedResource?.leaveTrackerMember ||
-      leaveData.length === 0
-    ) {
       return
     }
 
-    const quarterMonths =
+    const months =
       getQuarterMonths(
         quarter
       )
@@ -647,9 +629,17 @@ export default function ProjectionsPage() {
         selectedResource
           .leaveTrackerMember,
         year,
-        quarterMonths[0],
-        quarterMonths[2]
+        months[0],
+        months[2],
+        selectedResource
+          .projectStartDate,
+        selectedResource
+          .projectLastWorkingDay
       )
+
+    setWorkDays(
+      availability.workDays
+    )
 
     setHolidayDays(
       availability.companyHolidayDays
@@ -658,17 +648,14 @@ export default function ProjectionsPage() {
     setLeaveDays(
       availability.personalLeaveDays
     )
-
   }, [
     year,
     quarter,
-    resource,
     selectedResource,
     leaveData
   ])
 
   function loadData() {
-
     setProjections(
       getProjections()
     )
@@ -681,30 +668,27 @@ export default function ProjectionsPage() {
       getResources()
     )
 
-    try {
+    setServiceProjections(
+      getServiceProjections()
+    )
 
-      const storedLeaveData =
+    try {
+      const raw =
         localStorage.getItem(
           LEAVE_DATA_STORAGE_KEY
         )
 
-      const parsedLeaveData =
-        storedLeaveData
-          ? JSON.parse(
-              storedLeaveData
-            )
+      const parsed =
+        raw
+          ? JSON.parse(raw)
           : []
 
       setLeaveData(
-        Array.isArray(
-          parsedLeaveData
-        )
-          ? parsedLeaveData
+        Array.isArray(parsed)
+          ? parsed
           : []
       )
-
     } catch (error) {
-
       console.error(
         'Unable to load Leave Data:',
         error
@@ -712,21 +696,18 @@ export default function ProjectionsPage() {
 
       setLeaveData([])
     }
-
-    setServiceProjections(
-      getServiceProjections()
-    )
   }
 
   function convertToSEK(
     amount,
     currency
   ) {
-
     if (
       currency === 'SEK'
     ) {
-      return amount
+      return Number(
+        amount || 0
+      )
     }
 
     const rate =
@@ -737,8 +718,9 @@ export default function ProjectionsPage() {
       )
 
     return rate
-      ? amount * rate.rate
-      : amount
+      ? Number(amount || 0) *
+          Number(rate.rate || 0)
+      : Number(amount || 0)
   }
 
   const availableDays =
@@ -747,12 +729,12 @@ export default function ProjectionsPage() {
       Number(
         workDays || 0
       ) -
-      Number(
-        holidayDays || 0
-      ) -
-      Number(
-        leaveDays || 0
-      )
+        Number(
+          holidayDays || 0
+        ) -
+        Number(
+          leaveDays || 0
+        )
     )
 
   const projectedBudget =
@@ -768,7 +750,6 @@ export default function ProjectionsPage() {
     )
 
   function clearForm() {
-
     setYear('2026')
     setQuarter('Q1')
     setProject('')
@@ -781,15 +762,13 @@ export default function ProjectionsPage() {
       )
     )
 
-    setFteFactor('1')
     setHolidayDays(0)
     setLeaveDays(0)
-
+    setFteFactor('1')
     setEditingId(null)
   }
 
   function clearServiceForm() {
-
     setServiceYear('2026')
     setServiceQuarter('Q1')
     setServiceProject('')
@@ -800,18 +779,14 @@ export default function ProjectionsPage() {
   }
 
   function handleSave() {
-
     const record = {
-
       id:
         editingId ||
         Date.now(),
 
       year,
       quarter,
-
       project,
-
       resource,
       purpose,
 
@@ -828,22 +803,16 @@ export default function ProjectionsPage() {
       hoursPerDay,
       manHourRate,
       currency,
-
       fteFactor
     }
 
     if (editingId) {
-
       updateProjection(
         editingId,
         record
       )
-
     } else {
-
-      saveProjection(
-        record
-      )
+      saveProjection(record)
     }
 
     loadData()
@@ -851,45 +820,29 @@ export default function ProjectionsPage() {
   }
 
   function handleSaveService() {
-
     const record = {
-
       id:
         editingServiceId ||
         Date.now(),
 
-      year:
-        serviceYear,
-
-      quarter:
-        serviceQuarter,
-
-      project:
-        serviceProject,
-
-      purpose:
-        servicePurpose,
-
-      currency:
-        serviceCurrency,
+      year: serviceYear,
+      quarter: serviceQuarter,
+      project: serviceProject,
+      purpose: servicePurpose,
+      currency: serviceCurrency,
 
       projectedBudget:
-        Number(
-          serviceBudget
-        )
+        Number(serviceBudget)
     }
 
     if (
       editingServiceId
     ) {
-
       updateServiceProjection(
         editingServiceId,
         record
       )
-
     } else {
-
       saveServiceProjection(
         record
       )
@@ -899,49 +852,27 @@ export default function ProjectionsPage() {
     clearServiceForm()
   }
 
-  function handleEdit(
-    item
-  ) {
-
-    setEditingId(
-      item.id
-    )
-
-    setYear(
-      item.year
-    )
-
-    setQuarter(
-      item.quarter
-    )
-
-    setProject(
-      item.project
-    )
-
-    setResource(
-      item.resource
-    )
+  function handleEdit(item) {
+    setEditingId(item.id)
+    setYear(item.year)
+    setQuarter(item.quarter)
+    setProject(item.project)
+    setResource(item.resource)
 
     setHolidayDays(
-      item.holidayDays ||
-      0
+      item.holidayDays || 0
     )
 
     setLeaveDays(
-      item.leaveDays ||
-      0
+      item.leaveDays || 0
     )
 
     setFteFactor(
-      item.fteFactor
+      item.fteFactor ?? '1'
     )
   }
 
-  function handleEditService(
-    item
-  ) {
-
+  function handleEditService(item) {
     setEditingServiceId(
       item.id
     )
@@ -971,261 +902,335 @@ export default function ProjectionsPage() {
     )
   }
 
-  function handleDelete(
-    id
-  ) {
-
+  function handleDelete(id) {
     if (
-      !confirm(
+      confirm(
         'Delete this projection?'
       )
     ) {
-      return
+      deleteProjection(id)
+      loadData()
     }
-
-    deleteProjection(id)
-
-    loadData()
   }
 
-  function handleDeleteService(
-    id
-  ) {
-
+  function handleDeleteService(id) {
     if (
-      !confirm(
+      confirm(
         'Delete service projection?'
       )
     ) {
-      return
+      deleteServiceProjection(id)
+      loadData()
     }
-
-    deleteServiceProjection(
-      id
-    )
-
-    loadData()
   }
-    function getProjectionDisplayMetrics(item) {
-
-  const resourceRecord =
-    resources.find(
-      (r) =>
-        r.resourceName ===
-        item.resource
-    )
-
-  const leaveTrackerMember =
-    resourceRecord?.leaveTrackerMember ||
-    item.leaveTrackerMember ||
-    ''
 
   /*
-    If Leave Data is not available or
-    the resource is not mapped to a
-    Leave Tracker Member, retain the
-    saved projection values.
-  */
-  if (
-    !leaveTrackerMember ||
-    leaveData.length === 0
-  ) {
+    This function drives BOTH:
 
-    const available =
-      Number(
-        item.availableDays ??
-        item.workDays ??
+    - Quarterly display
+    - Monthly display
+
+    The important difference is that
+    the selected month determines whether
+    one month or all three quarter months
+    are calculated.
+
+    Project Start Date and Project LWD
+    are passed into the availability
+    calculation in both cases.
+  */
+  function getProjectionDisplayMetrics(
+    item
+  ) {
+    const resourceRecord =
+      resources.find(
+        (r) =>
+          r.resourceName ===
+          item.resource
+      )
+
+    const leaveTrackerMember =
+      resourceRecord
+        ?.leaveTrackerMember ||
+      item.leaveTrackerMember ||
+      ''
+
+    const projectStartDate =
+      resourceRecord
+        ?.projectStartDate ||
+      ''
+
+    const projectLastWorkingDay =
+      resourceRecord
+        ?.projectLastWorkingDay ||
+      ''
+
+    /*
+      If there is no Leave Tracker
+      mapping and no Leave Data,
+      retain the saved values.
+
+      However, if assignment dates
+      exist, calculate the eligible
+      work days from those dates.
+    */
+    if (
+      !leaveTrackerMember ||
+      leaveData.length === 0
+    ) {
+      if (
+        projectStartDate ||
+        projectLastWorkingDay
+      ) {
+        const months =
+          filterMonth !== ''
+            ? [
+                Number(
+                  filterMonth
+                )
+              ]
+            : getQuarterMonths(
+                item.quarter
+              )
+
+        const monthly =
+          months.map(
+            (monthIndex) =>
+              calculateLeaveAvailability(
+                [],
+                '',
+                item.year,
+                monthIndex,
+                monthIndex,
+                projectStartDate,
+                projectLastWorkingDay
+              )
+          )
+
+        const workDays =
+          monthly.reduce(
+            (sum, month) =>
+              sum +
+              month.workDays,
+            0
+          )
+
+        const holidayDays =
+          monthly.reduce(
+            (sum, month) =>
+              sum +
+              month.companyHolidayDays,
+            0
+          )
+
+        const leaveDays =
+          monthly.reduce(
+            (sum, month) =>
+              sum +
+              month.personalLeaveDays,
+            0
+          )
+
+        const availableDays =
+          monthly.reduce(
+            (sum, month) =>
+              sum +
+              month.availableDays,
+            0
+          )
+
+        const budget =
+          availableDays *
+          Number(
+            item.hoursPerDay || 0
+          ) *
+          Number(
+            item.manHourRate || 0
+          ) *
+          Number(
+            item.fteFactor || 0
+          )
+
+        return {
+          workDays,
+          holidayDays,
+          leaveDays,
+          availableDays,
+          budget
+        }
+      }
+
+      const available =
+        Number(
+          item.availableDays ??
+          item.workDays ??
+          0
+        )
+
+      const budget =
+        available *
+        Number(
+          item.hoursPerDay || 0
+        ) *
+        Number(
+          item.manHourRate || 0
+        ) *
+        Number(
+          item.fteFactor || 0
+        )
+
+      return {
+        workDays:
+          Number(
+            item.workDays || 0
+          ),
+
+        holidayDays:
+          Number(
+            item.holidayDays || 0
+          ),
+
+        leaveDays:
+          Number(
+            item.leaveDays || 0
+          ),
+
+        availableDays:
+          available,
+
+        budget
+      }
+    }
+
+    /*
+      Month View
+    */
+    const months =
+      filterMonth !== ''
+        ? [
+            Number(
+              filterMonth
+            )
+          ]
+        : getQuarterMonths(
+            item.quarter
+          )
+
+    const monthly =
+      months.map(
+        (monthIndex) =>
+          calculateLeaveAvailability(
+            leaveData,
+            leaveTrackerMember,
+            item.year,
+            monthIndex,
+            monthIndex,
+            projectStartDate,
+            projectLastWorkingDay
+          )
+      )
+
+    const workDays =
+      monthly.reduce(
+        (sum, month) =>
+          sum +
+          month.workDays,
+        0
+      )
+
+    const holidayDays =
+      monthly.reduce(
+        (sum, month) =>
+          sum +
+          month.companyHolidayDays,
+        0
+      )
+
+    const leaveDays =
+      monthly.reduce(
+        (sum, month) =>
+          sum +
+          month.personalLeaveDays,
+        0
+      )
+
+    const availableDays =
+      monthly.reduce(
+        (sum, month) =>
+          sum +
+          month.availableDays,
         0
       )
 
     const budget =
-      available *
-      Number(item.hoursPerDay || 0) *
-      Number(item.manHourRate || 0) *
-      Number(item.fteFactor || 0)
-
-    return {
-      workDays:
-        Number(
-          item.workDays || 0
-        ),
-
-      holidayDays:
-        Number(
-          item.holidayDays || 0
-        ),
-
-      leaveDays:
-        Number(
-          item.leaveDays || 0
-        ),
-
-      availableDays:
-        available,
-
-      budget
-    }
-  }
-
-  /*
-    MONTH VIEW
-    Calculate only the selected month.
-  */
-  if (filterMonth !== '') {
-
-    const monthIndex =
-      Number(filterMonth)
-
-    const availability =
-      calculateLeaveAvailability(
-        leaveData,
-        leaveTrackerMember,
-        item.year,
-        monthIndex,
-        monthIndex
+      availableDays *
+      Number(
+        item.hoursPerDay || 0
+      ) *
+      Number(
+        item.manHourRate || 0
+      ) *
+      Number(
+        item.fteFactor || 0
       )
 
-    const budget =
-      Number(
-        availability.availableDays || 0
-      ) *
-      Number(item.hoursPerDay || 0) *
-      Number(item.manHourRate || 0) *
-      Number(item.fteFactor || 0)
-
     return {
-      workDays:
-        availability.workDays,
-
-      holidayDays:
-        availability.companyHolidayDays,
-
-      leaveDays:
-        availability.personalLeaveDays,
-
-      availableDays:
-        availability.availableDays,
-
+      workDays,
+      holidayDays,
+      leaveDays,
+      availableDays,
       budget
     }
   }
-
-  /*
-    QUARTER VIEW
-    Calculate the quarter dynamically
-    from its three individual months.
-
-    This makes:
-
-    Q4 =
-    October + November + December
-  */
-
-  const quarterMonths =
-    getQuarterMonths(
-      item.quarter
-    )
-
-  const monthlyAvailability =
-    quarterMonths.map(
-      (monthIndex) =>
-        calculateLeaveAvailability(
-          leaveData,
-          leaveTrackerMember,
-          item.year,
-          monthIndex,
-          monthIndex
+    function exportCSV(
+    filename,
+    rows
+  ) {
+    const csv =
+      rows
+        .map(
+          (row) =>
+            row
+              .map(
+                (value) =>
+                  `"${String(
+                    value ?? ''
+                  ).replaceAll(
+                    '"',
+                    '""'
+                  )}"`
+              )
+              .join(',')
         )
-    )
+        .join('\n')
 
-  const workDays =
-    monthlyAvailability.reduce(
-      (sum, month) =>
-        sum + month.workDays,
-      0
-    )
-
-  const holidayDays =
-    monthlyAvailability.reduce(
-      (sum, month) =>
-        sum + month.companyHolidayDays,
-      0
-    )
-
-  const leaveDays =
-    monthlyAvailability.reduce(
-      (sum, month) =>
-        sum + month.personalLeaveDays,
-      0
-    )
-
-  const availableDays =
-    monthlyAvailability.reduce(
-      (sum, month) =>
-        sum + month.availableDays,
-      0
-    )
-
-  const budget =
-    availableDays *
-    Number(item.hoursPerDay || 0) *
-    Number(item.manHourRate || 0) *
-    Number(item.fteFactor || 0)
-
-  return {
-    workDays,
-    holidayDays,
-    leaveDays,
-    availableDays,
-    budget
-  }
-}
-
-  function exportStaffCostCSV() {
-
-    const rows =
-      filteredProjections.map(
-        (item) => {
-
-          const displayMetrics =
-            getProjectionDisplayMetrics(
-              item
-            )
-
-          const budget =
-            displayMetrics.budget
-
-          return [
-
-            item.year,
-            item.quarter,
-            item.project,
-            item.resource,
-            item.purpose,
-
-            displayMetrics.workDays,
-            displayMetrics.holidayDays,
-            displayMetrics.leaveDays,
-            displayMetrics.availableDays,
-
-            item.hoursPerDay,
-            item.manHourRate,
-            item.currency,
-            item.fteFactor,
-
-            budget.toFixed(2),
-
-            convertToSEK(
-              budget,
-              item.currency
-            ).toFixed(2)
-
-          ]
+    const blob =
+      new Blob(
+        [csv],
+        {
+          type:
+            'text/csv;charset=utf-8;'
         }
       )
 
-    const csv = [
+    const link =
+      document.createElement(
+        'a'
+      )
 
+    link.href =
+      URL.createObjectURL(
+        blob
+      )
+
+    link.download =
+      filename
+
+    link.click()
+  }
+
+  function exportStaffCostCSV() {
+    const rows = [
       [
         'Year',
         'Quarter',
@@ -1255,48 +1260,65 @@ export default function ProjectionsPage() {
         'FTE',
         'Projected Spend',
         'Projected Spend SEK'
-      ],
-
-      ...rows
-
+      ]
     ]
-      .map(
-        (row) =>
-          row.join(',')
-      )
-      .join('\n')
 
-    const blob =
-      new Blob(
-        [csv],
-        {
-          type:
-            'text/csv;charset=utf-8;'
-        }
-      )
+    filteredProjections.forEach(
+      (item) => {
+        const metrics =
+          getProjectionDisplayMetrics(
+            item
+          )
 
-    const link =
-      document.createElement(
-        'a'
-      )
+        rows.push([
+          item.year,
+          item.quarter,
+          item.project,
+          item.resource,
+          item.purpose,
 
-    link.href =
-      URL.createObjectURL(
-        blob
-      )
+          metrics.workDays,
+          metrics.holidayDays,
+          metrics.leaveDays,
+          metrics.availableDays,
 
-    link.download =
-      'StaffCostProjections.csv'
+          item.hoursPerDay,
+          item.manHourRate,
+          item.currency,
+          item.fteFactor,
 
-    link.click()
+          metrics.budget.toFixed(2),
+
+          convertToSEK(
+            metrics.budget,
+            item.currency
+          ).toFixed(2)
+        ])
+      }
+    )
+
+    exportCSV(
+      'StaffCostProjections.csv',
+      rows
+    )
   }
 
   function exportServiceCostCSV() {
+    const rows = [
+      [
+        'Year',
+        'Quarter',
+        'Project',
+        'Purpose',
+        'Currency',
+        'Projected Spend',
+        'Projected Spend SEK'
+      ]
+    ]
 
-    const rows =
-      filteredServiceProjections.map(
-        (item) => [
-
+    filteredServiceProjections.forEach(
+      (item) => {
+        rows.push([
           item.year,
           item.quarter,
           item.project,
@@ -1308,58 +1330,17 @@ export default function ProjectionsPage() {
             item.projectedBudget,
             item.currency
           ).toFixed(2)
+        ])
+      }
+    )
 
-        ]
-      )
-
-    const csv = [
-
-      [
-        'Year',
-        'Quarter',
-        'Project',
-        'Purpose',
-        'Currency',
-        'Projected Spend',
-        'Projected Spend SEK'
-      ],
-
-      ...rows
-
-    ]
-      .map(
-        (row) =>
-          row.join(',')
-      )
-      .join('\n')
-
-    const blob =
-      new Blob(
-        [csv],
-        {
-          type:
-            'text/csv;charset=utf-8;'
-        }
-      )
-
-    const link =
-      document.createElement(
-        'a'
-      )
-
-    link.href =
-      URL.createObjectURL(
-        blob
-      )
-
-    link.download =
-      'ServiceCostProjections.csv'
-
-    link.click()
+    exportCSV(
+      'ServiceCostProjections.csv',
+      rows
+    )
   }
 
   function exportAllProjectionsCSV() {
-
     const rows = []
 
     rows.push([
@@ -1367,7 +1348,6 @@ export default function ProjectionsPage() {
     ])
 
     rows.push([
-
       'Year',
       'Quarter',
       'Project',
@@ -1382,40 +1362,33 @@ export default function ProjectionsPage() {
       'Currency',
       'FTE',
       'Projected Spend'
-
     ])
 
     filteredProjections.forEach(
       (item) => {
-
-        const displayMetrics =
+        const metrics =
           getProjectionDisplayMetrics(
             item
           )
 
-        const budget =
-          displayMetrics.budget
-
         rows.push([
-
           item.year,
           item.quarter,
           item.project,
           item.resource,
           item.purpose,
 
-          displayMetrics.workDays,
-          displayMetrics.holidayDays,
-          displayMetrics.leaveDays,
-          displayMetrics.availableDays,
+          metrics.workDays,
+          metrics.holidayDays,
+          metrics.leaveDays,
+          metrics.availableDays,
 
           item.hoursPerDay,
           item.manHourRate,
           item.currency,
           item.fteFactor,
 
-          budget.toFixed(2)
-
+          metrics.budget.toFixed(2)
         ])
       }
     )
@@ -1428,7 +1401,6 @@ export default function ProjectionsPage() {
     ])
 
     rows.push([
-
       'Year',
       'Quarter',
       'Project',
@@ -1436,14 +1408,11 @@ export default function ProjectionsPage() {
       'Currency',
       'Projected Spend',
       'Projected Spend SEK'
-
     ])
 
     filteredServiceProjections.forEach(
       (item) => {
-
         rows.push([
-
           item.year,
           item.quarter,
           item.project,
@@ -1455,197 +1424,118 @@ export default function ProjectionsPage() {
             item.projectedBudget,
             item.currency
           ).toFixed(2)
-
         ])
       }
     )
 
-    const csv =
+    exportCSV(
+      'ProjectionPlanning.csv',
       rows
-        .map(
-          (row) =>
-            row.join(',')
-        )
-        .join('\n')
-
-    const blob =
-      new Blob(
-        [csv],
-        {
-          type:
-            'text/csv;charset=utf-8;'
-        }
-      )
-
-    const link =
-      document.createElement(
-        'a'
-      )
-
-    link.href =
-      URL.createObjectURL(
-        blob
-      )
-
-    link.download =
-      'ProjectionPlanning.csv'
-
-    link.click()
+    )
   }
 
   const filteredProjections =
     projections.filter(
-      (p) => {
-
-        return (
-
-          (!filterYear ||
-            p.year ===
-              filterYear)
-
-          &&
-
-          (!filterQuarter ||
-            p.quarter ===
-              filterQuarter)
-
-          &&
-
-          (
-            filterProject ===
-              'All Projects' ||
-
-            p.project ===
-              filterProject
+      (p) =>
+        (
+          !filterYear ||
+          p.year === filterYear
+        ) &&
+        (
+          !filterQuarter ||
+          p.quarter === filterQuarter
+        ) &&
+        (
+          filterProject ===
+            'All Projects' ||
+          p.project ===
+            filterProject
+        ) &&
+        (
+          !filterPurpose ||
+          String(
+            p.purpose || ''
           )
-
-          &&
-
-          (
-            !filterPurpose ||
-
-            p.purpose
-              .toLowerCase()
-              .includes(
-                filterPurpose
-                  .toLowerCase()
-              )
-          )
-
+            .toLowerCase()
+            .includes(
+              filterPurpose
+                .toLowerCase()
+            )
         )
-      }
     )
 
   const filteredServiceProjections =
     serviceProjections.filter(
-      (item) => {
-
-        return (
-
-          (!filterYear ||
-            item.year ===
-              filterYear)
-
-          &&
-
-          (!filterQuarter ||
-            item.quarter ===
-              filterQuarter)
-
-          &&
-
-          (
-            filterProject ===
-              'All Projects' ||
-
-            item.project ===
-              filterProject
+      (item) =>
+        (
+          !filterYear ||
+          item.year === filterYear
+        ) &&
+        (
+          !filterQuarter ||
+          item.quarter ===
+            filterQuarter
+        ) &&
+        (
+          filterProject ===
+            'All Projects' ||
+          item.project ===
+            filterProject
+        ) &&
+        (
+          !filterPurpose ||
+          String(
+            item.purpose || ''
           )
-
-          &&
-
-          (
-            !filterPurpose ||
-
-            item.purpose
-              .toLowerCase()
-              .includes(
-                filterPurpose
-                  .toLowerCase()
-              )
-          )
-
+            .toLowerCase()
+            .includes(
+              filterPurpose
+                .toLowerCase()
+            )
         )
-      }
     )
 
   const totalProjectedBudgetSEK =
     filteredProjections.reduce(
-      (
-        sum,
-        p
-      ) => {
-
-        const displayMetrics =
+      (sum, item) =>
+        sum +
+        convertToSEK(
           getProjectionDisplayMetrics(
-            p
-          )
-
-        return (
-          sum +
-          convertToSEK(
-            displayMetrics.budget,
-            p.currency
-          )
-        )
-      },
+            item
+          ).budget,
+          item.currency
+        ),
       0
     )
 
   const totalServiceSEK =
     filteredServiceProjections.reduce(
-      (
-        sum,
-        item
-      ) => {
-
-        return (
-          sum +
-          convertToSEK(
-            item.projectedBudget,
-            item.currency
-          )
-        )
-
-      },
+      (sum, item) =>
+        sum +
+        convertToSEK(
+          item.projectedBudget,
+          item.currency
+        ),
       0
     )
 
-  const quarterMonthIndexes =
-    filterQuarter
-      ? getQuarterMonths(
-          filterQuarter
-        )
-      : null
-
   const monthOptions =
-    quarterMonthIndexes
-      ? quarterMonthIndexes.map(
-          (index) => ({
-            index,
-            name:
-              MONTH_NAMES[index]
-          })
-        )
-      : MONTH_NAMES.map(
-          (
-            name,
-            index
-          ) => ({
-            index,
-            name
-          })
-        )
+    (
+      filterQuarter
+        ? getQuarterMonths(
+            filterQuarter
+          )
+        : MONTH_NAMES.map(
+            (_, index) =>
+              index
+          )
+    ).map(
+      (index) => ({
+        index,
+        name:
+          MONTH_NAMES[index]
+      })
+    )
 
   return (
     <div
@@ -1654,19 +1544,15 @@ export default function ProjectionsPage() {
         fontFamily: 'Arial'
       }}
     >
-
       <h1>
         Projection Planning
       </h1>
-
-      {/* Navigation */}
 
       <div
         style={{
           marginBottom: 20
         }}
       >
-
         <Link href="/">
           <button>
             Dashboard
@@ -1738,7 +1624,6 @@ export default function ProjectionsPage() {
             Leave Data
           </button>
         </Link>
-
       </div>
 
       <hr />
@@ -1757,7 +1642,6 @@ export default function ProjectionsPage() {
         }}
       >
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1784,11 +1668,9 @@ export default function ProjectionsPage() {
               2027
             </option>
           </select>
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1803,7 +1685,6 @@ export default function ProjectionsPage() {
               )
             }
           >
-
             <option>
               Q1
             </option>
@@ -1819,13 +1700,10 @@ export default function ProjectionsPage() {
             <option>
               Q4
             </option>
-
           </select>
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1840,11 +1718,9 @@ export default function ProjectionsPage() {
               )
             }
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1859,41 +1735,32 @@ export default function ProjectionsPage() {
               )
             }
           >
-
             <option value="">
               Select Resource
             </option>
 
-            {
-              resources
-                .filter(
-                  (r) =>
-                    r.active
+            {resources
+              .filter(
+                (r) => r.active
+              )
+              .map(
+                (r) => (
+                  <option
+                    key={r.id}
+                    value={
+                      r.resourceName
+                    }
+                  >
+                    {
+                      r.resourceName
+                    }
+                  </option>
                 )
-                .map(
-                  (r) => (
-
-                    <option
-                      key={r.id}
-                      value={
-                        r.resourceName
-                      }
-                    >
-                      {
-                        r.resourceName
-                      }
-                    </option>
-
-                  )
-                )
-            }
-
+              )}
           </select>
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1904,11 +1771,9 @@ export default function ProjectionsPage() {
             value={purpose}
             readOnly
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1919,11 +1784,9 @@ export default function ProjectionsPage() {
             value={workDays}
             readOnly
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1939,16 +1802,14 @@ export default function ProjectionsPage() {
               setHolidayDays(
                 Number(
                   e.target.value ||
-                  0
+                    0
                 )
               )
             }
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1964,16 +1825,14 @@ export default function ProjectionsPage() {
               setLeaveDays(
                 Number(
                   e.target.value ||
-                  0
+                    0
                 )
               )
             }
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -1986,11 +1845,9 @@ export default function ProjectionsPage() {
             }
             readOnly
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -2003,11 +1860,9 @@ export default function ProjectionsPage() {
             }
             readOnly
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -2020,11 +1875,9 @@ export default function ProjectionsPage() {
             }
             readOnly
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -2032,16 +1885,12 @@ export default function ProjectionsPage() {
           </label>
 
           <input
-            value={
-              currency
-            }
+            value={currency}
             readOnly
           />
-
         </div>
 
         <div>
-
           <label
             style={fieldLabel}
           >
@@ -2060,43 +1909,75 @@ export default function ProjectionsPage() {
               )
             }
           />
-
         </div>
-
       </div>
 
-      <br />
+      {selectedResource &&
+        (
+          selectedResource
+            .projectStartDate ||
+          selectedResource
+            .projectLastWorkingDay
+        ) && (
+          <p
+            style={{
+              padding: 8,
+              border:
+                '1px solid #ddd',
+              maxWidth: 900
+            }}
+          >
+            <strong>
+              Project Assignment
+              Window:
+            </strong>{' '}
+            {
+              selectedResource
+                .projectStartDate ||
+              'No start date'
+            }{' '}
+            to{' '}
+            {
+              selectedResource
+                .projectLastWorkingDay ||
+              'No last working day'
+            }.
+            {' '}
+            Days outside this
+            window are excluded
+            from projection
+            availability.
+          </p>
+        )}
 
       <h3>
-
-        Projected Spend:
-        {' '}
-
-        {
-          projectedBudget.toFixed(
-            2
-          )
-        }
-
-        {' '}
-
+        Projected Spend:{' '}
+        {projectedBudget.toFixed(
+          2
+        )}{' '}
         {currency}
-
       </h3>
 
       <button
-        onClick={
-          handleSave
-        }
+        onClick={handleSave}
       >
-
-        {
-          editingId
-            ? 'Update Staff Cost Projection'
-            : 'Save Staff Cost Projection'
-        }
-
+        {editingId
+          ? 'Update Staff Cost Projection'
+          : 'Save Staff Cost Projection'}
       </button>
+
+      {editingId && (
+        <button
+          onClick={
+            clearForm
+          }
+          style={{
+            marginLeft: 10
+          }}
+        >
+          Cancel Edit
+        </button>
+      )}
 
       <hr />
 
@@ -2105,16 +1986,13 @@ export default function ProjectionsPage() {
       </h2>
 
       <select
-        value={
-          filterYear
-        }
+        value={filterYear}
         onChange={(e) =>
           setFilterYear(
             e.target.value
           )
         }
       >
-
         <option value="">
           All Years
         </option>
@@ -2130,15 +2008,11 @@ export default function ProjectionsPage() {
         <option>
           2027
         </option>
-
       </select>
 
       <select
-        value={
-          filterQuarter
-        }
+        value={filterQuarter}
         onChange={(e) => {
-
           const newQuarter =
             e.target.value
 
@@ -2147,7 +2021,8 @@ export default function ProjectionsPage() {
           )
 
           if (
-            filterMonth &&
+            filterMonth !==
+              '' &&
             newQuarter &&
             !getQuarterMonths(
               newQuarter
@@ -2159,13 +2034,11 @@ export default function ProjectionsPage() {
           ) {
             setFilterMonth('')
           }
-
         }}
         style={{
           marginLeft: 10
         }}
       >
-
         <option value="">
           All Quarters
         </option>
@@ -2185,13 +2058,10 @@ export default function ProjectionsPage() {
         <option>
           Q4
         </option>
-
       </select>
 
       <select
-        value={
-          filterMonth
-        }
+        value={filterMonth}
         onChange={(e) =>
           setFilterMonth(
             e.target.value
@@ -2201,38 +2071,30 @@ export default function ProjectionsPage() {
           marginLeft: 10
         }}
       >
-
         <option value="">
           All Months
         </option>
 
-        {
-          monthOptions.map(
-            (month) => (
-
-              <option
-                key={
-                  month.index
-                }
-                value={
-                  month.index
-                }
-              >
-                {
-                  month.name
-                }
-              </option>
-
-            )
+        {monthOptions.map(
+          (month) => (
+            <option
+              key={
+                month.index
+              }
+              value={
+                month.index
+              }
+            >
+              {
+                month.name
+              }
+            </option>
           )
-        }
-
+        )}
       </select>
 
       <select
-        value={
-          filterProject
-        }
+        value={filterProject}
         onChange={(e) =>
           setFilterProject(
             e.target.value
@@ -2242,43 +2104,32 @@ export default function ProjectionsPage() {
           marginLeft: 10
         }}
       >
-
         <option>
           All Projects
         </option>
 
-        {
-          [
-            ...new Set(
-              projections
-                .map(
-                  (p) =>
-                    p.project
-                )
-                .filter(
-                  Boolean
-                )
-            )
-          ].map(
-            (projectName) => (
-
-              <option
-                key={
-                  projectName
-                }
-                value={
-                  projectName
-                }
-              >
-                {
-                  projectName
-                }
-              </option>
-
-            )
+        {[
+          ...new Set(
+            projections
+              .map(
+                (p) =>
+                  p.project
+              )
+              .filter(Boolean)
           )
-        }
-
+        ].map(
+          (projectName) => (
+            <option
+              key={
+                projectName
+              }
+            >
+              {
+                projectName
+              }
+            </option>
+          )
+        )}
       </select>
 
       <input
@@ -2298,7 +2149,6 @@ export default function ProjectionsPage() {
 
       <button
         onClick={() => {
-
           setFilterYear('')
           setFilterQuarter('')
           setFilterMonth('')
@@ -2306,7 +2156,6 @@ export default function ProjectionsPage() {
             'All Projects'
           )
           setFilterPurpose('')
-
         }}
         style={{
           marginLeft: 10
@@ -2325,49 +2174,46 @@ export default function ProjectionsPage() {
             '1px solid #ddd'
         }}
       >
+        <button
+          onClick={
+            exportStaffCostCSV
+          }
+        >
+          Export Staff Cost
+        </button>
+
+        <button
+          onClick={
+            exportServiceCostCSV
+          }
+          style={{
+            marginLeft: 10
+          }}
+        >
+          Export Service Cost
+        </button>
+
+        <button
+          onClick={
+            exportAllProjectionsCSV
+          }
+          style={{
+            marginLeft: 10
+          }}
+        >
+          Export All Projections
+        </button>
 
         <div
           style={{
-            marginTop: 15,
-            marginBottom: 15
+            marginTop: 15
           }}
         >
-
-          <button
-            onClick={
-              exportStaffCostCSV
-            }
-          >
-            Export Staff Cost
-          </button>
-
-          <button
-            onClick={
-              exportServiceCostCSV
-            }
-            style={{
-              marginLeft: 10
-            }}
-          >
-            Export Service Cost
-          </button>
-
-          <button
-            onClick={
-              exportAllProjectionsCSV
-            }
-            style={{
-              marginLeft: 10
-            }}
-          >
-            Export All Projections
-          </button>
-
+          <strong>
+            Show / Hide Staff Cost
+            Columns
+          </strong>
         </div>
-
-        <strong>
-          Show / Hide Staff Cost Columns
-        </strong>
 
         <div
           style={{
@@ -2377,111 +2223,88 @@ export default function ProjectionsPage() {
             marginTop: 10
           }}
         >
-
-          {
-            Object.keys(
-              staffColumns
-            ).map(
-              (key) => (
-
-                <label
-                  key={key}
-                >
-
-                  <input
-                    type="checkbox"
-                    checked={
-                      staffColumns[
-                        key
-                      ]
-                    }
-                    onChange={() =>
-                      setStaffColumns({
+          {Object.keys(
+            staffColumns
+          ).map(
+            (key) => (
+              <label
+                key={key}
+              >
+                <input
+                  type="checkbox"
+                  checked={
+                    staffColumns[
+                      key
+                    ]
+                  }
+                  onChange={() =>
+                    setStaffColumns(
+                      {
                         ...staffColumns,
                         [key]:
                           !staffColumns[
                             key
                           ]
-                      })
-                    }
-                  />
-
-                  {' '}
-
-                  {key}
-
-                </label>
-
-              )
+                      }
+                    )
+                  }
+                />{' '}
+                {key}
+              </label>
             )
-          }
-
+          )}
         </div>
-
       </div>
 
-      {
-        filterMonth && (
-
-          <p
-            style={{
-              marginTop: 10,
-              padding: 10,
-              border:
-                '1px solid #ddd',
-              background:
-                '#f7f7f7'
-            }}
-          >
-
-            <strong>
-              Monthly View:
-            </strong>
-            {' '}
-
-            {
-              MONTH_NAMES[
-                Number(
-                  filterMonth
-                )
-              ]
-            }
-            {' '}
-
-            {
-              filterYear ||
-              'selected year'
-            }.
-
-            The underlying
-            projection remains
-            quarter-level. The
-            table is showing
-            monthly available
-            days and monthly
-            projected spend
-            derived from
-            Leave Data.
-
-          </p>
-
-        )
-      }
+      {filterMonth !==
+        '' && (
+        <p
+          style={{
+            marginTop: 10,
+            padding: 10,
+            border:
+              '1px solid #ddd',
+            background:
+              '#f7f7f7'
+          }}
+        >
+          <strong>
+            Monthly View:
+          </strong>{' '}
+          {
+            MONTH_NAMES[
+              Number(
+                filterMonth
+              )
+            ]
+          }{' '}
+          {
+            filterYear ||
+            'selected year'
+          }.
+          {' '}
+          The underlying
+          projection remains
+          quarter-level. The
+          table shows monthly
+          available days and
+          monthly projected
+          spend.
+          {' '}
+          Project Start Date
+          and Project Last
+          Working Day are
+          applied to the
+          monthly calculation.
+        </p>
+      )}
 
       <h2>
-
         Saved Projections
-        (Staff Cost):
-        {' '}
-        SEK
-        {' '}
-
-        {
-          totalProjectedBudgetSEK.toFixed(
-            2
-          )
-        }
-
+        (Staff Cost): SEK{' '}
+        {totalProjectedBudgetSEK.toFixed(
+          2
+        )}
       </h2>
 
       <table
@@ -2493,13 +2316,9 @@ export default function ProjectionsPage() {
           width: '100%'
         }}
       >
-
         <thead>
-
           <tr>
-
-            {
-              staffColumns.year &&
+            {staffColumns.year && (
               <th
                 style={
                   centerCell
@@ -2507,10 +2326,9 @@ export default function ProjectionsPage() {
               >
                 Year
               </th>
-            }
+            )}
 
-            {
-              staffColumns.quarter &&
+            {staffColumns.quarter && (
               <th
                 style={
                   centerCell
@@ -2518,10 +2336,9 @@ export default function ProjectionsPage() {
               >
                 Quarter
               </th>
-            }
+            )}
 
-            {
-              staffColumns.project &&
+            {staffColumns.project && (
               <th
                 style={
                   centerCell
@@ -2529,10 +2346,9 @@ export default function ProjectionsPage() {
               >
                 Project
               </th>
-            }
+            )}
 
-            {
-              staffColumns.resource &&
+            {staffColumns.resource && (
               <th
                 style={
                   centerCell
@@ -2540,10 +2356,9 @@ export default function ProjectionsPage() {
               >
                 Resource
               </th>
-            }
+            )}
 
-            {
-              staffColumns.purpose &&
+            {staffColumns.purpose && (
               <th
                 style={
                   centerCell
@@ -2551,25 +2366,21 @@ export default function ProjectionsPage() {
               >
                 Purpose
               </th>
-            }
+            )}
 
-            {
-              staffColumns.days &&
+            {staffColumns.days && (
               <th
                 style={
                   centerCell
                 }
               >
-                {
-                  filterMonth
-                    ? 'Work Days (Month)'
-                    : 'Days'
-                }
+                {filterMonth
+                  ? 'Work Days (Month)'
+                  : 'Days'}
               </th>
-            }
+            )}
 
-            {
-              staffColumns.holidayDays &&
+            {staffColumns.holidayDays && (
               <th
                 style={
                   centerCell
@@ -2577,10 +2388,9 @@ export default function ProjectionsPage() {
               >
                 Holiday Days
               </th>
-            }
+            )}
 
-            {
-              staffColumns.leaveDays &&
+            {staffColumns.leaveDays && (
               <th
                 style={
                   centerCell
@@ -2588,10 +2398,9 @@ export default function ProjectionsPage() {
               >
                 Leave Days
               </th>
-            }
+            )}
 
-            {
-              staffColumns.availableDays &&
+            {staffColumns.availableDays && (
               <th
                 style={
                   centerCell
@@ -2599,10 +2408,9 @@ export default function ProjectionsPage() {
               >
                 Available Days
               </th>
-            }
+            )}
 
-            {
-              staffColumns.hours &&
+            {staffColumns.hours && (
               <th
                 style={
                   centerCell
@@ -2610,10 +2418,9 @@ export default function ProjectionsPage() {
               >
                 Hours
               </th>
-            }
+            )}
 
-            {
-              staffColumns.rate &&
+            {staffColumns.rate && (
               <th
                 style={
                   centerCell
@@ -2621,10 +2428,9 @@ export default function ProjectionsPage() {
               >
                 Rate
               </th>
-            }
+            )}
 
-            {
-              staffColumns.currency &&
+            {staffColumns.currency && (
               <th
                 style={
                   centerCell
@@ -2632,10 +2438,9 @@ export default function ProjectionsPage() {
               >
                 Currency
               </th>
-            }
+            )}
 
-            {
-              staffColumns.fte &&
+            {staffColumns.fte && (
               <th
                 style={
                   centerCell
@@ -2643,40 +2448,33 @@ export default function ProjectionsPage() {
               >
                 FTE
               </th>
-            }
+            )}
 
-            {
-              staffColumns.projectedSpend &&
+            {staffColumns.projectedSpend && (
               <th
                 style={
                   centerCell
                 }
               >
-                {
-                  filterMonth
-                    ? 'Projected Spend (Month)'
-                    : 'Projected Spend'
-                }
+                {filterMonth
+                  ? 'Projected Spend (Month)'
+                  : 'Projected Spend'}
               </th>
-            }
+            )}
 
-            {
-              staffColumns.projectedSpendSEK &&
+            {staffColumns.projectedSpendSEK && (
               <th
                 style={
                   centerCell
                 }
               >
-                {
-                  filterMonth
-                    ? 'Projected Spend (Month, SEK)'
-                    : 'Projected Spend (SEK)'
-                }
+                {filterMonth
+                  ? 'Projected Spend (Month, SEK)'
+                  : 'Projected Spend (SEK)'}
               </th>
-            }
+            )}
 
-            {
-              staffColumns.actions &&
+            {staffColumns.actions && (
               <th
                 style={
                   centerCell
@@ -2684,277 +2482,241 @@ export default function ProjectionsPage() {
               >
                 Actions
               </th>
-            }
-
+            )}
           </tr>
-
         </thead>
 
         <tbody>
-                      {
-            filteredProjections.map(
-              (item) => {
-
-                const displayMetrics =
-                  getProjectionDisplayMetrics(
-                    item
-                  )
-
-                const budget =
-                  displayMetrics.budget
-
-                const budgetSEK =
-                  convertToSEK(
-                    budget,
-                    item.currency
-                  )
-
-                return (
-
-                  <tr
-                    key={
-                      item.id
-                    }
-                  >
-
-                    {
-                      staffColumns.year &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          item.year
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.quarter &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          item.quarter
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.project &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          item.project
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.resource &&
-                      <td>
-                        {
-                          item.resource
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.purpose &&
-                      <td>
-                        {
-                          item.purpose
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.days &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          displayMetrics
-                            .workDays
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.holidayDays &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          displayMetrics
-                            .holidayDays
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.leaveDays &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          displayMetrics
-                            .leaveDays
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.availableDays &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          displayMetrics
-                            .availableDays
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.hours &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          item.hoursPerDay
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.rate &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          item.manHourRate
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.currency &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          item.currency
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.fte &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          item.fteFactor
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.projectedSpend &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          budget.toFixed(
-                            2
-                          )
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.projectedSpendSEK &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-                        {
-                          budgetSEK.toFixed(
-                            2
-                          )
-                        }
-                      </td>
-                    }
-
-                    {
-                      staffColumns.actions &&
-                      <td
-                        style={
-                          centerCell
-                        }
-                      >
-
-                        <button
-                          onClick={() =>
-                            handleEdit(
-                              item
-                            )
-                          }
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            handleDelete(
-                              item.id
-                            )
-                          }
-                          style={{
-                            marginLeft: 5
-                          }}
-                        >
-                          Delete
-                        </button>
-
-                      </td>
-                    }
-
-                  </tr>
-
+          {filteredProjections.map(
+            (item) => {
+              const metrics =
+                getProjectionDisplayMetrics(
+                  item
                 )
-              }
-            )
-          }
 
+              const budgetSEK =
+                convertToSEK(
+                  metrics.budget,
+                  item.currency
+                )
+
+              return (
+                <tr
+                  key={
+                    item.id
+                  }
+                >
+                  {staffColumns.year && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        item.year
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.quarter && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        item.quarter
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.project && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        item.project
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.resource && (
+                    <td>
+                      {
+                        item.resource
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.purpose && (
+                    <td>
+                      {
+                        item.purpose
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.days && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        metrics.workDays
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.holidayDays && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        metrics.holidayDays
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.leaveDays && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        metrics.leaveDays
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.availableDays && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        metrics.availableDays
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.hours && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        item.hoursPerDay
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.rate && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        item.manHourRate
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.currency && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        item.currency
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.fte && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        item.fteFactor
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.projectedSpend && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        metrics.budget.toFixed(
+                          2
+                        )
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.projectedSpendSEK && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      {
+                        budgetSEK.toFixed(
+                          2
+                        )
+                      }
+                    </td>
+                  )}
+
+                  {staffColumns.actions && (
+                    <td
+                      style={
+                        centerCell
+                      }
+                    >
+                      <button
+                        onClick={() =>
+                          handleEdit(
+                            item
+                          )
+                        }
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          handleDelete(
+                            item.id
+                          )
+                        }
+                        style={{
+                          marginLeft: 5
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              )
+            }
+          )}
         </tbody>
-
       </table>
 
       <hr />
@@ -2976,18 +2738,14 @@ export default function ProjectionsPage() {
           maxWidth: 900
         }}
       >
-
         <select
-          value={
-            serviceYear
-          }
+          value={serviceYear}
           onChange={(e) =>
             setServiceYear(
               e.target.value
             )
           }
         >
-
           <option>
             2025
           </option>
@@ -2999,7 +2757,6 @@ export default function ProjectionsPage() {
           <option>
             2027
           </option>
-
         </select>
 
         <select
@@ -3012,7 +2769,6 @@ export default function ProjectionsPage() {
             )
           }
         >
-
           <option>
             Q1
           </option>
@@ -3028,7 +2784,6 @@ export default function ProjectionsPage() {
           <option>
             Q4
           </option>
-
         </select>
 
         <input
@@ -3065,7 +2820,6 @@ export default function ProjectionsPage() {
             )
           }
         >
-
           <option>
             SEK
           </option>
@@ -3081,7 +2835,6 @@ export default function ProjectionsPage() {
           <option>
             INR
           </option>
-
         </select>
 
         <input
@@ -3096,7 +2849,6 @@ export default function ProjectionsPage() {
             )
           }
         />
-
       </div>
 
       <br />
@@ -3106,31 +2858,32 @@ export default function ProjectionsPage() {
           handleSaveService
         }
       >
-
-        {
-          editingServiceId
-            ? 'Update Service Cost Projection'
-            : 'Save Service Cost Projection'
-        }
-
+        {editingServiceId
+          ? 'Update Service Cost Projection'
+          : 'Save Service Cost Projection'}
       </button>
+
+      {editingServiceId && (
+        <button
+          onClick={
+            clearServiceForm
+          }
+          style={{
+            marginLeft: 10
+          }}
+        >
+          Cancel Edit
+        </button>
+      )}
 
       <hr />
 
       <h2>
-
         Saved Projections
-        (Service Cost):
-        {' '}
-        SEK
-        {' '}
-
-        {
-          totalServiceSEK.toFixed(
-            2
-          )
-        }
-
+        (Service Cost): SEK{' '}
+        {totalServiceSEK.toFixed(
+          2
+        )}
       </h2>
 
       <table
@@ -3142,11 +2895,8 @@ export default function ProjectionsPage() {
           width: '100%'
         }}
       >
-
         <thead>
-
           <tr>
-
             <th
               style={
                 centerCell
@@ -3200,124 +2950,125 @@ export default function ProjectionsPage() {
                 centerCell
               }
             >
-              Actions
+              Projected Spend SEK
             </th>
 
+            <th
+              style={
+                centerCell
+              }
+            >
+              Actions
+            </th>
           </tr>
-
         </thead>
 
         <tbody>
-
-          {
-            filteredServiceProjections.map(
-              (item) => (
-
-                <tr
-                  key={
-                    item.id
+          {filteredServiceProjections.map(
+            (item) => (
+              <tr
+                key={
+                  item.id
+                }
+              >
+                <td
+                  style={
+                    centerCell
                   }
                 >
+                  {item.year}
+                </td>
 
-                  <td
-                    style={
-                      centerCell
+                <td
+                  style={
+                    centerCell
+                  }
+                >
+                  {
+                    item.quarter
+                  }
+                </td>
+
+                <td
+                  style={
+                    centerCell
+                  }
+                >
+                  {
+                    item.project
+                  }
+                </td>
+
+                <td>
+                  {
+                    item.purpose
+                  }
+                </td>
+
+                <td
+                  style={
+                    centerCell
+                  }
+                >
+                  {
+                    item.currency
+                  }
+                </td>
+
+                <td
+                  style={
+                    centerCell
+                  }
+                >
+                  {Number(
+                    item.projectedBudget
+                  ).toFixed(2)}
+                </td>
+
+                <td
+                  style={
+                    centerCell
+                  }
+                >
+                  {convertToSEK(
+                    item.projectedBudget,
+                    item.currency
+                  ).toFixed(2)}
+                </td>
+
+                <td
+                  style={
+                    centerCell
+                  }
+                >
+                  <button
+                    onClick={() =>
+                      handleEditService(
+                        item
+                      )
                     }
                   >
-                    {
-                      item.year
-                    }
-                  </td>
+                    Edit
+                  </button>
 
-                  <td
-                    style={
-                      centerCell
+                  <button
+                    onClick={() =>
+                      handleDeleteService(
+                        item.id
+                      )
                     }
+                    style={{
+                      marginLeft: 5
+                    }}
                   >
-                    {
-                      item.quarter
-                    }
-                  </td>
-
-                  <td
-                    style={
-                      centerCell
-                    }
-                  >
-                    {
-                      item.project
-                    }
-                  </td>
-
-                  <td>
-                    {
-                      item.purpose
-                    }
-                  </td>
-
-                  <td
-                    style={
-                      centerCell
-                    }
-                  >
-                    {
-                      item.currency
-                    }
-                  </td>
-
-                  <td
-                    style={
-                      centerCell
-                    }
-                  >
-                    {
-                      Number(
-                        item.projectedBudget
-                      ).toFixed(2)
-                    }
-                  </td>
-
-                  <td
-                    style={
-                      centerCell
-                    }
-                  >
-
-                    <button
-                      onClick={() =>
-                        handleEditService(
-                          item
-                        )
-                      }
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        handleDeleteService(
-                          item.id
-                        )
-                      }
-                      style={{
-                        marginLeft: 5
-                      }}
-                    >
-                      Delete
-                    </button>
-
-                  </td>
-
-                </tr>
-
-              )
+                    Delete
+                  </button>
+                </td>
+              </tr>
             )
-          }
-
+          )}
         </tbody>
-
       </table>
-
     </div>
   )
 }

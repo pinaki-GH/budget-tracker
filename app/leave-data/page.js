@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 
 const STORAGE_KEY = 'budgetTracker:leaveData'
@@ -14,11 +14,210 @@ const REQUIRED_COLUMNS = [
   'End Date'
 ]
 
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
+]
+
+const CURRENT_YEAR = new Date().getFullYear()
+
+function parseDate(dateString) {
+  if (!dateString) {
+    return null
+  }
+
+  const parts = dateString.split('-')
+
+  if (parts.length !== 3) {
+    return null
+  }
+
+  const year = Number(parts[0])
+  const month = Number(parts[1])
+  const day = Number(parts[2])
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    return null
+  }
+
+  return new Date(
+    year,
+    month - 1,
+    day
+  )
+}
+
+function formatDate(dateString) {
+  if (!dateString) {
+    return ''
+  }
+
+  const date = parseDate(dateString)
+
+  if (!date) {
+    return dateString
+  }
+
+  return date.toLocaleDateString('en-GB')
+}
+
+function isSameDate(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+function isWeekday(date) {
+  const day = date.getDay()
+
+  return day !== 0 && day !== 6
+}
+
+function getWorkDaysInMonth(
+  year,
+  monthIndex
+) {
+  const firstDay = new Date(
+    Number(year),
+    Number(monthIndex),
+    1
+  )
+
+  const lastDay = new Date(
+    Number(year),
+    Number(monthIndex) + 1,
+    0
+  )
+
+  let count = 0
+
+  const current = new Date(firstDay)
+
+  while (current <= lastDay) {
+
+    if (isWeekday(current)) {
+      count++
+    }
+
+    current.setDate(
+      current.getDate() + 1
+    )
+  }
+
+  return count
+}
+
+function getDatesInRange(
+  startDate,
+  endDate
+) {
+  const dates = []
+
+  const current = new Date(startDate)
+
+  while (current <= endDate) {
+
+    dates.push(
+      new Date(current)
+    )
+
+    current.setDate(
+      current.getDate() + 1
+    )
+  }
+
+  return dates
+}
+
+function getRecordDatesInMonth(
+  record,
+  year,
+  monthIndex
+) {
+  const startDate =
+    parseDate(record['Start Date'])
+
+  const endDate =
+    parseDate(record['End Date'])
+
+  if (!startDate || !endDate) {
+    return []
+  }
+
+  const monthStart =
+    new Date(
+      Number(year),
+      Number(monthIndex),
+      1
+    )
+
+  const monthEnd =
+    new Date(
+      Number(year),
+      Number(monthIndex) + 1,
+      0
+    )
+
+  const effectiveStart =
+    startDate > monthStart
+      ? startDate
+      : monthStart
+
+  const effectiveEnd =
+    endDate < monthEnd
+      ? endDate
+      : monthEnd
+
+  if (
+    effectiveStart >
+    effectiveEnd
+  ) {
+    return []
+  }
+
+  return getDatesInRange(
+    effectiveStart,
+    effectiveEnd
+  )
+}
+
 export default function LeaveDataPage() {
 
-  const [leaveData, setLeaveData] = useState([])
-  const [importInfo, setImportInfo] = useState(null)
-  const [error, setError] = useState('')
+  const [leaveData, setLeaveData] =
+    useState([])
+
+  const [importInfo, setImportInfo] =
+    useState(null)
+
+  const [error, setError] =
+    useState('')
+
+  const [selectedMember, setSelectedMember] =
+    useState('')
+
+  const [selectedYear, setSelectedYear] =
+    useState(String(CURRENT_YEAR))
+
+  const [selectedMonth, setSelectedMonth] =
+    useState(String(
+      new Date().getMonth()
+    ))
 
   useEffect(() => {
     loadData()
@@ -29,7 +228,9 @@ export default function LeaveDataPage() {
     try {
 
       const storedData =
-        localStorage.getItem(STORAGE_KEY)
+        localStorage.getItem(
+          STORAGE_KEY
+        )
 
       const storedInfo =
         localStorage.getItem(
@@ -37,12 +238,36 @@ export default function LeaveDataPage() {
         )
 
       if (storedData) {
-        setLeaveData(
+
+        const parsedData =
           JSON.parse(storedData)
+
+        setLeaveData(
+          Array.isArray(parsedData)
+            ? parsedData
+            : []
         )
+
+        const members = [
+          ...new Set(
+            parsedData
+              .map(
+                (record) =>
+                  record['Member Name']
+              )
+              .filter(Boolean)
+          )
+        ]
+
+        if (members.length > 0) {
+          setSelectedMember(
+            members[0]
+          )
+        }
       }
 
       if (storedInfo) {
+
         setImportInfo(
           JSON.parse(storedInfo)
         )
@@ -55,6 +280,9 @@ export default function LeaveDataPage() {
         err
       )
 
+      setError(
+        'Unable to load imported Leave Data.'
+      )
     }
   }
 
@@ -65,10 +293,15 @@ export default function LeaveDataPage() {
     let value = ''
     let insideQuotes = false
 
-    for (let i = 0; i < text.length; i++) {
+    for (
+      let i = 0;
+      i < text.length;
+      i++
+    ) {
 
       const char = text[i]
-      const nextChar = text[i + 1]
+      const nextChar =
+        text[i + 1]
 
       if (char === '"') {
 
@@ -92,7 +325,10 @@ export default function LeaveDataPage() {
         value = ''
 
       } else if (
-        (char === '\n' || char === '\r') &&
+        (
+          char === '\n' ||
+          char === '\r'
+        ) &&
         !insideQuotes
       ) {
 
@@ -120,7 +356,6 @@ export default function LeaveDataPage() {
       } else {
 
         value += char
-
       }
     }
 
@@ -160,6 +395,7 @@ export default function LeaveDataPage() {
     if (
       missingColumns.length > 0
     ) {
+
       throw new Error(
         `Missing required columns: ${missingColumns.join(', ')}`
       )
@@ -173,6 +409,7 @@ export default function LeaveDataPage() {
 
         headers.forEach(
           (header, index) => {
+
             record[header] =
               (
                 row[index] || ''
@@ -181,7 +418,6 @@ export default function LeaveDataPage() {
         )
 
         return record
-
       })
       .filter(
         (record) =>
@@ -216,22 +452,22 @@ export default function LeaveDataPage() {
         if (
           records.length === 0
         ) {
+
           throw new Error(
             'The selected file does not contain any leave records.'
           )
         }
 
-        const members =
-          [
-            ...new Set(
-              records
-                .map(
-                  (record) =>
-                    record['Member Name']
-                )
-                .filter(Boolean)
-            )
-          ]
+        const members = [
+          ...new Set(
+            records
+              .map(
+                (record) =>
+                  record['Member Name']
+              )
+              .filter(Boolean)
+          )
+        ]
 
         const dates =
           records
@@ -242,8 +478,10 @@ export default function LeaveDataPage() {
               ]
             )
             .filter(Boolean)
+            .sort()
 
         const importDetails = {
+
           importedAt:
             new Date().toISOString(),
 
@@ -258,12 +496,12 @@ export default function LeaveDataPage() {
 
           startDate:
             dates.length
-              ? dates.sort()[0]
+              ? dates[0]
               : '',
 
           endDate:
             dates.length
-              ? dates.sort()[dates.length - 1]
+              ? dates[dates.length - 1]
               : ''
         }
 
@@ -280,8 +518,13 @@ export default function LeaveDataPage() {
         )
 
         setLeaveData(records)
+
         setImportInfo(
           importDetails
+        )
+
+        setSelectedMember(
+          members[0] || ''
         )
 
         alert(
@@ -299,14 +542,11 @@ export default function LeaveDataPage() {
           err.message ||
           'Unable to import the selected file.'
         )
-
       }
-
     }
 
     reader.readAsText(file)
 
-    // Allows the same file to be selected again
     event.target.value = ''
   }
 
@@ -330,52 +570,238 @@ export default function LeaveDataPage() {
 
     setLeaveData([])
     setImportInfo(null)
+    setSelectedMember('')
     setError('')
   }
 
-  function formatDate(dateString) {
+  const members = useMemo(
+    () => {
 
-    if (!dateString) {
-      return ''
-    }
+      return [
+        ...new Set(
+          leaveData
+            .map(
+              (record) =>
+                record['Member Name']
+            )
+            .filter(Boolean)
+        )
+      ].sort()
 
-    const date =
-      new Date(dateString)
+    },
+    [leaveData]
+  )
 
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return dateString
-    }
+  const availableYears =
+    useMemo(
+      () => {
 
-    return date.toLocaleDateString(
-      'en-GB'
+        const years = [
+          ...new Set(
+            leaveData
+              .flatMap(
+                (record) => [
+                  record['Start Date'],
+                  record['End Date']
+                ]
+              )
+              .filter(Boolean)
+              .map(
+                (date) =>
+                  date.substring(0, 4)
+              )
+          )
+        ]
+
+        if (
+          years.length === 0
+        ) {
+          return [
+            String(CURRENT_YEAR)
+          ]
+        }
+
+        return years.sort()
+
+      },
+      [leaveData]
     )
-  }
 
-  function formatDateTime(dateString) {
+  const monthlyAvailability =
+    useMemo(
+      () => {
 
-    if (!dateString) {
-      return ''
-    }
+        if (!selectedMember) {
+          return null
+        }
 
-    const date =
-      new Date(dateString)
+        const year =
+          Number(selectedYear)
 
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return dateString
-    }
+        const monthIndex =
+          Number(selectedMonth)
 
-    return date.toLocaleString(
-      'en-GB'
+        const workDays =
+          getWorkDaysInMonth(
+            year,
+            monthIndex
+          )
+
+        let companyHolidayDays = 0
+        let personalLeaveDays = 0
+
+        const matchingRecords =
+          leaveData.filter(
+            (record) => {
+
+              return (
+                record['Member Name'] ===
+                  selectedMember &&
+                record['Status']
+                  ?.trim()
+                  .toLowerCase() ===
+                  'confirmed'
+              )
+            }
+          )
+
+        matchingRecords.forEach(
+          (record) => {
+
+            const dates =
+              getRecordDatesInMonth(
+                record,
+                year,
+                monthIndex
+              )
+
+            if (dates.length === 0) {
+              return
+            }
+
+            const applicableWeekdays =
+              dates.filter(
+                (date) =>
+                  isWeekday(date)
+              )
+
+            if (
+              record['Leave Type']
+                ?.trim()
+                .toLowerCase() ===
+                'company holiday'
+            ) {
+
+              companyHolidayDays +=
+                applicableWeekdays.length
+
+            } else if (
+              record['Leave Type']
+                ?.trim()
+                .toLowerCase() ===
+                'personal leave'
+            ) {
+
+              personalLeaveDays +=
+                applicableWeekdays.length
+            }
+          }
+        )
+
+        const availableDays =
+          Math.max(
+            0,
+            workDays -
+            companyHolidayDays -
+            personalLeaveDays
+          )
+
+        return {
+          workDays,
+          companyHolidayDays,
+          personalLeaveDays,
+          availableDays
+        }
+
+      },
+      [
+        leaveData,
+        selectedMember,
+        selectedYear,
+        selectedMonth
+      ]
     )
-  }
+
+  const monthlyRecords =
+    useMemo(
+      () => {
+
+        if (!selectedMember) {
+          return []
+        }
+
+        const year =
+          Number(selectedYear)
+
+        const monthIndex =
+          Number(selectedMonth)
+
+        return leaveData.filter(
+          (record) => {
+
+            if (
+              record['Member Name'] !==
+                selectedMember
+            ) {
+              return false
+            }
+
+            const startDate =
+              parseDate(
+                record['Start Date']
+              )
+
+            const endDate =
+              parseDate(
+                record['End Date']
+              )
+
+            if (
+              !startDate ||
+              !endDate
+            ) {
+              return false
+            }
+
+            const monthStart =
+              new Date(
+                year,
+                monthIndex,
+                1
+              )
+
+            const monthEnd =
+              new Date(
+                year,
+                monthIndex + 1,
+                0
+              )
+
+            return (
+              startDate <= monthEnd &&
+              endDate >= monthStart
+            )
+          }
+        )
+
+      },
+      [
+        leaveData,
+        selectedMember,
+        selectedYear,
+        selectedMonth
+      ]
+    )
 
   return (
     <div
@@ -459,6 +885,17 @@ export default function LeaveDataPage() {
         </Link>
 
         <Link
+          href="/leave-data"
+          style={{
+            marginLeft: 10
+          }}
+        >
+          <button>
+            Leave Data
+          </button>
+        </Link>
+
+        <Link
           href="/projections"
           style={{
             marginLeft: 10
@@ -478,16 +915,14 @@ export default function LeaveDataPage() {
       </h2>
 
       <p>
-        Import the CSV exported from the
-        Leave Tracker application.
+        Import the CSV exported from
+        the Leave Tracker application.
       </p>
 
       <input
         type="file"
         accept=".csv"
-        onChange={
-          handleImport
-        }
+        onChange={handleImport}
       />
 
       {error && (
@@ -496,9 +931,12 @@ export default function LeaveDataPage() {
           style={{
             marginTop: 15,
             padding: 10,
-            border: '1px solid #cc0000',
-            background: '#fff0f0',
-            color: '#cc0000'
+            border:
+              '1px solid #cc0000',
+            background:
+              '#fff0f0',
+            color:
+              '#cc0000'
           }}
         >
           <strong>
@@ -544,8 +982,11 @@ export default function LeaveDataPage() {
                 <th>
                   File
                 </th>
+
                 <td>
-                  {importInfo.fileName}
+                  {
+                    importInfo.fileName
+                  }
                 </td>
               </tr>
 
@@ -553,10 +994,15 @@ export default function LeaveDataPage() {
                 <th>
                   Imported
                 </th>
+
                 <td>
-                  {formatDateTime(
-                    importInfo.importedAt
-                  )}
+                  {
+                    new Date(
+                      importInfo.importedAt
+                    ).toLocaleString(
+                      'en-GB'
+                    )
+                  }
                 </td>
               </tr>
 
@@ -564,8 +1010,11 @@ export default function LeaveDataPage() {
                 <th>
                   Records
                 </th>
+
                 <td>
-                  {importInfo.recordCount}
+                  {
+                    importInfo.recordCount
+                  }
                 </td>
               </tr>
 
@@ -573,8 +1022,11 @@ export default function LeaveDataPage() {
                 <th>
                   Members
                 </th>
+
                 <td>
-                  {importInfo.memberCount}
+                  {
+                    importInfo.memberCount
+                  }
                 </td>
               </tr>
 
@@ -582,10 +1034,13 @@ export default function LeaveDataPage() {
                 <th>
                   Data Start Date
                 </th>
+
                 <td>
-                  {formatDate(
-                    importInfo.startDate
-                  )}
+                  {
+                    formatDate(
+                      importInfo.startDate
+                    )
+                  }
                 </td>
               </tr>
 
@@ -593,10 +1048,13 @@ export default function LeaveDataPage() {
                 <th>
                   Data End Date
                 </th>
+
                 <td>
-                  {formatDate(
-                    importInfo.endDate
-                  )}
+                  {
+                    formatDate(
+                      importInfo.endDate
+                    )
+                  }
                 </td>
               </tr>
 
@@ -621,93 +1079,225 @@ export default function LeaveDataPage() {
       <hr />
 
       <h2>
-        Imported Leave Records
-        {' '}
-        ({leaveData.length})
+        Monthly Availability
       </h2>
 
       {leaveData.length === 0 ? (
 
         <p>
-          No Leave Data has been imported yet.
+          Import Leave Data to calculate
+          monthly availability.
         </p>
 
       ) : (
 
-        <div
-          style={{
-            overflowX: 'auto'
-          }}
-        >
+        <>
 
-          <table
-            border="1"
-            cellPadding="8"
+          <div
             style={{
-              borderCollapse:
-                'collapse',
-              width: '100%'
+              display: 'grid',
+              gridTemplateColumns:
+                'repeat(3, 250px)',
+              gap: 10,
+              marginBottom: 20
             }}
           >
 
-            <thead>
+            <div>
 
-              <tr>
+              <label
+                style={{
+                  display: 'block',
+                  fontWeight: 'bold',
+                  marginBottom: 5
+                }}
+              >
+                Member
+              </label>
 
-                <th>
-                  Member Name
-                </th>
+              <select
+                value={selectedMember}
+                onChange={(e) =>
+                  setSelectedMember(
+                    e.target.value
+                  )
+                }
+                style={{
+                  width: '100%'
+                }}
+              >
 
-                <th>
-                  Leave Type
-                </th>
+                <option value="">
+                  Select Member
+                </option>
 
-                <th>
-                  Status
-                </th>
+                {members.map(
+                  (member) => (
 
-                <th>
-                  PTO Days
-                </th>
+                    <option
+                      key={member}
+                      value={member}
+                    >
+                      {member}
+                    </option>
 
-                <th>
-                  Start Date
-                </th>
+                  )
+                )}
 
-                <th>
-                  End Date
-                </th>
+              </select>
 
-              </tr>
+            </div>
 
-            </thead>
+            <div>
 
-            <tbody>
+              <label
+                style={{
+                  display: 'block',
+                  fontWeight: 'bold',
+                  marginBottom: 5
+                }}
+              >
+                Year
+              </label>
 
-              {leaveData.map(
-                (record, index) => (
+              <select
+                value={selectedYear}
+                onChange={(e) =>
+                  setSelectedYear(
+                    e.target.value
+                  )
+                }
+                style={{
+                  width: '100%'
+                }}
+              >
 
-                  <tr
-                    key={
-                      `${record['Member Name']}-${record['Start Date']}-${index}`
-                    }
-                  >
+                {availableYears.map(
+                  (year) => (
 
-                    <td>
+                    <option
+                      key={year}
+                      value={year}
+                    >
+                      {year}
+                    </option>
+
+                  )
+                )}
+
+              </select>
+
+            </div>
+
+            <div>
+
+              <label
+                style={{
+                  display: 'block',
+                  fontWeight: 'bold',
+                  marginBottom: 5
+                }}
+              >
+                Month
+              </label>
+
+              <select
+                value={selectedMonth}
+                onChange={(e) =>
+                  setSelectedMonth(
+                    e.target.value
+                  )
+                }
+                style={{
+                  width: '100%'
+                }}
+              >
+
+                {MONTHS.map(
+                  (month, index) => (
+
+                    <option
+                      key={month}
+                      value={index}
+                    >
+                      {month}
+                    </option>
+
+                  )
+                )}
+
+              </select>
+
+            </div>
+
+          </div>
+
+          {monthlyAvailability && (
+
+            <>
+
+              <h3>
+                {
+                  selectedMember
+                }
+                {' - '}
+                {
+                  MONTHS[
+                    Number(
+                      selectedMonth
+                    )
+                  ]
+                }
+                {' '}
+                {selectedYear}
+              </h3>
+
+              <table
+                border="1"
+                cellPadding="10"
+                style={{
+                  borderCollapse:
+                    'collapse',
+                  marginBottom: 20
+                }}
+              >
+
+                <thead>
+
+                  <tr>
+
+                    <th>
+                      Total Work Days
+                    </th>
+
+                    <th>
+                      Company Holidays
+                    </th>
+
+                    <th>
+                      Personal Leave
+                    </th>
+
+                    <th>
+                      Available Days
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody>
+
+                  <tr>
+
+                    <td
+                      style={{
+                        textAlign:
+                          'center'
+                      }}
+                    >
                       {
-                        record['Member Name']
-                      }
-                    </td>
-
-                    <td>
-                      {
-                        record['Leave Type']
-                      }
-                    </td>
-
-                    <td>
-                      {
-                        record['Status']
+                        monthlyAvailability.workDays
                       }
                     </td>
 
@@ -718,32 +1308,202 @@ export default function LeaveDataPage() {
                       }}
                     >
                       {
-                        record['PTO Days']
+                        monthlyAvailability.companyHolidayDays
                       }
                     </td>
 
-                    <td>
+                    <td
+                      style={{
+                        textAlign:
+                          'center'
+                      }}
+                    >
                       {
-                        record['Start Date']
+                        monthlyAvailability.personalLeaveDays
                       }
                     </td>
 
-                    <td>
+                    <td
+                      style={{
+                        textAlign:
+                          'center',
+                        fontWeight:
+                          'bold'
+                      }}
+                    >
                       {
-                        record['End Date']
+                        monthlyAvailability.availableDays
                       }
                     </td>
 
                   </tr>
 
-                )
+                </tbody>
+
+              </table>
+
+              <p>
+                <strong>
+                  Calculation:
+                </strong>{' '}
+                {
+                  monthlyAvailability.workDays
+                }
+                {' '}
+                Work Days −{' '}
+                {
+                  monthlyAvailability.companyHolidayDays
+                }
+                {' '}
+                Company Holidays −{' '}
+                {
+                  monthlyAvailability.personalLeaveDays
+                }
+                {' '}
+                Personal Leave ={' '}
+                <strong>
+                  {
+                    monthlyAvailability.availableDays
+                  }
+                }
+                {' '}
+                Available Days
+                </strong>
+              </p>
+
+              <h3>
+                Records Used
+              </h3>
+
+              {monthlyRecords.length === 0 ? (
+
+                <p>
+                  No leave or holiday records
+                  found for this member and
+                  month.
+                </p>
+
+              ) : (
+
+                <div
+                  style={{
+                    overflowX:
+                      'auto'
+                  }}
+                >
+
+                  <table
+                    border="1"
+                    cellPadding="8"
+                    style={{
+                      borderCollapse:
+                        'collapse',
+                      width: '100%'
+                    }}
+                  >
+
+                    <thead>
+
+                      <tr>
+
+                        <th>
+                          Leave Type
+                        </th>
+
+                        <th>
+                          Status
+                        </th>
+
+                        <th>
+                          PTO Days
+                        </th>
+
+                        <th>
+                          Start Date
+                        </th>
+
+                        <th>
+                          End Date
+                        </th>
+
+                      </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                      {monthlyRecords.map(
+                        (record, index) => (
+
+                          <tr
+                            key={
+                              `${record['Member Name']}-${record['Start Date']}-${index}`
+                            }
+                          >
+
+                            <td>
+                              {
+                                record[
+                                  'Leave Type'
+                                ]
+                              }
+                            </td>
+
+                            <td>
+                              {
+                                record[
+                                  'Status'
+                                ]
+                              }
+                            </td>
+
+                            <td
+                              style={{
+                                textAlign:
+                                  'center'
+                              }}
+                            >
+                              {
+                                record[
+                                  'PTO Days'
+                                ]
+                              }
+                            </td>
+
+                            <td>
+                              {
+                                record[
+                                  'Start Date'
+                                ]
+                              }
+                            </td>
+
+                            <td>
+                              {
+                                record[
+                                  'End Date'
+                                ]
+                              }
+                            </td>
+
+                          </tr>
+
+                        )
+                      )}
+
+                    </tbody>
+
+                  </table>
+
+                </div>
+
               )}
 
-            </tbody>
+            </>
 
-          </table>
+          )}
 
-        </div>
+        </>
 
       )}
 

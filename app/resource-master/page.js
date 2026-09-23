@@ -16,10 +16,14 @@ export default function ResourceMasterPage() {
 
   const [resourceName, setResourceName] = useState('')
 
-  // Leave Tracker mapping
-  const [leaveTrackerMember, setLeaveTrackerMember] = useState('')
+// Leave Tracker mapping
+const [leaveTrackerMember, setLeaveTrackerMember] = useState('')
 
-  const [purpose, setPurpose] = useState('')
+// Project assignment dates
+const [projectStartDate, setProjectStartDate] = useState('')
+const [projectLastWorkingDay, setProjectLastWorkingDay] = useState('')
+
+const [purpose, setPurpose] = useState('')
 
   const [hoursPerDay, setHoursPerDay] = useState('8')
 
@@ -48,6 +52,8 @@ export default function ResourceMasterPage() {
 
     setResourceName('')
     setLeaveTrackerMember('')
+    setProjectStartDate('')
+    setProjectLastWorkingDay('')
     setPurpose('')
     setHoursPerDay('8')
     setManHourRate('')
@@ -80,6 +86,17 @@ export default function ResourceMasterPage() {
       return
     }
 
+    if (
+  projectStartDate &&
+  projectLastWorkingDay &&
+  projectStartDate > projectLastWorkingDay
+) {
+  alert(
+    'Project Start Date cannot be later than Project Last Working Day'
+  )
+  return
+}
+    
     const record = {
       id: editingId || Date.now(),
 
@@ -89,6 +106,12 @@ export default function ResourceMasterPage() {
       leaveTrackerMember:
         leaveTrackerMember.trim(),
 
+      projectStartDate:
+  projectStartDate || '',
+
+projectLastWorkingDay:
+  projectLastWorkingDay || '',
+      
       purpose,
 
       hoursPerDay:
@@ -131,6 +154,14 @@ export default function ResourceMasterPage() {
       resource.leaveTrackerMember || ''
     )
 
+    setProjectStartDate(
+  resource.projectStartDate || ''
+)
+
+setProjectLastWorkingDay(
+  resource.projectLastWorkingDay || ''
+)
+    
     setPurpose(
       resource.purpose || ''
     )
@@ -317,6 +348,38 @@ export default function ResourceMasterPage() {
           }
         />
 
+        <div>
+  <label>
+    Project Start Date
+  </label>
+
+  <input
+    type="date"
+    value={projectStartDate}
+    onChange={(e) =>
+      setProjectStartDate(
+        e.target.value
+      )
+    }
+  />
+</div>
+
+<div>
+  <label>
+    Project Last Working Day
+  </label>
+
+  <input
+    type="date"
+    value={projectLastWorkingDay}
+    onChange={(e) =>
+      setProjectLastWorkingDay(
+        e.target.value
+      )
+    }
+  />
+</div>
+            
         <input
           placeholder="Purpose"
           value={purpose}
@@ -502,6 +565,14 @@ export default function ResourceMasterPage() {
             </th>
 
             <th>
+  Project Start Date
+</th>
+
+<th>
+  Project Last Working Day
+</th>
+        
+            <th>
               Purpose
             </th>
 
@@ -550,6 +621,18 @@ export default function ResourceMasterPage() {
                   }
                 </td>
 
+                <td>
+  {
+    resource.projectStartDate || ''
+  }
+</td>
+
+<td>
+  {
+    resource.projectLastWorkingDay || ''
+  }
+</td>
+                  
                 <td>
                   {
                     resource.purpose

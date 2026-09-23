@@ -849,6 +849,7 @@ const quarterlyAvailability =
       selectedQuarter
     ]
   )
+  
   const monthlyRecords =
     useMemo(
       () => {

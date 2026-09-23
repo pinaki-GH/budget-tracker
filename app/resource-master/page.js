@@ -16,6 +16,9 @@ export default function ResourceMasterPage() {
 
   const [resourceName, setResourceName] = useState('')
 
+  // Leave Tracker mapping
+  const [leaveTrackerMember, setLeaveTrackerMember] = useState('')
+
   const [purpose, setPurpose] = useState('')
 
   const [hoursPerDay, setHoursPerDay] = useState('8')
@@ -44,6 +47,7 @@ export default function ResourceMasterPage() {
   function clearForm() {
 
     setResourceName('')
+    setLeaveTrackerMember('')
     setPurpose('')
     setHoursPerDay('8')
     setManHourRate('')
@@ -70,30 +74,33 @@ export default function ResourceMasterPage() {
       alert('Please enter Purpose')
       return
     }
-    
+
     if (!manHourRate) {
       alert('Please enter Man Hour Rate')
       return
     }
 
     const record = {
-  id: editingId || Date.now(),
+      id: editingId || Date.now(),
 
-  resourceName:
-    resourceName.trim(),
+      resourceName:
+        resourceName.trim(),
 
-  purpose,
+      leaveTrackerMember:
+        leaveTrackerMember.trim(),
 
-  hoursPerDay:
-    Number(hoursPerDay),
+      purpose,
 
-  manHourRate:
-    Number(manHourRate),
+      hoursPerDay:
+        Number(hoursPerDay),
 
-  currency,
+      manHourRate:
+        Number(manHourRate),
 
-  active
-}
+      currency,
+
+      active
+    }
 
     if (editingId) {
 
@@ -105,6 +112,7 @@ export default function ResourceMasterPage() {
     } else {
 
       saveResource(record)
+
     }
 
     loadData()
@@ -117,6 +125,10 @@ export default function ResourceMasterPage() {
 
     setResourceName(
       resource.resourceName
+    )
+
+    setLeaveTrackerMember(
+      resource.leaveTrackerMember || ''
     )
 
     setPurpose(
@@ -173,6 +185,7 @@ export default function ResourceMasterPage() {
 
           resource.currency ===
             filterCurrency)
+
       )
     })
 
@@ -202,10 +215,15 @@ export default function ResourceMasterPage() {
           </button>
         </Link>
 
-        <Link href="/project-budgets" style={{ marginLeft: 10 }}>
-          <button>Project Budgets</button>
+        <Link
+          href="/project-budgets"
+          style={{ marginLeft: 10 }}
+        >
+          <button>
+            Project Budgets
+          </button>
         </Link>
-        
+
         <Link
           href="/add-budget"
           style={{
@@ -279,6 +297,16 @@ export default function ResourceMasterPage() {
         />
 
         <input
+          placeholder="Leave Tracker Member"
+          value={leaveTrackerMember}
+          onChange={(e) =>
+            setLeaveTrackerMember(
+              e.target.value
+            )
+          }
+        />
+
+        <input
           placeholder="Purpose"
           value={purpose}
           onChange={(e) =>
@@ -320,6 +348,7 @@ export default function ResourceMasterPage() {
             )
           }
         >
+
           <option>
             SEK
           </option>
@@ -335,6 +364,7 @@ export default function ResourceMasterPage() {
           <option>
             INR
           </option>
+
         </select>
 
         <label>
@@ -350,6 +380,7 @@ export default function ResourceMasterPage() {
           />
 
           {' '}
+
           Active
 
         </label>
@@ -396,6 +427,7 @@ export default function ResourceMasterPage() {
             )
           }
         >
+
           <option value="">
             All Currencies
           </option>
@@ -415,6 +447,7 @@ export default function ResourceMasterPage() {
           <option>
             INR
           </option>
+
         </select>
 
         <button
@@ -446,15 +479,21 @@ export default function ResourceMasterPage() {
       >
 
         <thead>
+
           <tr>
+
             <th>
               Resource
             </th>
 
             <th>
+              Leave Tracker Member
+            </th>
+
+            <th>
               Purpose
             </th>
-            
+
             <th>
               Hours / Day
             </th>
@@ -474,7 +513,9 @@ export default function ResourceMasterPage() {
             <th>
               Actions
             </th>
+
           </tr>
+
         </thead>
 
         <tbody>
@@ -489,6 +530,12 @@ export default function ResourceMasterPage() {
                 <td>
                   {
                     resource.resourceName
+                  }
+                </td>
+
+                <td>
+                  {
+                    resource.leaveTrackerMember || ''
                   }
                 </td>
 
@@ -552,6 +599,7 @@ export default function ResourceMasterPage() {
                 </td>
 
               </tr>
+
             )
           )}
 

@@ -198,11 +198,7 @@ function getRecordDatesInMonth(
 }
 
 function getDateKey(date) {
-  return `${date.getFullYear()}-${String(
-    date.getMonth() + 1
-  ).padStart(2, '0')}-${String(
-    date.getDate()
-  ).padStart(2, '0')}`
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 function calculateAvailabilityForPeriod(
@@ -225,9 +221,11 @@ function calculateAvailabilityForPeriod(
   )
 
   let workDays = 0
+
   const current = new Date(periodStart)
 
   while (current <= periodEnd) {
+
     if (isWeekday(current)) {
       workDays++
     }
@@ -246,55 +244,77 @@ function calculateAvailabilityForPeriod(
         record['Member Name'] === member &&
         record['Status']
           ?.trim()
-          .toLowerCase() === 'confirmed'
+          .toLowerCase() ===
+          'confirmed'
     )
     .forEach((record) => {
+
       const leaveType =
         record['Leave Type']
           ?.trim()
           .toLowerCase()
 
       if (
-        leaveType !== 'company holiday' &&
-        leaveType !== 'personal leave'
+        leaveType !==
+          'company holiday' &&
+        leaveType !==
+          'personal leave'
       ) {
         return
       }
 
       for (
-        let monthIndex = startMonthIndex;
-        monthIndex <= endMonthIndex;
+        let monthIndex =
+          startMonthIndex;
+        monthIndex <=
+          endMonthIndex;
         monthIndex++
       ) {
-        const dates =
-          getRecordDatesInMonth(
-            record,
-            year,
-            monthIndex
-          )
 
-        dates
-          .filter((date) => isWeekday(date))
+        getRecordDatesInMonth(
+          record,
+          year,
+          monthIndex
+        )
+          .filter(
+            (date) =>
+              isWeekday(date)
+          )
           .forEach((date) => {
-            const key = getDateKey(date)
+
+            const key =
+              getDateKey(date)
 
             if (
               leaveType ===
               'company holiday'
             ) {
-              companyHolidayDates.add(key)
+              companyHolidayDates.add(
+                key
+              )
             } else {
-              personalLeaveDates.add(key)
+              personalLeaveDates.add(
+                key
+              )
             }
           })
       }
     })
 
-  personalLeaveDates.forEach((key) => {
-    if (companyHolidayDates.has(key)) {
-      personalLeaveDates.delete(key)
+  personalLeaveDates.forEach(
+    (key) => {
+
+      if (
+        companyHolidayDates.has(
+          key
+        )
+      ) {
+        personalLeaveDates.delete(
+          key
+        )
+      }
     }
-  })
+  )
 
   const companyHolidayDays =
     companyHolidayDates.size
@@ -318,7 +338,9 @@ function calculateAvailabilityForPeriod(
   }
 }
 
-function getQuarterMonths(quarterIndex) {
+function getQuarterMonths(
+  quarterIndex
+) {
   const startMonth =
     Number(quarterIndex) * 3
 
@@ -352,14 +374,14 @@ export default function LeaveDataPage() {
     ))
 
   const [selectedQuarter, setSelectedQuarter] =
-  useState(
-    String(
-      Math.floor(
-        new Date().getMonth() / 3
+    useState(
+      String(
+        Math.floor(
+          new Date().getMonth() / 3
+        )
       )
     )
-  )
-  
+
   useEffect(() => {
     loadData()
   }, [])
@@ -565,8 +587,7 @@ export default function LeaveDataPage() {
           record['Member Name']
       )
   }
-
-  function handleImport(event) {
+    function handleImport(event) {
 
     const file =
       event.target.files?.[0]
@@ -769,87 +790,100 @@ export default function LeaveDataPage() {
     )
 
   const monthlyAvailability =
-  useMemo(
-    () => {
-      if (!selectedMember) {
-        return null
-      }
+    useMemo(
+      () => {
 
-      return calculateAvailabilityForPeriod(
-        leaveData,
-        selectedMember,
-        selectedYear,
-        Number(selectedMonth),
-        Number(selectedMonth)
-      )
-    },
-    [
-      leaveData,
-      selectedMember,
-      selectedYear,
-      selectedMonth
-    ]
-  )
+        if (!selectedMember) {
+          return null
+        }
 
-const quarterlyAvailability =
-  useMemo(
-    () => {
-      if (!selectedMember) {
-        return null
-      }
-
-      const quarterMonths =
-        getQuarterMonths(
-          selectedQuarter
-        )
-
-      const monthly =
-        quarterMonths.map(
-          (monthIndex) => ({
-            monthIndex,
-            ...calculateAvailabilityForPeriod(
-              leaveData,
-              selectedMember,
-              selectedYear,
-              monthIndex,
-              monthIndex
-            )
-          })
-        )
-
-      const quarterCalculation =
-        calculateAvailabilityForPeriod(
+        return calculateAvailabilityForPeriod(
           leaveData,
           selectedMember,
           selectedYear,
-          quarterMonths[0],
-          quarterMonths[2]
+          Number(selectedMonth),
+          Number(selectedMonth)
         )
 
-      const monthlyAvailableDays =
-        monthly.reduce(
-          (total, month) =>
-            total + month.availableDays,
-          0
-        )
+      },
+      [
+        leaveData,
+        selectedMember,
+        selectedYear,
+        selectedMonth
+      ]
+    )
 
-      return {
-        monthly,
-        quarterCalculation,
-        monthlyAvailableDays,
-        reconciliationMatches:
-          monthlyAvailableDays ===
-          quarterCalculation.availableDays
-      }
-    },
-    [
-      leaveData,
-      selectedMember,
-      selectedYear,
-      selectedQuarter
-    ]
-  )
-  
+  const quarterlyAvailability =
+    useMemo(
+      () => {
+
+        if (!selectedMember) {
+          return null
+        }
+
+        const quarterMonths =
+          getQuarterMonths(
+            selectedQuarter
+          )
+
+        const monthly =
+          quarterMonths.map(
+            (monthIndex) => ({
+
+              monthIndex,
+
+              ...calculateAvailabilityForPeriod(
+                leaveData,
+                selectedMember,
+                selectedYear,
+                monthIndex,
+                monthIndex
+              )
+
+            })
+          )
+
+        const quarterCalculation =
+          calculateAvailabilityForPeriod(
+            leaveData,
+            selectedMember,
+            selectedYear,
+            quarterMonths[0],
+            quarterMonths[2]
+          )
+
+        const monthlyAvailableDays =
+          monthly.reduce(
+            (total, month) =>
+              total +
+              month.availableDays,
+            0
+          )
+
+        return {
+
+          monthly,
+
+          quarterCalculation,
+
+          monthlyAvailableDays,
+
+          reconciliationMatches:
+            monthlyAvailableDays ===
+            quarterCalculation.availableDays
+
+        }
+
+      },
+      [
+        leaveData,
+        selectedMember,
+        selectedYear,
+        selectedQuarter
+      ]
+    )
+
   const monthlyRecords =
     useMemo(
       () => {
@@ -1215,7 +1249,7 @@ const quarterlyAvailability =
             style={{
               display: 'grid',
               gridTemplateColumns:
-                'repeat(3, 250px)',
+                'repeat(4, 250px)',
               gap: 10,
               marginBottom: 20
             }}
@@ -1348,6 +1382,50 @@ const quarterlyAvailability =
 
             </div>
 
+            <div>
+
+              <label
+                style={{
+                  display: 'block',
+                  fontWeight: 'bold',
+                  marginBottom: 5
+                }}
+              >
+                Quarter
+              </label>
+
+              <select
+                value={selectedQuarter}
+                onChange={(e) =>
+                  setSelectedQuarter(
+                    e.target.value
+                  )
+                }
+                style={{
+                  width: '100%'
+                }}
+              >
+
+                <option value="0">
+                  Q1
+                </option>
+
+                <option value="1">
+                  Q2
+                </option>
+
+                <option value="2">
+                  Q3
+                </option>
+
+                <option value="3">
+                  Q4
+                </option>
+
+              </select>
+
+            </div>
+
           </div>
 
           {monthlyAvailability && (
@@ -1461,44 +1539,31 @@ const quarterlyAvailability =
               </table>
 
               <p>
-  <strong>
-    Calculation:
-  </strong>{' '}
-  {monthlyAvailability.workDays}
-  {' '}
-  Work Days −{' '}
-  {monthlyAvailability.companyHolidayDays}
-  {' '}
-  Company Holidays −{' '}
-  {monthlyAvailability.personalLeaveDays}
-  {' '}
-  Personal Leave ={' '}
-  <strong>
-    {monthlyAvailability.availableDays}
-    {' '}
-    Available Days
-  </strong>
-</p>
-              <h3>
-                Records Used
-              </h3>
+                <strong>
+                  Calculation:
+                </strong>{' '}
+                {monthlyAvailability.workDays}
+                {' '}
+                Work Days −{' '}
+                {monthlyAvailability.companyHolidayDays}
+                {' '}
+                Company Holidays −{' '}
+                {monthlyAvailability.personalLeaveDays}
+                {' '}
+                Personal Leave ={' '}
+                <strong>
+                  {monthlyAvailability.availableDays}
+                  {' '}
+                  Available Days
+                </strong>
+              </p>
+              {quarterlyAvailability && (
+                <>
+                  <hr />
 
-              {monthlyRecords.length === 0 ? (
-
-                <p>
-                  No leave or holiday records
-                  found for this member and
-                  month.
-                </p>
-
-              ) : (
-
-                <div
-                  style={{
-                    overflowX:
-                      'auto'
-                  }}
-                >
+                  <h3>
+                    Quarterly Availability Reconciliation
+                  </h3>
 
                   <table
                     border="1"
@@ -1506,7 +1571,7 @@ const quarterlyAvailability =
                     style={{
                       borderCollapse:
                         'collapse',
-                      width: '100%'
+                      marginBottom: 15
                     }}
                   >
 
@@ -1515,23 +1580,23 @@ const quarterlyAvailability =
                       <tr>
 
                         <th>
-                          Leave Type
+                          Period
                         </th>
 
                         <th>
-                          Status
+                          Work Days
                         </th>
 
                         <th>
-                          PTO Days
+                          Company Holidays
                         </th>
 
                         <th>
-                          Start Date
+                          Personal Leave
                         </th>
 
                         <th>
-                          End Date
+                          Available Days
                         </th>
 
                       </tr>
@@ -1540,72 +1605,364 @@ const quarterlyAvailability =
 
                     <tbody>
 
-                      {monthlyRecords.map(
-                        (record, index) => (
+                      {
+                        quarterlyAvailability.monthly.map(
+                          (month) => (
 
-                          <tr
-                            key={
-                              `${record['Member Name']}-${record['Start Date']}-${index}`
-                            }
-                          >
-
-                            <td>
-                              {
-                                record[
-                                  'Leave Type'
-                                ]
+                            <tr
+                              key={
+                                month.monthIndex
                               }
-                            </td>
-
-                            <td>
-                              {
-                                record[
-                                  'Status'
-                                ]
-                              }
-                            </td>
-
-                            <td
-                              style={{
-                                textAlign:
-                                  'center'
-                              }}
                             >
-                              {
-                                record[
-                                  'PTO Days'
-                                ]
-                              }
-                            </td>
 
-                            <td>
-                              {
-                                record[
-                                  'Start Date'
-                                ]
-                              }
-                            </td>
+                              <td>
+                                {
+                                  MONTHS[
+                                    month.monthIndex
+                                  ]
+                                }
+                              </td>
 
-                            <td>
-                              {
-                                record[
-                                  'End Date'
-                                ]
-                              }
-                            </td>
+                              <td
+                                style={{
+                                  textAlign:
+                                    'center'
+                                }}
+                              >
+                                {
+                                  month.workDays
+                                }
+                              </td>
 
-                          </tr>
+                              <td
+                                style={{
+                                  textAlign:
+                                    'center'
+                                }}
+                              >
+                                {
+                                  month.companyHolidayDays
+                                }
+                              </td>
 
+                              <td
+                                style={{
+                                  textAlign:
+                                    'center'
+                                }}
+                              >
+                                {
+                                  month.personalLeaveDays
+                                }
+                              </td>
+
+                              <td
+                                style={{
+                                  textAlign:
+                                    'center',
+                                  fontWeight:
+                                    'bold'
+                                }}
+                              >
+                                {
+                                  month.availableDays
+                                }
+                              </td>
+
+                            </tr>
+
+                          )
                         )
-                      )}
+                      }
+
+                      <tr>
+
+                        <th>
+                          Sum of Monthly Available Days
+                        </th>
+
+                        <td
+                          colSpan="3"
+                        >
+                        </td>
+
+                        <th
+                          style={{
+                            textAlign:
+                              'center'
+                          }}
+                        >
+                          {
+                            quarterlyAvailability
+                              .monthlyAvailableDays
+                          }
+                        </th>
+
+                      </tr>
+
+                      <tr>
+
+                        <th>
+                          Quarter Calculation
+                        </th>
+
+                        <td
+                          style={{
+                            textAlign:
+                              'center'
+                          }}
+                        >
+                          {
+                            quarterlyAvailability
+                              .quarterCalculation
+                              .workDays
+                          }
+                        </td>
+
+                        <td
+                          style={{
+                            textAlign:
+                              'center'
+                          }}
+                        >
+                          {
+                            quarterlyAvailability
+                              .quarterCalculation
+                              .companyHolidayDays
+                          }
+                        </td>
+
+                        <td
+                          style={{
+                            textAlign:
+                              'center'
+                          }}
+                        >
+                          {
+                            quarterlyAvailability
+                              .quarterCalculation
+                              .personalLeaveDays
+                          }
+                        </td>
+
+                        <th
+                          style={{
+                            textAlign:
+                              'center'
+                          }}
+                        >
+                          {
+                            quarterlyAvailability
+                              .quarterCalculation
+                              .availableDays
+                          }
+                        </th>
+
+                      </tr>
 
                     </tbody>
 
                   </table>
 
-                </div>
+                  <p>
 
+                    <strong>
+                      Q
+                      {
+                        Number(
+                          selectedQuarter
+                        ) + 1
+                      }{' '}
+                      {selectedYear}
+                      {' '}
+                      Reconciliation:
+                    </strong>{' '}
+
+                    Sum of monthly available days (
+                    {
+                      quarterlyAvailability
+                        .monthlyAvailableDays
+                    }
+                    )
+                    {' '}
+
+                    {
+                      quarterlyAvailability
+                        .reconciliationMatches
+                        ? '='
+                        : '≠'
+                    }
+
+                    {' '}
+
+                    quarter available days (
+                    {
+                      quarterlyAvailability
+                        .quarterCalculation
+                        .availableDays
+                    }
+                    )
+
+                  </p>
+
+                  <p
+                    style={{
+                      fontWeight:
+                        'bold',
+                      color:
+                        quarterlyAvailability
+                          .reconciliationMatches
+                          ? 'green'
+                          : '#cc0000'
+                    }}
+                  >
+
+                    {
+                      quarterlyAvailability
+                        .reconciliationMatches
+                        ? '✓ Reconciliation Match'
+                        : '✗ Reconciliation Mismatch'
+                    }
+
+                  </p>
+
+                </>
               )}
+
+              <h3>
+                Records Used
+              </h3>
+
+              {
+                monthlyRecords.length === 0 ? (
+
+                  <p>
+                    No leave or holiday records
+                    found for this member and
+                    month.
+                  </p>
+
+                ) : (
+
+                  <div
+                    style={{
+                      overflowX:
+                        'auto'
+                    }}
+                  >
+
+                    <table
+                      border="1"
+                      cellPadding="8"
+                      style={{
+                        borderCollapse:
+                          'collapse',
+                        width: '100%'
+                      }}
+                    >
+
+                      <thead>
+
+                        <tr>
+
+                          <th>
+                            Leave Type
+                          </th>
+
+                          <th>
+                            Status
+                          </th>
+
+                          <th>
+                            PTO Days
+                          </th>
+
+                          <th>
+                            Start Date
+                          </th>
+
+                          <th>
+                            End Date
+                          </th>
+
+                        </tr>
+
+                      </thead>
+
+                      <tbody>
+
+                        {
+                          monthlyRecords.map(
+                            (
+                              record,
+                              index
+                            ) => (
+
+                              <tr
+                                key={
+                                  `${record['Member Name']}-${record['Start Date']}-${index}`
+                                }
+                              >
+
+                                <td>
+                                  {
+                                    record[
+                                      'Leave Type'
+                                    ]
+                                  }
+                                </td>
+
+                                <td>
+                                  {
+                                    record[
+                                      'Status'
+                                    ]
+                                  }
+                                </td>
+
+                                <td
+                                  style={{
+                                    textAlign:
+                                      'center'
+                                  }}
+                                >
+                                  {
+                                    record[
+                                      'PTO Days'
+                                    ]
+                                  }
+                                </td>
+
+                                <td>
+                                  {
+                                    record[
+                                      'Start Date'
+                                    ]
+                                  }
+                                </td>
+
+                                <td>
+                                  {
+                                    record[
+                                      'End Date'
+                                    ]
+                                  }
+                                </td>
+
+                              </tr>
+
+                            )
+                          )
+                        }
+
+                      </tbody>
+
+                    </table>
+
+                  </div>
+
+                )
+              }
 
             </>
 

@@ -1343,34 +1343,24 @@ export default function LeaveDataPage() {
               </table>
 
               <p>
-                <strong>
-                  Calculation:
-                </strong>{' '}
-                {
-                  monthlyAvailability.workDays
-                }
-                {' '}
-                Work Days −{' '}
-                {
-                  monthlyAvailability.companyHolidayDays
-                }
-                {' '}
-                Company Holidays −{' '}
-                {
-                  monthlyAvailability.personalLeaveDays
-                }
-                {' '}
-                Personal Leave ={' '}
-                <strong>
-                  {
-                    monthlyAvailability.availableDays
-                  }
-                }
-                {' '}
-                Available Days
-                </strong>
-              </p>
-
+  <strong>
+    Calculation:
+  </strong>{' '}
+  {monthlyAvailability.workDays}
+  {' '}
+  Work Days −{' '}
+  {monthlyAvailability.companyHolidayDays}
+  {' '}
+  Company Holidays −{' '}
+  {monthlyAvailability.personalLeaveDays}
+  {' '}
+  Personal Leave ={' '}
+  <strong>
+    {monthlyAvailability.availableDays}
+    {' '}
+    Available Days
+  </strong>
+</p>
               <h3>
                 Records Used
               </h3>

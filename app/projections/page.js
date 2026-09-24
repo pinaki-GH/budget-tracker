@@ -1592,6 +1592,17 @@ export default function ProjectionsPage() {
           </button>
         </Link>
 
+        <Link 
+          href="/executive-summary" 
+          style={{ 
+            marginLeft: 10 
+          }}
+        >
+          <button>
+            Executive Summary
+          </button>
+        </Link>
+          
         <Link
           href="/forex-rates"
           style={{

@@ -1014,6 +1014,17 @@ export default function LeaveDataPage() {
           </button>
         </Link>
 
+        <Link 
+          href="/executive-summary" 
+          style={{ 
+            marginLeft: 10
+          }}
+        >
+          <button>
+            Executive Summary
+          </button>
+        </Link>
+          
         <Link
           href="/forex-rates"
           style={{

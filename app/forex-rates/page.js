@@ -114,6 +114,10 @@ export default function ForexRates() {
           <button>Expense Tracking</button>
         </Link>
 
+        <Link href="/executive-summary" style={{ marginLeft: 10 }}>
+          <button>Executive Summary</button>
+        </Link>
+        
         <Link href="/resource-master" style={{ marginLeft: 10 }}>
           <button>Resource Master</button>
         </Link>

@@ -1048,17 +1048,6 @@ export default function LeaveDataPage() {
         </Link>
 
         <Link
-          href="/leave-data"
-          style={{
-            marginLeft: 10
-          }}
-        >
-          <button>
-            Leave Data
-          </button>
-        </Link>
-
-        <Link
           href="/projections"
           style={{
             marginLeft: 10

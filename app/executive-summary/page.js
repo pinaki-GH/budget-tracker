@@ -1227,175 +1227,258 @@ export default function ExecutiveSummary() {
       leaveData,
       forexRates
     ])
-    /* =======================================================
-     QUARTERLY SUMMARY
-  ======================================================= */
 
-  const quarterlySummary =
-    QUARTERS.map(
-      (quarter) => {
+  /* =======================================================
+   QUARTERLY SUMMARY
+   Rolling Budget Logic:
+   Effective Budget =
+     Allocated Budget + Previous Quarter Balance
 
-        const quarterBudgets =
-          budgets.filter(
-            (item) =>
-              String(item.year) ===
-                String(yearFilter) &&
-              item.quarter ===
-                quarter &&
-              (
-                projectFilter ===
-                  'All Projects' ||
-                item.project ===
-                  projectFilter
-              ) &&
-              (
-                purposeFilter ===
-                  'All Purposes' ||
-                item.purpose ===
-                  purposeFilter
-              )
-          )
+   Previous Quarter Balance =
+     Previous Effective Budget - Previous Actual
+======================================================= */
 
+const quarterlySummary = []
 
-        const quarterExpenses =
-          expenses.filter(
-            (item) =>
-              String(item.year) ===
-                String(yearFilter) &&
-              item.quarter ===
-                quarter &&
-              (
-                projectFilter ===
-                  'All Projects' ||
-                item.project ===
-                  projectFilter
-              ) &&
-              (
-                purposeFilter ===
-                  'All Purposes' ||
-                item.purpose ===
-                  purposeFilter
-              )
-          )
+let previousQuarterBalance = 0
 
+QUARTERS.forEach((quarter) => {
 
-        const quarterStaff =
-          projections.filter(
-            (item) =>
-              String(item.year) ===
-                String(yearFilter) &&
-              item.quarter ===
-                quarter &&
-              (
-                projectFilter ===
-                  'All Projects' ||
-                item.project ===
-                  projectFilter
-              ) &&
-              (
-                purposeFilter ===
-                  'All Purposes' ||
-                item.purpose ===
-                  purposeFilter
-              )
-          )
-
-
-        const quarterService =
-          serviceProjections.filter(
-            (item) =>
-              String(item.year) ===
-                String(yearFilter) &&
-              item.quarter ===
-                quarter &&
-              (
-                projectFilter ===
-                  'All Projects' ||
-                item.project ===
-                  projectFilter
-              ) &&
-              (
-                purposeFilter ===
-                  'All Purposes' ||
-                item.purpose ===
-                  purposeFilter
-              )
-          )
-
-
-        const budget =
-          quarterBudgets.reduce(
-            (sum, item) =>
-              sum +
-              convertToSEK(
-                item.budget ??
-                item.total_budget ??
-                0,
-                item.currency
-              ),
-            0
-          )
-
-
-        const actual =
-          quarterExpenses.reduce(
-            (sum, item) =>
-              sum +
-              convertToSEK(
-                item.amount,
-                item.currency
-              ),
-            0
-          )
-
-
-        const staffProjection =
-          quarterStaff.reduce(
-            (sum, item) =>
-              sum +
-              calculateStaffProjection(
-                item
-              ),
-            0
-          )
-
-
-        const serviceProjection =
-          quarterService.reduce(
-            (sum, item) =>
-              sum +
-              convertToSEK(
-                item.projectedBudget,
-                item.currency
-              ),
-            0
-          )
-
-
-        const projection =
-          staffProjection +
-          serviceProjection
-
-
-        const eac =
-          actual +
-          Math.max(
-            0,
-            projection - actual
-          )
-
-
-        return {
-          quarter,
-          budget,
-          actual,
-          projection,
-          eac,
-          variance:
-            budget - eac
-        }
-      }
+  const quarterBudgets =
+    budgets.filter(
+      (item) =>
+        String(item.year) ===
+          String(yearFilter) &&
+        item.quarter === quarter &&
+        (
+          projectFilter ===
+            'All Projects' ||
+          item.project ===
+            projectFilter
+        ) &&
+        (
+          purposeFilter ===
+            'All Purposes' ||
+          item.purpose ===
+            purposeFilter
+        )
     )
+
+
+  const quarterExpenses =
+    expenses.filter(
+      (item) =>
+        String(item.year) ===
+          String(yearFilter) &&
+        item.quarter === quarter &&
+        (
+          projectFilter ===
+            'All Projects' ||
+          item.project ===
+            projectFilter
+        ) &&
+        (
+          purposeFilter ===
+            'All Purposes' ||
+          item.purpose ===
+            purposeFilter
+        )
+    )
+
+
+  const quarterStaff =
+    projections.filter(
+      (item) =>
+        String(item.year) ===
+          String(yearFilter) &&
+        item.quarter === quarter &&
+        (
+          projectFilter ===
+            'All Projects' ||
+          item.project ===
+            projectFilter
+        ) &&
+        (
+          purposeFilter ===
+            'All Purposes' ||
+          item.purpose ===
+            purposeFilter
+        )
+    )
+
+
+  const quarterService =
+    serviceProjections.filter(
+      (item) =>
+        String(item.year) ===
+          String(yearFilter) &&
+        item.quarter === quarter &&
+        (
+          projectFilter ===
+            'All Projects' ||
+          item.project ===
+            projectFilter
+        ) &&
+        (
+          purposeFilter ===
+            'All Purposes' ||
+          item.purpose ===
+            purposeFilter
+        )
+    )
+
+
+  /* -----------------------------------------------
+     Allocated Budget
+  ----------------------------------------------- */
+
+  const allocatedBudget =
+    quarterBudgets.reduce(
+      (sum, item) =>
+        sum +
+        convertToSEK(
+          item.budget ??
+          item.total_budget ??
+          0,
+          item.currency
+        ),
+      0
+    )
+
+
+  /* -----------------------------------------------
+     Effective Budget
+     
+     Q1:
+       Allocated Budget
+
+     Q2 onwards:
+       Allocated Budget +
+       Previous Quarter Balance
+  ----------------------------------------------- */
+
+  const effectiveBudget =
+    allocatedBudget +
+    previousQuarterBalance
+
+
+  /* -----------------------------------------------
+     Actual Consumption
+  ----------------------------------------------- */
+
+  const actual =
+    quarterExpenses.reduce(
+      (sum, item) =>
+        sum +
+        convertToSEK(
+          item.amount,
+          item.currency
+        ),
+      0
+    )
+
+
+  /* -----------------------------------------------
+     Projection
+  ----------------------------------------------- */
+
+  const staffProjection =
+    quarterStaff.reduce(
+      (sum, item) =>
+        sum +
+        calculateStaffProjection(
+          item
+        ),
+      0
+    )
+
+
+  const serviceProjection =
+    quarterService.reduce(
+      (sum, item) =>
+        sum +
+        convertToSEK(
+          item.projectedBudget,
+          item.currency
+        ),
+      0
+    )
+
+
+  const projection =
+    staffProjection +
+    serviceProjection
+
+
+  /* -----------------------------------------------
+     Forecast / EAC
+     
+     For now we retain the existing
+     quarter-level EAC calculation.
+  ----------------------------------------------- */
+
+  const eac =
+    actual +
+    Math.max(
+      0,
+      projection - actual
+    )
+
+
+  /* -----------------------------------------------
+     Effective Budget Variance
+  ----------------------------------------------- */
+
+  const variance =
+    effectiveBudget - eac
+
+
+  /* -----------------------------------------------
+     Actual Budget Utilization
+  ----------------------------------------------- */
+
+  const utilization =
+    effectiveBudget > 0
+      ? (
+          actual /
+          effectiveBudget
+        ) * 100
+      : 0
+
+
+  /* -----------------------------------------------
+     Store Quarter
+  ----------------------------------------------- */
+
+  quarterlySummary.push({
+
+    quarter,
+
+    allocatedBudget,
+
+    effectiveBudget,
+
+    actual,
+
+    projection,
+
+    eac,
+
+    variance,
+
+    utilization
+
+  })
+
+
+  /* -----------------------------------------------
+     Carry balance into next quarter
+  ----------------------------------------------- */
+
+  previousQuarterBalance =
+    effectiveBudget - actual
+
+})
 
 
   /* =======================================================
@@ -2291,44 +2374,48 @@ export default function ExecutiveSummary() {
 
             <thead>
 
-              <tr
-                style={{
-                  background:
-                    '#f3f4f6'
-                }}
-              >
+  <tr
+    style={{
+      background:
+        '#f3f4f6'
+    }}
+  >
 
-                <th style={thStyle}>
-                  Quarter
-                </th>
+    <th style={thStyle}>
+      Quarter
+    </th>
 
-                <th style={thStyle}>
-                  Budget
-                </th>
+    <th style={thStyle}>
+      Allocated Budget
+    </th>
 
-                <th style={thStyle}>
-                  Actual
-                </th>
+    <th style={thStyle}>
+      Effective Budget
+    </th>
 
-                <th style={thStyle}>
-                  Projection
-                </th>
+    <th style={thStyle}>
+      Actual
+    </th>
 
-                <th style={thStyle}>
-                  Forecast / EAC
-                </th>
+    <th style={thStyle}>
+      Projection
+    </th>
 
-                <th style={thStyle}>
-                  Variance
-                </th>
+    <th style={thStyle}>
+      Forecast / EAC
+    </th>
 
-                <th style={thStyle}>
-                  Utilization
-                </th>
+    <th style={thStyle}>
+      Variance
+    </th>
 
-              </tr>
+    <th style={thStyle}>
+      Utilization
+    </th>
 
-            </thead>
+  </tr>
+
+</thead>
 
 
             <tbody>
@@ -2337,84 +2424,87 @@ export default function ExecutiveSummary() {
                 (row) => (
 
                   <tr
-                    key={row.quarter}
-                  >
+  key={row.quarter}
+>
 
-                    <td style={tdStyle}>
-                      <strong>
-                        {row.quarter}
-                      </strong>
-                    </td>
+  <td style={tdStyle}>
+    <strong>
+      {row.quarter}
+    </strong>
+  </td>
 
-                    <td style={tdStyle}>
-                      {formatCurrency(
-                        row.budget
-                      )}
-                    </td>
+  <td style={tdStyle}>
+    {formatCurrency(
+      row.allocatedBudget
+    )}
+  </td>
 
-                    <td style={tdStyle}>
-                      {formatCurrency(
-                        row.actual
-                      )}
-                    </td>
+  <td style={tdStyle}>
+    <strong>
+      {formatCurrency(
+        row.effectiveBudget
+      )}
+    </strong>
+  </td>
 
-                    <td style={tdStyle}>
-                      {formatCurrency(
-                        row.projection
-                      )}
-                    </td>
+  <td style={tdStyle}>
+    {formatCurrency(
+      row.actual
+    )}
+  </td>
 
-                    <td style={tdStyle}>
-                      {formatCurrency(
-                        row.eac
-                      )}
-                    </td>
+  <td style={tdStyle}>
+    {formatCurrency(
+      row.projection
+    )}
+  </td>
 
-                    <td
-                      style={{
-                        ...tdStyle,
-                        fontWeight: 'bold',
-                        color:
-                          row.variance >= 0
-                            ? '#2e7d32'
-                            : '#d32f2f'
-                      }}
-                    >
-                      {formatCurrency(
-                        Math.abs(
-                          row.variance
-                        )
-                      )}
+  <td style={tdStyle}>
+    {formatCurrency(
+      row.eac
+    )}
+  </td>
 
-                      <br />
+  <td
+    style={{
+      ...tdStyle,
+      fontWeight: 'bold',
+      color:
+        row.variance >= 0
+          ? '#2e7d32'
+          : '#d32f2f'
+    }}
+  >
 
-                      <span
-                        style={{
-                          fontSize: 12
-                        }}
-                      >
-                        {row.variance >=
-                        0
-                          ? 'Headroom'
-                          : 'Over Budget'}
-                      </span>
-                    </td>
+    {formatCurrency(
+      Math.abs(
+        row.variance
+      )
+    )}
 
-                    <td style={tdStyle}>
+    <br />
 
-                      {formatPercent(
-                        row.budget > 0
-                          ? (
-                              row.actual /
-                              row.budget
-                            ) * 100
-                          : 0
-                      )}
+    <span
+      style={{
+        fontSize: 12
+      }}
+    >
+      {row.variance >= 0
+        ? 'Headroom'
+        : 'Over Budget'}
+    </span>
 
-                    </td>
+  </td>
 
-                  </tr>
+  <td style={tdStyle}>
 
+    {formatPercent(
+      row.utilization
+    )}
+
+  </td>
+
+</tr>
                 )
               )}
 
@@ -2423,85 +2513,95 @@ export default function ExecutiveSummary() {
 
             <tfoot>
 
-              <tr
-                style={{
-                  background:
-                    '#f8fafc',
-                  fontWeight: 'bold'
-                }}
-              >
+  <tr
+    style={{
+      background:
+        '#f8fafc',
+      fontWeight: 'bold'
+    }}
+  >
 
-                <td style={tdStyle}>
-                  Total
-                </td>
+    <td style={tdStyle}>
+      Total
+    </td>
 
-                <td style={tdStyle}>
-                  {formatCurrency(
-                    quarterlySummary.reduce(
-                      (sum, row) =>
-                        sum +
-                        row.budget,
-                      0
-                    )
-                  )}
-                </td>
+    <td style={tdStyle}>
+      {formatCurrency(
+        quarterlySummary.reduce(
+          (sum, row) =>
+            sum +
+            row.allocatedBudget,
+          0
+        )
+      )}
+    </td>
 
-                <td style={tdStyle}>
-                  {formatCurrency(
-                    quarterlySummary.reduce(
-                      (sum, row) =>
-                        sum +
-                        row.actual,
-                      0
-                    )
-                  )}
-                </td>
+    <td style={tdStyle}>
+      {formatCurrency(
+        quarterlySummary.reduce(
+          (sum, row) =>
+            sum +
+            row.effectiveBudget,
+          0
+        )
+      )}
+    </td>
 
-                <td style={tdStyle}>
-                  {formatCurrency(
-                    quarterlySummary.reduce(
-                      (sum, row) =>
-                        sum +
-                        row.projection,
-                      0
-                    )
-                  )}
-                </td>
+    <td style={tdStyle}>
+      {formatCurrency(
+        quarterlySummary.reduce(
+          (sum, row) =>
+            sum +
+            row.actual,
+          0
+        )
+      )}
+    </td>
 
-                <td style={tdStyle}>
-                  {formatCurrency(
-                    quarterlySummary.reduce(
-                      (sum, row) =>
-                        sum +
-                        row.eac,
-                      0
-                    )
-                  )}
-                </td>
+    <td style={tdStyle}>
+      {formatCurrency(
+        quarterlySummary.reduce(
+          (sum, row) =>
+            sum +
+            row.projection,
+          0
+        )
+      )}
+    </td>
 
-                <td style={tdStyle}>
-                  {formatCurrency(
-                    Math.abs(
-                      quarterlySummary.reduce(
-                        (sum, row) =>
-                          sum +
-                          row.variance,
-                        0
-                      )
-                    )
-                  )}
-                </td>
+    <td style={tdStyle}>
+      {formatCurrency(
+        quarterlySummary.reduce(
+          (sum, row) =>
+            sum +
+            row.eac,
+          0
+        )
+      )}
+    </td>
 
-                <td style={tdStyle}>
-                  {formatPercent(
-                    actualUtilizationPercent
-                  )}
-                </td>
+    <td style={tdStyle}>
+      {formatCurrency(
+        Math.abs(
+          quarterlySummary.reduce(
+            (sum, row) =>
+              sum +
+              row.variance,
+            0
+          )
+        )
+      )}
+    </td>
 
-              </tr>
+    <td style={tdStyle}>
+      {formatPercent(
+        actualUtilizationPercent
+      )}
+    </td>
 
-            </tfoot>
+  </tr>
 
+</tfoot>
           </table>
 
         </div>

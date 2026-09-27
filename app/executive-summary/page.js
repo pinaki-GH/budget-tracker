@@ -45,20 +45,17 @@ const LEAVE_DATA_STORAGE_KEY =
 ========================================================= */
 
 function parseDate(value) {
-
   if (!value) {
     return null
   }
 
-  const parts =
-    String(value).split('-')
+  const parts = String(value).split('-')
 
   if (parts.length !== 3) {
     return null
   }
 
-  const [year, month, day] =
-    parts.map(Number)
+  const [year, month, day] = parts.map(Number)
 
   if (!year || !month || !day) {
     return null
@@ -73,9 +70,7 @@ function parseDate(value) {
 
 
 function isWeekday(date) {
-
-  const day =
-    date.getDay()
+  const day = date.getDay()
 
   return (
     day !== 0 &&
@@ -84,11 +79,7 @@ function isWeekday(date) {
 }
 
 
-function getQuarterStart(
-  year,
-  quarter
-) {
-
+function getQuarterStart(year, quarter) {
   return new Date(
     Number(year),
     QUARTER_MONTHS[quarter][0],
@@ -97,11 +88,7 @@ function getQuarterStart(
 }
 
 
-function getQuarterEnd(
-  year,
-  quarter
-) {
-
+function getQuarterEnd(year, quarter) {
   return new Date(
     Number(year),
     QUARTER_MONTHS[quarter][2] + 1,
@@ -110,11 +97,7 @@ function getQuarterEnd(
 }
 
 
-function getMonthStart(
-  year,
-  monthIndex
-) {
-
+function getMonthStart(year, monthIndex) {
   return new Date(
     Number(year),
     monthIndex,
@@ -123,11 +106,7 @@ function getMonthStart(
 }
 
 
-function getMonthEnd(
-  year,
-  monthIndex
-) {
-
+function getMonthEnd(year, monthIndex) {
   return new Date(
     Number(year),
     monthIndex + 1,
@@ -136,11 +115,7 @@ function getMonthEnd(
 }
 
 
-function getWorkDaysInPeriod(
-  startDate,
-  endDate
-) {
-
+function getWorkDaysInPeriod(startDate, endDate) {
   if (
     !startDate ||
     !endDate ||
@@ -151,11 +126,9 @@ function getWorkDaysInPeriod(
 
   let count = 0
 
-  const current =
-    new Date(startDate)
+  const current = new Date(startDate)
 
   while (current <= endDate) {
-
     if (isWeekday(current)) {
       count++
     }
@@ -170,7 +143,6 @@ function getWorkDaysInPeriod(
 
 
 function getDateKey(date) {
-
   return `${date.getFullYear()}-${String(
     date.getMonth() + 1
   ).padStart(2, '0')}-${String(
@@ -180,7 +152,6 @@ function getDateKey(date) {
 
 
 function getLeaveData() {
-
   if (
     typeof window === 'undefined'
   ) {
@@ -188,15 +159,12 @@ function getLeaveData() {
   }
 
   try {
-
     return JSON.parse(
       localStorage.getItem(
         LEAVE_DATA_STORAGE_KEY
       ) || '[]'
     )
-
   } catch {
-
     return []
   }
 }
@@ -212,13 +180,11 @@ function calculateAvailabilityForPeriod(
   startDate,
   endDate
 ) {
-
   if (
     !startDate ||
     !endDate ||
     startDate > endDate
   ) {
-
     return {
       workDays: 0,
       companyHolidayDays: 0,
@@ -237,7 +203,6 @@ function calculateAvailabilityForPeriod(
     !member ||
     !records?.length
   ) {
-
     return {
       workDays,
       companyHolidayDays: 0,
@@ -255,13 +220,10 @@ function calculateAvailabilityForPeriod(
   records
     .filter(
       record =>
-        record['Member Name'] ===
-          member &&
-        record.Status ===
-          'Confirmed'
+        record['Member Name'] === member &&
+        record.Status === 'Confirmed'
     )
     .forEach(record => {
-
       const start =
         parseDate(
           record['Start Date']
@@ -301,11 +263,7 @@ function calculateAvailabilityForPeriod(
       while (
         current <= effectiveEnd
       ) {
-
-        if (
-          isWeekday(current)
-        ) {
-
+        if (isWeekday(current)) {
           const key =
             getDateKey(current)
 
@@ -313,7 +271,6 @@ function calculateAvailabilityForPeriod(
             record['Leave Type'] ===
             'Company Holiday'
           ) {
-
             companyHolidayDates.add(
               key
             )
@@ -323,7 +280,6 @@ function calculateAvailabilityForPeriod(
             record['Leave Type'] ===
             'Personal Leave'
           ) {
-
             personalLeaveDates.add(
               key
             )
@@ -357,6 +313,8 @@ function calculateAvailabilityForPeriod(
     availableDays
   }
 }
+
+
 function calculateMonthlyAvailability(
   records,
   member,
@@ -365,7 +323,6 @@ function calculateMonthlyAvailability(
   projectStartDate,
   projectLastWorkingDay
 ) {
-
   let startDate =
     getMonthStart(
       year,
@@ -392,7 +349,6 @@ function calculateMonthlyAvailability(
     assignmentStart &&
     assignmentStart > startDate
   ) {
-
     startDate =
       assignmentStart
   }
@@ -401,7 +357,6 @@ function calculateMonthlyAvailability(
     assignmentEnd &&
     assignmentEnd < endDate
   ) {
-
     endDate =
       assignmentEnd
   }
@@ -415,10 +370,7 @@ function calculateMonthlyAvailability(
 }
 
 
-function getExpenseMonthIndex(
-  expense
-) {
-
+function getExpenseMonthIndex(expense) {
   if (!expense?.date) {
     return null
   }
@@ -431,7 +383,6 @@ function getExpenseMonthIndex(
       date.getTime()
     )
   ) {
-
     return null
   }
 
@@ -444,7 +395,6 @@ function getExpenseMonthIndex(
 ========================================================= */
 
 export default function ExecutiveSummary() {
-
   const currentDate =
     new Date()
 
@@ -464,9 +414,7 @@ export default function ExecutiveSummary() {
         : currentMonth <= 8
           ? 'Q3'
           : 'Q4'
-
-
-  /* =======================================================
+    /* =======================================================
      DATA
   ======================================================= */
 
@@ -492,6 +440,16 @@ export default function ExecutiveSummary() {
 
   const [leaveData, setLeaveData] =
     useState([])
+
+  /*
+    Toggle requested for displaying
+    either compact M/K values or
+    complete numeric values.
+  */
+  const [
+    showFullNumbers,
+    setShowFullNumbers
+  ] = useState(false)
 
 
   /* =======================================================
@@ -525,7 +483,6 @@ export default function ExecutiveSummary() {
   ======================================================= */
 
   useEffect(() => {
-
     setBudgets(
       getProjectBudgets()
     )
@@ -553,7 +510,6 @@ export default function ExecutiveSummary() {
     setLeaveData(
       getLeaveData()
     )
-
   }, [])
 
 
@@ -565,7 +521,6 @@ export default function ExecutiveSummary() {
     amount,
     currency
   ) {
-
     const value =
       Number(amount || 0)
 
@@ -573,15 +528,13 @@ export default function ExecutiveSummary() {
       !currency ||
       currency === 'SEK'
     ) {
-
       return value
     }
 
     const rate =
       forexRates.find(
         r =>
-          r.currency ===
-          currency
+          r.currency === currency
       )
 
     return rate
@@ -599,7 +552,6 @@ export default function ExecutiveSummary() {
 
   const availableYears =
     useMemo(() => {
-
       const values =
         new Set([
           currentYear
@@ -611,7 +563,6 @@ export default function ExecutiveSummary() {
         ...projections,
         ...serviceProjections
       ].forEach(item => {
-
         if (item.year) {
           values.add(
             item.year
@@ -622,7 +573,6 @@ export default function ExecutiveSummary() {
       return Array.from(values)
         .filter(Boolean)
         .sort()
-
     }, [
       budgets,
       expenses,
@@ -634,7 +584,6 @@ export default function ExecutiveSummary() {
 
   const availableProjects =
     useMemo(() => {
-
       const values =
         new Set()
 
@@ -644,13 +593,11 @@ export default function ExecutiveSummary() {
         ...projections,
         ...serviceProjections
       ].forEach(item => {
-
         if (
           String(item.year) ===
             String(yearFilter) &&
           item.project
         ) {
-
           values.add(
             item.project
           )
@@ -659,7 +606,6 @@ export default function ExecutiveSummary() {
 
       return Array.from(values)
         .sort()
-
     }, [
       budgets,
       expenses,
@@ -671,7 +617,6 @@ export default function ExecutiveSummary() {
 
   const availablePurposes =
     useMemo(() => {
-
       const values =
         new Set()
 
@@ -681,13 +626,11 @@ export default function ExecutiveSummary() {
         ...projections,
         ...serviceProjections
       ].forEach(item => {
-
         if (
           String(item.year) ===
             String(yearFilter) &&
           item.purpose
         ) {
-
           values.add(
             item.purpose
           )
@@ -696,7 +639,6 @@ export default function ExecutiveSummary() {
 
       return Array.from(values)
         .sort()
-
     }, [
       budgets,
       expenses,
@@ -706,10 +648,7 @@ export default function ExecutiveSummary() {
     ])
 
 
-  function matchesCommonFilters(
-    item
-  ) {
-
+  function matchesCommonFilters(item) {
     return (
       String(item.year) ===
         String(yearFilter) &&
@@ -749,7 +688,8 @@ export default function ExecutiveSummary() {
     projections.filter(
       matchesCommonFilters
     )
-    const filteredServiceProjections =
+
+  const filteredServiceProjections =
     serviceProjections.filter(
       matchesCommonFilters
     )
@@ -759,10 +699,7 @@ export default function ExecutiveSummary() {
      RESOURCE DETAILS
   ======================================================= */
 
-  function getResourceDetails(
-    item
-  ) {
-
+  function getResourceDetails(item) {
     const resource =
       resources.find(
         r =>
@@ -771,7 +708,6 @@ export default function ExecutiveSummary() {
       )
 
     return {
-
       member:
         resource?.leaveTrackerMember ||
         item.leaveTrackerMember ||
@@ -798,7 +734,6 @@ export default function ExecutiveSummary() {
     item,
     monthIndex
   ) {
-
     const details =
       getResourceDetails(
         item
@@ -833,10 +768,7 @@ export default function ExecutiveSummary() {
   }
 
 
-  function calculateStaffQuarter(
-    item
-  ) {
-
+  function calculateStaffQuarter(item) {
     return QUARTER_MONTHS[
       item.quarter
     ].reduce(
@@ -852,22 +784,17 @@ export default function ExecutiveSummary() {
       0
     )
   }
-
-
-  /* =======================================================
+    /* =======================================================
      SERVICE MONTHLY PROJECTION
-     
+
      Service Projection Planning currently
      stores quarter-level projection only.
-     
+
      Therefore monthly service projection
      is derived as Quarter / 3.
   ======================================================= */
 
-  function calculateServiceMonth(
-    item
-  ) {
-
+  function calculateServiceMonth(item) {
     return convertToSEK(
       Number(
         item.projectedBudget || 0
@@ -888,7 +815,6 @@ export default function ExecutiveSummary() {
     project = null,
     purpose = null
   ) {
-
     const staff =
       projections
         .filter(
@@ -921,7 +847,6 @@ export default function ExecutiveSummary() {
           0
         )
 
-
     const service =
       serviceProjections
         .filter(
@@ -953,7 +878,6 @@ export default function ExecutiveSummary() {
           0
         )
 
-
     return (
       staff +
       service
@@ -971,7 +895,6 @@ export default function ExecutiveSummary() {
     project = null,
     purpose = null
   ) {
-
     return expenses
       .filter(
         item =>
@@ -1007,15 +930,21 @@ export default function ExecutiveSummary() {
 
   /* =======================================================
      MONTH ACTUAL
-     
+
      Important:
      hasActual is based on record existence,
      NOT amount > 0.
-     
+
      Therefore:
-       July = 350K record -> actual
-       August = 0 record -> actual
-       September = no record -> projection
+
+       July = 350K record
+             -> actual
+
+       August = 0 record
+             -> actual
+
+       September = no record
+             -> projection
   ======================================================= */
 
   function getMonthActual(
@@ -1025,7 +954,6 @@ export default function ExecutiveSummary() {
     project = null,
     purpose = null
   ) {
-
     const matching =
       expenses.filter(
         item =>
@@ -1049,7 +977,6 @@ export default function ExecutiveSummary() {
       )
 
     return {
-
       hasActual:
         matching.length > 0,
 
@@ -1080,7 +1007,6 @@ export default function ExecutiveSummary() {
     project = null,
     purpose = null
   ) {
-
     return QUARTER_MONTHS[
       quarter
     ].reduce(
@@ -1105,7 +1031,6 @@ export default function ExecutiveSummary() {
     year,
     quarter
   ) {
-
     return (
       getQuarterEnd(
         year,
@@ -1119,7 +1044,6 @@ export default function ExecutiveSummary() {
     year,
     quarter
   ) {
-
     return (
       getQuarterStart(
         year,
@@ -1131,16 +1055,17 @@ export default function ExecutiveSummary() {
 
   /* =======================================================
      QUARTER EAC
-     
+
      Completed:
        Actual only
-     
+
      Future:
        Projection only
-     
+
      Ongoing:
        Actual for months where an Expense
        Tracking record exists +
+
        Projection for months where actual
        data is not yet available.
   ======================================================= */
@@ -1151,7 +1076,6 @@ export default function ExecutiveSummary() {
     project = null,
     purpose = null
   ) {
-
     const actual =
       getQuarterActual(
         year,
@@ -1174,7 +1098,6 @@ export default function ExecutiveSummary() {
         quarter
       )
     ) {
-
       return actual
     }
 
@@ -1184,7 +1107,6 @@ export default function ExecutiveSummary() {
         quarter
       )
     ) {
-
       return projection
     }
 
@@ -1195,7 +1117,6 @@ export default function ExecutiveSummary() {
         sum,
         month
       ) => {
-
         const monthActual =
           getMonthActual(
             year,
@@ -1225,6 +1146,10 @@ export default function ExecutiveSummary() {
   }
 
 
+  /* =======================================================
+     TOTAL PROJECTIONS
+  ======================================================= */
+
   const totalActualSEK =
     filteredExpenses.reduce(
       (
@@ -1238,9 +1163,6 @@ export default function ExecutiveSummary() {
         ),
       0
     )
-    /* =======================================================
-     TOTAL PROJECTIONS
-  ======================================================= */
 
   const totalStaffProjectionSEK =
     filteredStaffProjections.reduce(
@@ -1254,7 +1176,6 @@ export default function ExecutiveSummary() {
         ),
       0
     )
-
 
   const totalServiceProjectionSEK =
     filteredServiceProjections.reduce(
@@ -1270,19 +1191,16 @@ export default function ExecutiveSummary() {
       0
     )
 
-
   const totalProjectionSEK =
     totalStaffProjectionSEK +
     totalServiceProjectionSEK
-
-
-  /* =======================================================
+    /* =======================================================
      ROLLING QUARTERLY BUDGET
-     
+
      Effective Budget =
        Allocated Budget +
        Previous Quarter Balance
-     
+
      Previous Quarter Balance =
        Previous Effective Budget -
        Previous Actual
@@ -1294,7 +1212,6 @@ export default function ExecutiveSummary() {
 
   QUARTERS.forEach(
     quarter => {
-
       const quarterBudgets =
         budgets.filter(
           item =>
@@ -1316,7 +1233,6 @@ export default function ExecutiveSummary() {
             )
         )
 
-
       const allocatedBudget =
         quarterBudgets.reduce(
           (
@@ -1333,11 +1249,9 @@ export default function ExecutiveSummary() {
           0
         )
 
-
       const effectiveBudget =
         allocatedBudget +
         previousQuarterBalance
-
 
       const project =
         projectFilter ===
@@ -1345,13 +1259,11 @@ export default function ExecutiveSummary() {
           ? null
           : projectFilter
 
-
       const purpose =
         purposeFilter ===
           'All Purposes'
           ? null
           : purposeFilter
-
 
       const actual =
         getQuarterActual(
@@ -1361,7 +1273,13 @@ export default function ExecutiveSummary() {
           purpose
         )
 
+      /*
+        Projection is calculated independently
+        for every quarter.
 
+        This value is always available to
+        the quarterly table.
+      */
       const projection =
         getQuarterProjection(
           yearFilter,
@@ -1369,7 +1287,6 @@ export default function ExecutiveSummary() {
           project,
           purpose
         )
-
 
       const eac =
         calculateQuarterEAC(
@@ -1379,11 +1296,9 @@ export default function ExecutiveSummary() {
           purpose
         )
 
-
       const variance =
         effectiveBudget -
         eac
-
 
       const utilization =
         effectiveBudget > 0
@@ -1393,45 +1308,33 @@ export default function ExecutiveSummary() {
             ) * 100
           : 0
 
-
       quarterlySummary.push({
-
         quarter,
-
         allocatedBudget,
-
         effectiveBudget,
-
         actual,
-
         projection,
-
         eac,
-
         variance,
-
         utilization
-
       })
-
 
       previousQuarterBalance =
         effectiveBudget -
         actual
-
     }
   )
 
 
   /* =======================================================
      KPI BUDGET
-     
+
      All Quarters:
        Use total original allocations.
-     
+
      Specific Quarter:
        Use that quarter's effective budget.
-     
+
      This avoids double-counting carry-forward
      balances in the annual KPI.
   ======================================================= */
@@ -1447,7 +1350,6 @@ export default function ExecutiveSummary() {
       0
     )
 
-
   const selectedQuarterSummary =
     quarterFilter ===
       'All Quarters'
@@ -1458,12 +1360,15 @@ export default function ExecutiveSummary() {
             quarterFilter
         )
 
-
   const totalBudgetSEK =
     selectedQuarterSummary
       ? selectedQuarterSummary.effectiveBudget
       : totalAllocatedBudgetSEK
 
+
+  /* =======================================================
+     FORECAST / EAC
+  ======================================================= */
 
   const forecastEACSEK =
     quarterlySummary
@@ -1484,11 +1389,9 @@ export default function ExecutiveSummary() {
         0
       )
 
-
   const forecastVarianceSEK =
     totalBudgetSEK -
     forecastEACSEK
-
 
   const forecastVariancePercent =
     totalBudgetSEK > 0
@@ -1498,7 +1401,6 @@ export default function ExecutiveSummary() {
         ) * 100
       : 0
 
-
   const actualUtilizationPercent =
     totalBudgetSEK > 0
       ? (
@@ -1506,7 +1408,6 @@ export default function ExecutiveSummary() {
           totalBudgetSEK
         ) * 100
       : 0
-
 
   const forecastUtilizationPercent =
     totalBudgetSEK > 0
@@ -1516,13 +1417,11 @@ export default function ExecutiveSummary() {
         ) * 100
       : 0
 
-
   const forecastHeadroomSEK =
     Math.max(
       0,
       forecastVarianceSEK
     )
-
 
   const forecastOverrunSEK =
     Math.max(
@@ -1532,7 +1431,6 @@ export default function ExecutiveSummary() {
 
 
   function getSelectedQuarters() {
-
     return (
       quarterFilter ===
         'All Quarters'
@@ -1549,7 +1447,6 @@ export default function ExecutiveSummary() {
   function calculatePurposeEAC(
     purpose
   ) {
-
     const normalizedPurpose =
       purpose === 'Unspecified'
         ? ''
@@ -1583,7 +1480,6 @@ export default function ExecutiveSummary() {
   function calculateProjectEAC(
     project
   ) {
-
     const normalizedProject =
       project === 'Unspecified'
         ? ''
@@ -1608,27 +1504,22 @@ export default function ExecutiveSummary() {
         0
       )
   }
-
-
-  /* =======================================================
+    /* =======================================================
      PURPOSE SUMMARY
   ======================================================= */
 
   const purposeSummary =
     useMemo(
       () => {
-
         const map = {}
 
         const ensure =
           purpose => {
-
             const key =
               purpose ||
               'Unspecified'
 
             if (!map[key]) {
-
               map[key] = {
                 purpose: key,
                 budget: 0,
@@ -1639,7 +1530,6 @@ export default function ExecutiveSummary() {
 
             return map[key]
           }
-
 
         filteredBudgets.forEach(
           item =>
@@ -1654,7 +1544,6 @@ export default function ExecutiveSummary() {
               )
         )
 
-
         filteredExpenses.forEach(
           item =>
             ensure(
@@ -1666,7 +1555,6 @@ export default function ExecutiveSummary() {
               )
         )
 
-
         filteredStaffProjections.forEach(
           item =>
             ensure(
@@ -1676,7 +1564,6 @@ export default function ExecutiveSummary() {
                 item
               )
         )
-
 
         filteredServiceProjections.forEach(
           item =>
@@ -1689,26 +1576,20 @@ export default function ExecutiveSummary() {
               )
         )
 
-
         return Object.values(map)
           .map(
             row => {
-
               const eac =
                 calculatePurposeEAC(
                   row.purpose
                 )
 
               return {
-
                 ...row,
-
                 eac,
-
                 variance:
                   row.budget -
                   eac,
-
                 actualUtilization:
                   row.budget > 0
                     ? (
@@ -1727,7 +1608,6 @@ export default function ExecutiveSummary() {
               b.eac -
               a.eac
           )
-
       },
       [
         filteredBudgets,
@@ -1743,25 +1623,24 @@ export default function ExecutiveSummary() {
         purposeFilter
       ]
     )
-    /* =======================================================
+
+
+  /* =======================================================
      PROJECT SUMMARY
   ======================================================= */
 
   const projectSummary =
     useMemo(
       () => {
-
         const map = {}
 
         const ensure =
           project => {
-
             const key =
               project ||
               'Unspecified'
 
             if (!map[key]) {
-
               map[key] = {
                 project: key,
                 budget: 0,
@@ -1772,7 +1651,6 @@ export default function ExecutiveSummary() {
 
             return map[key]
           }
-
 
         filteredBudgets.forEach(
           item =>
@@ -1787,7 +1665,6 @@ export default function ExecutiveSummary() {
               )
         )
 
-
         filteredExpenses.forEach(
           item =>
             ensure(
@@ -1799,7 +1676,6 @@ export default function ExecutiveSummary() {
               )
         )
 
-
         filteredStaffProjections.forEach(
           item =>
             ensure(
@@ -1809,7 +1685,6 @@ export default function ExecutiveSummary() {
                 item
               )
         )
-
 
         filteredServiceProjections.forEach(
           item =>
@@ -1822,26 +1697,20 @@ export default function ExecutiveSummary() {
               )
         )
 
-
         return Object.values(map)
           .map(
             row => {
-
               const eac =
                 calculateProjectEAC(
                   row.project
                 )
 
               return {
-
                 ...row,
-
                 eac,
-
                 variance:
                   row.budget -
                   eac,
-
                 utilization:
                   row.budget > 0
                     ? (
@@ -1860,7 +1729,6 @@ export default function ExecutiveSummary() {
               b.eac -
               a.eac
           )
-
       },
       [
         filteredBudgets,
@@ -1885,38 +1753,27 @@ export default function ExecutiveSummary() {
   const attentionItems =
     useMemo(
       () => {
-
         const items = []
-
 
         if (
           forecastOverrunSEK > 0
         ) {
-
           items.push({
-
             type: 'warning',
-
             title:
               'Forecast exceeds budget',
-
             message:
               `Current forecast is ${formatCurrency(
                 forecastOverrunSEK
               )} above the applicable budget.`
           })
-
         } else if (
           totalBudgetSEK > 0
         ) {
-
           items.push({
-
             type: 'positive',
-
             title:
               'Forecast remains within budget',
-
             message:
               `${formatCurrency(
                 forecastHeadroomSEK
@@ -1924,26 +1781,20 @@ export default function ExecutiveSummary() {
           })
         }
 
-
         if (
           actualUtilizationPercent >=
           90
         ) {
-
           items.push({
-
             type: 'warning',
-
             title:
               'High actual budget utilization',
-
             message:
               `${actualUtilizationPercent.toFixed(
                 1
               )}% of the applicable budget has already been consumed.`
           })
         }
-
 
         projectSummary
           .filter(
@@ -1955,14 +1806,10 @@ export default function ExecutiveSummary() {
           .slice(0, 3)
           .forEach(
             item => {
-
               items.push({
-
                 type: 'warning',
-
                 title:
                   `${item.project} forecast`,
-
                 message:
                   `Forecast is ${formatCurrency(
                     item.eac -
@@ -1972,26 +1819,19 @@ export default function ExecutiveSummary() {
             }
           )
 
-
         if (
           !items.length
         ) {
-
           items.push({
-
             type: 'neutral',
-
             title:
               'No immediate financial attention',
-
             message:
               'There are no current exceptions based on the selected filters.'
           })
         }
 
-
         return items
-
       },
       [
         forecastOverrunSEK,
@@ -2007,18 +1847,32 @@ export default function ExecutiveSummary() {
      FORMATTING
   ======================================================= */
 
-  function formatCurrency(
-    value
-  ) {
-
+  function formatCurrency(value) {
     const amount =
       Number(value || 0)
+
+    /*
+      Toggle ON:
+        SEK 1,000,000
+
+      Toggle OFF:
+        SEK 1.00M
+        SEK 949.6K
+    */
+    if (showFullNumbers) {
+      return `SEK ${amount.toLocaleString(
+        'en-US',
+        {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }
+      )}`
+    }
 
     if (
       Math.abs(amount) >=
       1000000
     ) {
-
       return `SEK ${(amount / 1000000).toFixed(2)}M`
     }
 
@@ -2026,7 +1880,6 @@ export default function ExecutiveSummary() {
       Math.abs(amount) >=
       1000
     ) {
-
       return `SEK ${(amount / 1000).toFixed(1)}K`
     }
 
@@ -2034,20 +1887,14 @@ export default function ExecutiveSummary() {
   }
 
 
-  function formatPercent(
-    value
-  ) {
-
+  function formatPercent(value) {
     return `${Number(
       value || 0
     ).toFixed(1)}%`
   }
 
 
-  function getVarianceLabel(
-    value
-  ) {
-
+  function getVarianceLabel(value) {
     return (
       value > 0
         ? 'Headroom'
@@ -2059,7 +1906,6 @@ export default function ExecutiveSummary() {
 
 
   function clearFilters() {
-
     setYearFilter(
       currentYear
     )
@@ -2076,18 +1922,14 @@ export default function ExecutiveSummary() {
       'All Purposes'
     )
   }
-
-
-  /* =======================================================
+    /* =======================================================
      UI
   ======================================================= */
 
   return (
-
     <div style={pageStyle}>
 
       <div style={cardStyle}>
-
         <h1
           style={{
             marginTop: 0,
@@ -2107,7 +1949,6 @@ export default function ExecutiveSummary() {
           Budget, Actual Consumption &
           Forecast
         </p>
-
       </div>
 
 
@@ -2116,7 +1957,6 @@ export default function ExecutiveSummary() {
           marginBottom: 20
         }}
       >
-
         <Link href="/">
           <button>
             Dashboard
@@ -2155,7 +1995,6 @@ export default function ExecutiveSummary() {
             Expense Tracking
           </button>
         </Link>
-
       </div>
 
 
@@ -2174,7 +2013,6 @@ export default function ExecutiveSummary() {
         >
 
           <div>
-
             <label>
               <strong>
                 Year
@@ -2191,26 +2029,20 @@ export default function ExecutiveSummary() {
               }
               style={inputStyle}
             >
-
               {availableYears.map(
                 year => (
-
                   <option
                     key={year}
                   >
                     {year}
                   </option>
-
                 )
               )}
-
             </select>
-
           </div>
 
 
           <div>
-
             <label>
               <strong>
                 Quarter
@@ -2227,30 +2059,24 @@ export default function ExecutiveSummary() {
               }
               style={inputStyle}
             >
-
               <option>
                 All Quarters
               </option>
 
               {QUARTERS.map(
                 quarter => (
-
                   <option
                     key={quarter}
                   >
                     {quarter}
                   </option>
-
                 )
               )}
-
             </select>
-
           </div>
 
 
           <div>
-
             <label>
               <strong>
                 Project
@@ -2267,30 +2093,24 @@ export default function ExecutiveSummary() {
               }
               style={inputStyle}
             >
-
               <option>
                 All Projects
               </option>
 
               {availableProjects.map(
                 project => (
-
                   <option
                     key={project}
                   >
                     {project}
                   </option>
-
                 )
               )}
-
             </select>
-
           </div>
 
 
           <div>
-
             <label>
               <strong>
                 Purpose
@@ -2307,25 +2127,20 @@ export default function ExecutiveSummary() {
               }
               style={inputStyle}
             >
-
               <option>
                 All Purposes
               </option>
 
               {availablePurposes.map(
                 purpose => (
-
                   <option
                     key={purpose}
                   >
                     {purpose}
                   </option>
-
                 )
               )}
-
             </select>
-
           </div>
 
         </div>
@@ -2408,6 +2223,76 @@ export default function ExecutiveSummary() {
         />
 
       </div>
+
+
+      {/* ===================================================
+          NUMBER DISPLAY TOGGLE
+      =================================================== */}
+
+      <div
+        style={{
+          ...cardStyle,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent:
+            'space-between',
+          gap: 15,
+          padding:
+            '12px 16px'
+        }}
+      >
+
+        <div>
+          <strong>
+            Display Values
+          </strong>
+
+          <div
+            style={{
+              fontSize: 12,
+              color: '#666',
+              marginTop: 3
+            }}
+          >
+            Switch between compact
+            M/K notation and full
+            numeric values.
+          </div>
+        </div>
+
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            whiteSpace:
+              'nowrap'
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={
+              showFullNumbers
+            }
+            onChange={
+              e =>
+                setShowFullNumbers(
+                  e.target.checked
+                )
+            }
+          />
+
+          Show full numeric values
+        </label>
+
+      </div>
+
+
+      {/* ===================================================
+          QUARTERLY SUMMARY TABLE
+      =================================================== */}
+
       <Section
         title="Budget vs Actual vs Projection"
         subtitle={`Quarterly financial position for ${yearFilter}.`}
@@ -2416,11 +2301,9 @@ export default function ExecutiveSummary() {
         <Table>
 
           <thead>
-
             <tr
               style={headRowStyle}
             >
-
               <th style={thStyle}>
                 Quarter
               </th>
@@ -2434,15 +2317,15 @@ export default function ExecutiveSummary() {
               </th>
 
               <th style={thStyle}>
-                Actual
+                Projected Spend
               </th>
 
               <th style={thStyle}>
-                Projection
+                Actual Spend
               </th>
 
               <th style={thStyle}>
-                Forecast / EAC
+                Estimate at Completion
               </th>
 
               <th style={thStyle}>
@@ -2450,19 +2333,15 @@ export default function ExecutiveSummary() {
               </th>
 
               <th style={thStyle}>
-                Utilization
+                Utilization (Actual vs Effective)
               </th>
-
             </tr>
-
           </thead>
 
 
           <tbody>
-
             {quarterlySummary.map(
               row => (
-
                 <tr
                   key={row.quarter}
                 >
@@ -2489,13 +2368,13 @@ export default function ExecutiveSummary() {
 
                   <td style={tdStyle}>
                     {formatCurrency(
-                      row.actual
+                      row.projection
                     )}
                   </td>
 
                   <td style={tdStyle}>
                     {formatCurrency(
-                      row.projection
+                      row.actual
                     )}
                   </td>
 
@@ -2506,7 +2385,12 @@ export default function ExecutiveSummary() {
                   </td>
 
                   <VarianceCell
-                    value={row.variance}
+                    value={
+                      row.variance
+                    }
+                    fullNumeric={
+                      showFullNumbers
+                    }
                   />
 
                   <td style={tdStyle}>
@@ -2516,10 +2400,8 @@ export default function ExecutiveSummary() {
                   </td>
 
                 </tr>
-
               )
             )}
-
           </tbody>
 
 
@@ -2534,10 +2416,14 @@ export default function ExecutiveSummary() {
               }}
             >
 
+              {/* Requested:
+                  Total row renamed to year */}
               <td style={tdStyle}>
-                Total
+                {yearFilter}
               </td>
 
+
+              {/* Annual Allocated Budget */}
               <td style={tdStyle}>
                 {formatCurrency(
                   quarterlySummary.reduce(
@@ -2552,34 +2438,24 @@ export default function ExecutiveSummary() {
                 )}
               </td>
 
+
+              {/* Requested:
+                  Annual Effective Budget =
+                  Annual Allocated Budget
+
+                  Do NOT sum quarterly
+                  effective budgets because
+                  that would double-count
+                  carry-forward balances.
+              */}
               <td style={tdStyle}>
                 {formatCurrency(
-                  quarterlySummary.reduce(
-                    (
-                      sum,
-                      row
-                    ) =>
-                      sum +
-                      row.effectiveBudget,
-                    0
-                  )
+                  totalAllocatedBudgetSEK
                 )}
               </td>
 
-              <td style={tdStyle}>
-                {formatCurrency(
-                  quarterlySummary.reduce(
-                    (
-                      sum,
-                      row
-                    ) =>
-                      sum +
-                      row.actual,
-                    0
-                  )
-                )}
-              </td>
 
+              {/* Annual Projected Spend */}
               <td style={tdStyle}>
                 {formatCurrency(
                   quarterlySummary.reduce(
@@ -2594,6 +2470,24 @@ export default function ExecutiveSummary() {
                 )}
               </td>
 
+
+              {/* Annual Actual Spend */}
+              <td style={tdStyle}>
+                {formatCurrency(
+                  quarterlySummary.reduce(
+                    (
+                      sum,
+                      row
+                    ) =>
+                      sum +
+                      row.actual,
+                    0
+                  )
+                )}
+              </td>
+
+
+              {/* Annual Estimate at Completion */}
               <td style={tdStyle}>
                 {formatCurrency(
                   quarterlySummary.reduce(
@@ -2608,22 +2502,25 @@ export default function ExecutiveSummary() {
                 )}
               </td>
 
+
+              {/* Annual variance */}
               <td style={tdStyle}>
                 {formatCurrency(
-                  Math.abs(
+                  totalAllocatedBudgetSEK -
                     quarterlySummary.reduce(
                       (
                         sum,
                         row
                       ) =>
                         sum +
-                        row.variance,
+                        row.eac,
                       0
                     )
-                  )
                 )}
               </td>
 
+
+              {/* Annual utilization */}
               <td style={tdStyle}>
                 {formatPercent(
                   actualUtilizationPercent
@@ -2637,8 +2534,6 @@ export default function ExecutiveSummary() {
         </Table>
 
       </Section>
-
-
       <div
         style={{
           display: 'grid',
@@ -2656,7 +2551,8 @@ export default function ExecutiveSummary() {
           <div
             style={{
               fontSize: 30,
-              fontWeight: 'bold'
+              fontWeight:
+                'bold'
             }}
           >
             {formatCurrency(
@@ -2741,11 +2637,9 @@ export default function ExecutiveSummary() {
         <Table>
 
           <thead>
-
             <tr
               style={headRowStyle}
             >
-
               <th style={thStyle}>
                 Purpose
               </th>
@@ -2769,9 +2663,7 @@ export default function ExecutiveSummary() {
               <th style={thStyle}>
                 Actual Utilization
               </th>
-
             </tr>
-
           </thead>
 
 
@@ -2781,7 +2673,6 @@ export default function ExecutiveSummary() {
             0 ? (
 
               <tr>
-
                 <td
                   colSpan="6"
                   style={{
@@ -2794,14 +2685,12 @@ export default function ExecutiveSummary() {
                   for the selected
                   filters.
                 </td>
-
               </tr>
 
             ) : (
 
               purposeSummary.map(
                 row => (
-
                   <tr
                     key={
                       row.purpose
@@ -2844,6 +2733,9 @@ export default function ExecutiveSummary() {
                       value={
                         row.variance
                       }
+                      fullNumeric={
+                        showFullNumbers
+                      }
                     />
 
                     <td
@@ -2855,7 +2747,6 @@ export default function ExecutiveSummary() {
                     </td>
 
                   </tr>
-
                 )
               )
 
@@ -2875,7 +2766,6 @@ export default function ExecutiveSummary() {
         <Table>
 
           <thead>
-
             <tr
               style={headRowStyle}
             >
@@ -2909,7 +2799,6 @@ export default function ExecutiveSummary() {
               </th>
 
             </tr>
-
           </thead>
 
 
@@ -2938,7 +2827,6 @@ export default function ExecutiveSummary() {
 
               projectSummary.map(
                 row => (
-
                   <tr
                     key={
                       row.project
@@ -2989,6 +2877,9 @@ export default function ExecutiveSummary() {
                       value={
                         row.variance
                       }
+                      fullNumeric={
+                        showFullNumbers
+                      }
                     />
 
                     <td
@@ -3000,7 +2891,6 @@ export default function ExecutiveSummary() {
                     </td>
 
                   </tr>
-
                 )
               )
 
@@ -3113,8 +3003,6 @@ export default function ExecutiveSummary() {
         </span>
 
       </div>
-
-
       <style jsx>{`
 
         @media (max-width: 1200px) {
@@ -3203,7 +3091,8 @@ function KPI({
         <div
           style={{
             marginTop: 10,
-            background: '#e5e7eb',
+            background:
+              '#e5e7eb',
             height: 8,
             borderRadius: 4
           }}
@@ -3341,7 +3230,8 @@ function SummaryLine({
 
 
 function VarianceCell({
-  value
+  value,
+  fullNumeric = false
 }) {
 
   return (
@@ -3358,7 +3248,8 @@ function VarianceCell({
     >
 
       {formatStaticCurrency(
-        Math.abs(value)
+        Math.abs(value),
+        fullNumeric
       )}
 
       <br />
@@ -3379,11 +3270,23 @@ function VarianceCell({
 
 
 function formatStaticCurrency(
-  value
+  value,
+  fullNumeric = false
 ) {
 
   const amount =
     Number(value || 0)
+
+  if (fullNumeric) {
+
+    return `SEK ${amount.toLocaleString(
+      'en-US',
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }
+    )}`
+  }
 
   if (
     Math.abs(amount) >=

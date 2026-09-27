@@ -12,11 +12,6 @@ import {
   getResources
 } from '../../lib/storage'
 
-
-/* =========================================================
-   CONSTANTS
-========================================================= */
-
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4']
 
 const MONTHS = [
@@ -41,6 +36,9 @@ const QUARTER_MONTHS = {
   Q4: [9, 10, 11]
 }
 
+const LEAVE_DATA_STORAGE_KEY =
+  'budgetTracker:leaveData'
+
 
 /* =========================================================
    DATE / WORKDAY HELPERS
@@ -52,51 +50,87 @@ function parseDate(value) {
     return null
   }
 
-  const parts = String(value).split('-')
+  const parts =
+    String(value).split('-')
 
   if (parts.length !== 3) {
     return null
   }
 
-  const year = Number(parts[0])
-  const month = Number(parts[1])
-  const day = Number(parts[2])
+  const [year, month, day] =
+    parts.map(Number)
 
   if (!year || !month || !day) {
     return null
   }
 
-  return new Date(year, month - 1, day)
+  return new Date(
+    year,
+    month - 1,
+    day
+  )
 }
 
 
 function isWeekday(date) {
 
-  const day = date.getDay()
+  const day =
+    date.getDay()
 
-  return day !== 0 && day !== 6
+  return (
+    day !== 0 &&
+    day !== 6
+  )
 }
 
 
-function getQuarterStart(year, quarter) {
-
-  const month = QUARTER_MONTHS[quarter][0]
+function getQuarterStart(
+  year,
+  quarter
+) {
 
   return new Date(
     Number(year),
-    month,
+    QUARTER_MONTHS[quarter][0],
     1
   )
 }
 
 
-function getQuarterEnd(year, quarter) {
-
-  const month = QUARTER_MONTHS[quarter][2]
+function getQuarterEnd(
+  year,
+  quarter
+) {
 
   return new Date(
     Number(year),
-    month + 1,
+    QUARTER_MONTHS[quarter][2] + 1,
+    0
+  )
+}
+
+
+function getMonthStart(
+  year,
+  monthIndex
+) {
+
+  return new Date(
+    Number(year),
+    monthIndex,
+    1
+  )
+}
+
+
+function getMonthEnd(
+  year,
+  monthIndex
+) {
+
+  return new Date(
+    Number(year),
+    monthIndex + 1,
     0
   )
 }
@@ -117,7 +151,8 @@ function getWorkDaysInPeriod(
 
   let count = 0
 
-  const current = new Date(startDate)
+  const current =
+    new Date(startDate)
 
   while (current <= endDate) {
 
@@ -134,24 +169,14 @@ function getWorkDaysInPeriod(
 }
 
 
-function getWorkDaysInQuarter(
-  year,
-  quarter
-) {
+function getDateKey(date) {
 
-  return getWorkDaysInPeriod(
-    getQuarterStart(year, quarter),
-    getQuarterEnd(year, quarter)
-  )
+  return `${date.getFullYear()}-${String(
+    date.getMonth() + 1
+  ).padStart(2, '0')}-${String(
+    date.getDate()
+  ).padStart(2, '0')}`
 }
-
-
-/* =========================================================
-   LEAVE DATA
-========================================================= */
-
-const LEAVE_DATA_STORAGE_KEY =
-  'budgetTracker:leaveData'
 
 
 function getLeaveData() {
@@ -177,75 +202,21 @@ function getLeaveData() {
 }
 
 
-function getDateKey(date) {
-
-  return `${date.getFullYear()}-${String(
-    date.getMonth() + 1
-  ).padStart(2, '0')}-${String(
-    date.getDate()
-  ).padStart(2, '0')}`
-}
-
-
 /* =========================================================
-   ASSIGNMENT / LEAVE AVAILABILITY
+   LEAVE / AVAILABILITY
 ========================================================= */
 
-function calculateAvailability(
+function calculateAvailabilityForPeriod(
   records,
   member,
-  year,
-  quarter,
-  projectStartDate,
-  projectLastWorkingDay
+  startDate,
+  endDate
 ) {
 
-  let periodStart =
-    getQuarterStart(
-      year,
-      quarter
-    )
-
-  let periodEnd =
-    getQuarterEnd(
-      year,
-      quarter
-    )
-
-
-  const assignmentStart =
-    parseDate(
-      projectStartDate
-    )
-
-  const assignmentEnd =
-    parseDate(
-      projectLastWorkingDay
-    )
-
-
   if (
-    assignmentStart &&
-    assignmentStart > periodStart
-  ) {
-
-    periodStart =
-      assignmentStart
-  }
-
-
-  if (
-    assignmentEnd &&
-    assignmentEnd < periodEnd
-  ) {
-
-    periodEnd =
-      assignmentEnd
-  }
-
-
-  if (
-    periodStart > periodEnd
+    !startDate ||
+    !endDate ||
+    startDate > endDate
   ) {
 
     return {
@@ -256,18 +227,15 @@ function calculateAvailability(
     }
   }
 
-
   const workDays =
     getWorkDaysInPeriod(
-      periodStart,
-      periodEnd
+      startDate,
+      endDate
     )
-
 
   if (
     !member ||
-    !records ||
-    records.length === 0
+    !records?.length
   ) {
 
     return {
@@ -278,21 +246,21 @@ function calculateAvailability(
     }
   }
 
-
   const companyHolidayDates =
     new Set()
 
   const personalLeaveDates =
     new Set()
 
-
   records
     .filter(
-      (record) =>
-        record['Member Name'] === member &&
-        record.Status === 'Confirmed'
+      record =>
+        record['Member Name'] ===
+          member &&
+        record.Status ===
+          'Confirmed'
     )
-    .forEach((record) => {
+    .forEach(record => {
 
       const start =
         parseDate(
@@ -304,24 +272,19 @@ function calculateAvailability(
           record['End Date']
         )
 
-      if (
-        !start ||
-        !end
-      ) {
+      if (!start || !end) {
         return
       }
 
-
       const effectiveStart =
-        start > periodStart
+        start > startDate
           ? start
-          : periodStart
+          : startDate
 
       const effectiveEnd =
-        end < periodEnd
+        end < endDate
           ? end
-          : periodEnd
-
+          : endDate
 
       if (
         effectiveStart >
@@ -330,12 +293,10 @@ function calculateAvailability(
         return
       }
 
-
       const current =
         new Date(
           effectiveStart
         )
-
 
       while (
         current <= effectiveEnd
@@ -356,8 +317,9 @@ function calculateAvailability(
             companyHolidayDates.add(
               key
             )
+          }
 
-          } else if (
+          if (
             record['Leave Type'] ===
             'Personal Leave'
           ) {
@@ -368,20 +330,17 @@ function calculateAvailability(
           }
         }
 
-
         current.setDate(
           current.getDate() + 1
         )
       }
     })
 
-
   const companyHolidayDays =
     companyHolidayDates.size
 
   const personalLeaveDays =
     personalLeaveDates.size
-
 
   const availableDays =
     Math.max(
@@ -391,7 +350,6 @@ function calculateAvailability(
         personalLeaveDays
     )
 
-
   return {
     workDays,
     companyHolidayDays,
@@ -399,6 +357,88 @@ function calculateAvailability(
     availableDays
   }
 }
+function calculateMonthlyAvailability(
+  records,
+  member,
+  year,
+  monthIndex,
+  projectStartDate,
+  projectLastWorkingDay
+) {
+
+  let startDate =
+    getMonthStart(
+      year,
+      monthIndex
+    )
+
+  let endDate =
+    getMonthEnd(
+      year,
+      monthIndex
+    )
+
+  const assignmentStart =
+    parseDate(
+      projectStartDate
+    )
+
+  const assignmentEnd =
+    parseDate(
+      projectLastWorkingDay
+    )
+
+  if (
+    assignmentStart &&
+    assignmentStart > startDate
+  ) {
+
+    startDate =
+      assignmentStart
+  }
+
+  if (
+    assignmentEnd &&
+    assignmentEnd < endDate
+  ) {
+
+    endDate =
+      assignmentEnd
+  }
+
+  return calculateAvailabilityForPeriod(
+    records,
+    member,
+    startDate,
+    endDate
+  )
+}
+
+
+function getExpenseMonthIndex(
+  expense
+) {
+
+  if (!expense?.date) {
+    return null
+  }
+
+  const date =
+    new Date(expense.date)
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return null
+  }
+
+  return date.getMonth()
+}
+
+
 /* =========================================================
    MAIN COMPONENT
 ========================================================= */
@@ -409,22 +449,21 @@ export default function ExecutiveSummary() {
     new Date()
 
   const currentYear =
-    currentDate.getFullYear().toString()
+    String(
+      currentDate.getFullYear()
+    )
 
   const currentMonth =
     currentDate.getMonth()
 
-  let currentQuarter = 'Q1'
-
-  if (currentMonth <= 2) {
-    currentQuarter = 'Q1'
-  } else if (currentMonth <= 5) {
-    currentQuarter = 'Q2'
-  } else if (currentMonth <= 8) {
-    currentQuarter = 'Q3'
-  } else {
-    currentQuarter = 'Q4'
-  }
+  const currentQuarter =
+    currentMonth <= 2
+      ? 'Q1'
+      : currentMonth <= 5
+        ? 'Q2'
+        : currentMonth <= 8
+          ? 'Q3'
+          : 'Q4'
 
 
   /* =======================================================
@@ -440,8 +479,10 @@ export default function ExecutiveSummary() {
   const [projections, setProjections] =
     useState([])
 
-  const [serviceProjections, setServiceProjections] =
-    useState([])
+  const [
+    serviceProjections,
+    setServiceProjections
+  ] = useState([])
 
   const [forexRates, setForexRates] =
     useState([])
@@ -460,13 +501,22 @@ export default function ExecutiveSummary() {
   const [yearFilter, setYearFilter] =
     useState(currentYear)
 
-  const [quarterFilter, setQuarterFilter] =
+  const [
+    quarterFilter,
+    setQuarterFilter
+  ] =
     useState('All Quarters')
 
-  const [projectFilter, setProjectFilter] =
+  const [
+    projectFilter,
+    setProjectFilter
+  ] =
     useState('All Projects')
 
-  const [purposeFilter, setPurposeFilter] =
+  const [
+    purposeFilter,
+    setPurposeFilter
+  ] =
     useState('All Purposes')
 
 
@@ -516,7 +566,7 @@ export default function ExecutiveSummary() {
     currency
   ) {
 
-    const numericAmount =
+    const value =
       Number(amount || 0)
 
     if (
@@ -524,21 +574,22 @@ export default function ExecutiveSummary() {
       currency === 'SEK'
     ) {
 
-      return numericAmount
+      return value
     }
-
 
     const rate =
       forexRates.find(
-        (r) =>
-          r.currency === currency
+        r =>
+          r.currency ===
+          currency
       )
 
-
     return rate
-      ? numericAmount *
-        Number(rate.rate || 0)
-      : numericAmount
+      ? value *
+        Number(
+          rate.rate || 0
+        )
+      : value
   }
 
 
@@ -550,25 +601,23 @@ export default function ExecutiveSummary() {
     useMemo(() => {
 
       const values =
-        new Set()
+        new Set([
+          currentYear
+        ])
 
-      budgets.forEach(
-        (b) => values.add(b.year)
-      )
+      ;[
+        ...budgets,
+        ...expenses,
+        ...projections,
+        ...serviceProjections
+      ].forEach(item => {
 
-      expenses.forEach(
-        (e) => values.add(e.year)
-      )
-
-      projections.forEach(
-        (p) => values.add(p.year)
-      )
-
-      serviceProjections.forEach(
-        (p) => values.add(p.year)
-      )
-
-      values.add(currentYear)
+        if (item.year) {
+          values.add(
+            item.year
+          )
+        }
+      })
 
       return Array.from(values)
         .filter(Boolean)
@@ -589,72 +638,26 @@ export default function ExecutiveSummary() {
       const values =
         new Set()
 
-      budgets.forEach(
-        (b) => {
+      ;[
+        ...budgets,
+        ...expenses,
+        ...projections,
+        ...serviceProjections
+      ].forEach(item => {
 
-          if (
-            String(b.year) ===
-            String(yearFilter)
-          ) {
+        if (
+          String(item.year) ===
+            String(yearFilter) &&
+          item.project
+        ) {
 
-            if (b.project) {
-              values.add(b.project)
-            }
-          }
+          values.add(
+            item.project
+          )
         }
-      )
-
-
-      expenses.forEach(
-        (e) => {
-
-          if (
-            String(e.year) ===
-            String(yearFilter)
-          ) {
-
-            if (e.project) {
-              values.add(e.project)
-            }
-          }
-        }
-      )
-
-
-      projections.forEach(
-        (p) => {
-
-          if (
-            String(p.year) ===
-            String(yearFilter)
-          ) {
-
-            if (p.project) {
-              values.add(p.project)
-            }
-          }
-        }
-      )
-
-
-      serviceProjections.forEach(
-        (p) => {
-
-          if (
-            String(p.year) ===
-            String(yearFilter)
-          ) {
-
-            if (p.project) {
-              values.add(p.project)
-            }
-          }
-        }
-      )
-
+      })
 
       return Array.from(values)
-        .filter(Boolean)
         .sort()
 
     }, [
@@ -672,72 +675,26 @@ export default function ExecutiveSummary() {
       const values =
         new Set()
 
-      budgets.forEach(
-        (b) => {
+      ;[
+        ...budgets,
+        ...expenses,
+        ...projections,
+        ...serviceProjections
+      ].forEach(item => {
 
-          if (
-            String(b.year) ===
-            String(yearFilter)
-          ) {
+        if (
+          String(item.year) ===
+            String(yearFilter) &&
+          item.purpose
+        ) {
 
-            if (b.purpose) {
-              values.add(b.purpose)
-            }
-          }
+          values.add(
+            item.purpose
+          )
         }
-      )
-
-
-      expenses.forEach(
-        (e) => {
-
-          if (
-            String(e.year) ===
-            String(yearFilter)
-          ) {
-
-            if (e.purpose) {
-              values.add(e.purpose)
-            }
-          }
-        }
-      )
-
-
-      projections.forEach(
-        (p) => {
-
-          if (
-            String(p.year) ===
-            String(yearFilter)
-          ) {
-
-            if (p.purpose) {
-              values.add(p.purpose)
-            }
-          }
-        }
-      )
-
-
-      serviceProjections.forEach(
-        (p) => {
-
-          if (
-            String(p.year) ===
-            String(yearFilter)
-          ) {
-
-            if (p.purpose) {
-              values.add(p.purpose)
-            }
-          }
-        }
-      )
-
+      })
 
       return Array.from(values)
-        .filter(Boolean)
         .sort()
 
     }, [
@@ -749,57 +706,34 @@ export default function ExecutiveSummary() {
     ])
 
 
-  /* =======================================================
-     FILTER MATCH HELPER
-  ======================================================= */
-
   function matchesCommonFilters(
     item
   ) {
 
-    if (
-      String(item.year) !==
-      String(yearFilter)
-    ) {
-      return false
-    }
-
-
-    if (
-      quarterFilter !==
-      'All Quarters' &&
-      item.quarter !==
-      quarterFilter
-    ) {
-      return false
-    }
-
-
-    if (
-      projectFilter !==
-      'All Projects' &&
-      item.project !==
-      projectFilter
-    ) {
-      return false
-    }
-
-
-    if (
-      purposeFilter !==
-      'All Purposes' &&
-      item.purpose !==
-      purposeFilter
-    ) {
-      return false
-    }
-
-
-    return true
+    return (
+      String(item.year) ===
+        String(yearFilter) &&
+      (
+        quarterFilter ===
+          'All Quarters' ||
+        item.quarter ===
+          quarterFilter
+      ) &&
+      (
+        projectFilter ===
+          'All Projects' ||
+        item.project ===
+          projectFilter
+      ) &&
+      (
+        purposeFilter ===
+          'All Purposes' ||
+        item.purpose ===
+          purposeFilter
+      )
+    )
   }
-    /* =======================================================
-     FILTERED DATA
-  ======================================================= */
+
 
   const filteredBudgets =
     budgets.filter(
@@ -815,165 +749,524 @@ export default function ExecutiveSummary() {
     projections.filter(
       matchesCommonFilters
     )
-
-  const filteredServiceProjections =
+    const filteredServiceProjections =
     serviceProjections.filter(
       matchesCommonFilters
     )
 
 
   /* =======================================================
-     BUDGET
+     RESOURCE DETAILS
   ======================================================= */
 
-  const totalBudgetSEK =
-    filteredBudgets.reduce(
-      (sum, item) => {
+  function getResourceDetails(
+    item
+  ) {
 
-        return (
-          sum +
-          convertToSEK(
-            item.budget ??
-            item.total_budget ??
-            0,
-            item.currency
-          )
-        )
+    const resource =
+      resources.find(
+        r =>
+          r.resourceName ===
+          item.resource
+      )
 
-      },
-      0
-    )
+    return {
+
+      member:
+        resource?.leaveTrackerMember ||
+        item.leaveTrackerMember ||
+        '',
+
+      start:
+        resource?.projectStartDate ||
+        item.projectStartDate ||
+        '',
+
+      end:
+        resource?.projectLastWorkingDay ||
+        item.projectLastWorkingDay ||
+        ''
+    }
+  }
 
 
   /* =======================================================
-     ACTUAL CONSUMPTION
+     STAFF MONTHLY PROJECTION
   ======================================================= */
 
-  const totalActualSEK =
-    filteredExpenses.reduce(
-      (sum, item) => {
+  function calculateStaffMonth(
+    item,
+    monthIndex
+  ) {
 
-        return (
+    const details =
+      getResourceDetails(
+        item
+      )
+
+    const availability =
+      calculateMonthlyAvailability(
+        leaveData,
+        details.member,
+        item.year,
+        monthIndex,
+        details.start,
+        details.end
+      )
+
+    const amount =
+      availability.availableDays *
+      Number(
+        item.hoursPerDay || 0
+      ) *
+      Number(
+        item.manHourRate || 0
+      ) *
+      Number(
+        item.fteFactor || 0
+      )
+
+    return convertToSEK(
+      amount,
+      item.currency
+    )
+  }
+
+
+  function calculateStaffQuarter(
+    item
+  ) {
+
+    return QUARTER_MONTHS[
+      item.quarter
+    ].reduce(
+      (
+        sum,
+        month
+      ) =>
+        sum +
+        calculateStaffMonth(
+          item,
+          month
+        ),
+      0
+    )
+  }
+
+
+  /* =======================================================
+     SERVICE MONTHLY PROJECTION
+     
+     Service Projection Planning currently
+     stores quarter-level projection only.
+     
+     Therefore monthly service projection
+     is derived as Quarter / 3.
+  ======================================================= */
+
+  function calculateServiceMonth(
+    item
+  ) {
+
+    return convertToSEK(
+      Number(
+        item.projectedBudget || 0
+      ) / 3,
+      item.currency
+    )
+  }
+
+
+  /* =======================================================
+     MONTHLY PROJECTION
+  ======================================================= */
+
+  function calculateMonthlyProjection(
+    year,
+    quarter,
+    monthIndex,
+    project = null,
+    purpose = null
+  ) {
+
+    const staff =
+      projections
+        .filter(
+          item =>
+            String(item.year) ===
+              String(year) &&
+            item.quarter ===
+              quarter &&
+            (
+              project === null ||
+              item.project ===
+                project
+            ) &&
+            (
+              purpose === null ||
+              item.purpose ===
+                purpose
+            )
+        )
+        .reduce(
+          (
+            sum,
+            item
+          ) =>
+            sum +
+            calculateStaffMonth(
+              item,
+              monthIndex
+            ),
+          0
+        )
+
+
+    const service =
+      serviceProjections
+        .filter(
+          item =>
+            String(item.year) ===
+              String(year) &&
+            item.quarter ===
+              quarter &&
+            (
+              project === null ||
+              item.project ===
+                project
+            ) &&
+            (
+              purpose === null ||
+              item.purpose ===
+                purpose
+            )
+        )
+        .reduce(
+          (
+            sum,
+            item
+          ) =>
+            sum +
+            calculateServiceMonth(
+              item
+            ),
+          0
+        )
+
+
+    return (
+      staff +
+      service
+    )
+  }
+
+
+  /* =======================================================
+     QUARTER ACTUAL
+  ======================================================= */
+
+  function getQuarterActual(
+    year,
+    quarter,
+    project = null,
+    purpose = null
+  ) {
+
+    return expenses
+      .filter(
+        item =>
+          String(item.year) ===
+            String(year) &&
+          item.quarter ===
+            quarter &&
+          (
+            project === null ||
+            item.project ===
+              project
+          ) &&
+          (
+            purpose === null ||
+            item.purpose ===
+              purpose
+          )
+      )
+      .reduce(
+        (
+          sum,
+          item
+        ) =>
           sum +
           convertToSEK(
             item.amount,
             item.currency
-          )
-        )
-
-      },
-      0
-    )
+          ),
+        0
+      )
+  }
 
 
   /* =======================================================
-     STAFF PROJECTION
+     MONTH ACTUAL
+     
+     Important:
+     hasActual is based on record existence,
+     NOT amount > 0.
+     
+     Therefore:
+       July = 350K record -> actual
+       August = 0 record -> actual
+       September = no record -> projection
   ======================================================= */
 
-  const calculateStaffProjection =
-    (item) => {
+  function getMonthActual(
+    year,
+    quarter,
+    monthIndex,
+    project = null,
+    purpose = null
+  ) {
 
-      const resource =
-        resources.find(
-          (r) =>
-            r.resourceName ===
-            item.resource
-        )
-
-
-      const leaveTrackerMember =
-        resource?.leaveTrackerMember ||
-        item.leaveTrackerMember ||
-        ''
-
-
-      const projectStartDate =
-        resource?.projectStartDate ||
-        item.projectStartDate ||
-        ''
-
-
-      const projectLastWorkingDay =
-        resource?.projectLastWorkingDay ||
-        item.projectLastWorkingDay ||
-        ''
-
-
-      const availability =
-        calculateAvailability(
-          leaveData,
-          leaveTrackerMember,
-          item.year,
-          item.quarter,
-          projectStartDate,
-          projectLastWorkingDay
-        )
-
-
-      const availableDays =
-        availability.availableDays
-
-
-      const hoursPerDay =
-        Number(
-          item.hoursPerDay || 0
-        )
-
-
-      const manHourRate =
-        Number(
-          item.manHourRate || 0
-        )
-
-
-      const fteFactor =
-        Number(
-          item.fteFactor || 0
-        )
-
-
-      const projectedBudget =
-        availableDays *
-        hoursPerDay *
-        manHourRate *
-        fteFactor
-
-
-      return convertToSEK(
-        projectedBudget,
-        item.currency
+    const matching =
+      expenses.filter(
+        item =>
+          String(item.year) ===
+            String(year) &&
+          item.quarter ===
+            quarter &&
+          getExpenseMonthIndex(
+            item
+          ) === monthIndex &&
+          (
+            project === null ||
+            item.project ===
+              project
+          ) &&
+          (
+            purpose === null ||
+            item.purpose ===
+              purpose
+          )
       )
+
+    return {
+
+      hasActual:
+        matching.length > 0,
+
+      amount:
+        matching.reduce(
+          (
+            sum,
+            item
+          ) =>
+            sum +
+            convertToSEK(
+              item.amount,
+              item.currency
+            ),
+          0
+        )
+    }
+  }
+
+
+  /* =======================================================
+     QUARTER PROJECTION
+  ======================================================= */
+
+  function getQuarterProjection(
+    year,
+    quarter,
+    project = null,
+    purpose = null
+  ) {
+
+    return QUARTER_MONTHS[
+      quarter
+    ].reduce(
+      (
+        sum,
+        month
+      ) =>
+        sum +
+        calculateMonthlyProjection(
+          year,
+          quarter,
+          month,
+          project,
+          purpose
+        ),
+      0
+    )
+  }
+
+
+  function isCompleted(
+    year,
+    quarter
+  ) {
+
+    return (
+      getQuarterEnd(
+        year,
+        quarter
+      ) < currentDate
+    )
+  }
+
+
+  function isFuture(
+    year,
+    quarter
+  ) {
+
+    return (
+      getQuarterStart(
+        year,
+        quarter
+      ) > currentDate
+    )
+  }
+
+
+  /* =======================================================
+     QUARTER EAC
+     
+     Completed:
+       Actual only
+     
+     Future:
+       Projection only
+     
+     Ongoing:
+       Actual for months where an Expense
+       Tracking record exists +
+       Projection for months where actual
+       data is not yet available.
+  ======================================================= */
+
+  function calculateQuarterEAC(
+    year,
+    quarter,
+    project = null,
+    purpose = null
+  ) {
+
+    const actual =
+      getQuarterActual(
+        year,
+        quarter,
+        project,
+        purpose
+      )
+
+    const projection =
+      getQuarterProjection(
+        year,
+        quarter,
+        project,
+        purpose
+      )
+
+    if (
+      isCompleted(
+        year,
+        quarter
+      )
+    ) {
+
+      return actual
     }
 
+    if (
+      isFuture(
+        year,
+        quarter
+      )
+    ) {
+
+      return projection
+    }
+
+    return QUARTER_MONTHS[
+      quarter
+    ].reduce(
+      (
+        sum,
+        month
+      ) => {
+
+        const monthActual =
+          getMonthActual(
+            year,
+            quarter,
+            month,
+            project,
+            purpose
+          )
+
+        return (
+          sum +
+          (
+            monthActual.hasActual
+              ? monthActual.amount
+              : calculateMonthlyProjection(
+                  year,
+                  quarter,
+                  month,
+                  project,
+                  purpose
+                )
+          )
+        )
+      },
+      0
+    )
+  }
+
+
+  const totalActualSEK =
+    filteredExpenses.reduce(
+      (
+        sum,
+        item
+      ) =>
+        sum +
+        convertToSEK(
+          item.amount,
+          item.currency
+        ),
+      0
+    )
+    /* =======================================================
+     TOTAL PROJECTIONS
+  ======================================================= */
 
   const totalStaffProjectionSEK =
     filteredStaffProjections.reduce(
-      (sum, item) =>
+      (
+        sum,
+        item
+      ) =>
         sum +
-        calculateStaffProjection(
+        calculateStaffQuarter(
           item
         ),
       0
     )
 
 
-  /* =======================================================
-     SERVICE PROJECTION
-  ======================================================= */
-
   const totalServiceProjectionSEK =
     filteredServiceProjections.reduce(
-      (sum, item) => {
-
-        return (
-          sum +
-          convertToSEK(
-            item.projectedBudget,
-            item.currency
-          )
-        )
-
-      },
+      (
+        sum,
+        item
+      ) =>
+        sum +
+        convertToSEK(
+          item.projectedBudget,
+          item.currency
+        ),
       0
     )
 
@@ -984,40 +1277,213 @@ export default function ExecutiveSummary() {
 
 
   /* =======================================================
-     FORECAST / EAC
+     ROLLING QUARTERLY BUDGET
+     
+     Effective Budget =
+       Allocated Budget +
+       Previous Quarter Balance
+     
+     Previous Quarter Balance =
+       Previous Effective Budget -
+       Previous Actual
   ======================================================= */
 
-  /*
-     EAC =
-     Actual Consumption +
-     Remaining Projection
+  const quarterlySummary = []
 
-     Because the Projection Planning records
-     represent the planned quarter spend, we
-     subtract actual consumption from the
-     projection only when the projection is
-     greater than actual consumption.
+  let previousQuarterBalance = 0
 
-     This avoids adding the same consumed amount
-     twice.
-  */
+  QUARTERS.forEach(
+    quarter => {
 
-  const remainingProjectionSEK =
-    Math.max(
-      0,
-      totalProjectionSEK -
-      totalActualSEK
-    )
+      const quarterBudgets =
+        budgets.filter(
+          item =>
+            String(item.year) ===
+              String(yearFilter) &&
+            item.quarter ===
+              quarter &&
+            (
+              projectFilter ===
+                'All Projects' ||
+              item.project ===
+                projectFilter
+            ) &&
+            (
+              purposeFilter ===
+                'All Purposes' ||
+              item.purpose ===
+                purposeFilter
+            )
+        )
 
 
-  const forecastEACSEK =
-    totalActualSEK +
-    remainingProjectionSEK
+      const allocatedBudget =
+        quarterBudgets.reduce(
+          (
+            sum,
+            item
+          ) =>
+            sum +
+            convertToSEK(
+              item.budget ??
+                item.total_budget ??
+                0,
+              item.currency
+            ),
+          0
+        )
+
+
+      const effectiveBudget =
+        allocatedBudget +
+        previousQuarterBalance
+
+
+      const project =
+        projectFilter ===
+          'All Projects'
+          ? null
+          : projectFilter
+
+
+      const purpose =
+        purposeFilter ===
+          'All Purposes'
+          ? null
+          : purposeFilter
+
+
+      const actual =
+        getQuarterActual(
+          yearFilter,
+          quarter,
+          project,
+          purpose
+        )
+
+
+      const projection =
+        getQuarterProjection(
+          yearFilter,
+          quarter,
+          project,
+          purpose
+        )
+
+
+      const eac =
+        calculateQuarterEAC(
+          yearFilter,
+          quarter,
+          project,
+          purpose
+        )
+
+
+      const variance =
+        effectiveBudget -
+        eac
+
+
+      const utilization =
+        effectiveBudget > 0
+          ? (
+              actual /
+              effectiveBudget
+            ) * 100
+          : 0
+
+
+      quarterlySummary.push({
+
+        quarter,
+
+        allocatedBudget,
+
+        effectiveBudget,
+
+        actual,
+
+        projection,
+
+        eac,
+
+        variance,
+
+        utilization
+
+      })
+
+
+      previousQuarterBalance =
+        effectiveBudget -
+        actual
+
+    }
+  )
 
 
   /* =======================================================
-     VARIANCE
+     KPI BUDGET
+     
+     All Quarters:
+       Use total original allocations.
+     
+     Specific Quarter:
+       Use that quarter's effective budget.
+     
+     This avoids double-counting carry-forward
+     balances in the annual KPI.
   ======================================================= */
+
+  const totalAllocatedBudgetSEK =
+    quarterlySummary.reduce(
+      (
+        sum,
+        row
+      ) =>
+        sum +
+        row.allocatedBudget,
+      0
+    )
+
+
+  const selectedQuarterSummary =
+    quarterFilter ===
+      'All Quarters'
+      ? null
+      : quarterlySummary.find(
+          row =>
+            row.quarter ===
+            quarterFilter
+        )
+
+
+  const totalBudgetSEK =
+    selectedQuarterSummary
+      ? selectedQuarterSummary.effectiveBudget
+      : totalAllocatedBudgetSEK
+
+
+  const forecastEACSEK =
+    quarterlySummary
+      .filter(
+        row =>
+          quarterFilter ===
+            'All Quarters' ||
+          row.quarter ===
+            quarterFilter
+      )
+      .reduce(
+        (
+          sum,
+          row
+        ) =>
+          sum +
+          row.eac,
+        0
+      )
+
 
   const forecastVarianceSEK =
     totalBudgetSEK -
@@ -1051,24 +1517,97 @@ export default function ExecutiveSummary() {
       : 0
 
 
-  /* =======================================================
-     HEADROOM
-  ======================================================= */
-
   const forecastHeadroomSEK =
     Math.max(
       0,
-      totalBudgetSEK -
-      forecastEACSEK
+      forecastVarianceSEK
     )
 
 
   const forecastOverrunSEK =
     Math.max(
       0,
-      forecastEACSEK -
-      totalBudgetSEK
+      -forecastVarianceSEK
     )
+
+
+  function getSelectedQuarters() {
+
+    return (
+      quarterFilter ===
+        'All Quarters'
+        ? QUARTERS
+        : [quarterFilter]
+    )
+  }
+
+
+  /* =======================================================
+     PURPOSE EAC
+  ======================================================= */
+
+  function calculatePurposeEAC(
+    purpose
+  ) {
+
+    const normalizedPurpose =
+      purpose === 'Unspecified'
+        ? ''
+        : purpose
+
+    return getSelectedQuarters()
+      .reduce(
+        (
+          sum,
+          quarter
+        ) =>
+          sum +
+          calculateQuarterEAC(
+            yearFilter,
+            quarter,
+            projectFilter ===
+              'All Projects'
+              ? null
+              : projectFilter,
+            normalizedPurpose
+          ),
+        0
+      )
+  }
+
+
+  /* =======================================================
+     PROJECT EAC
+  ======================================================= */
+
+  function calculateProjectEAC(
+    project
+  ) {
+
+    const normalizedProject =
+      project === 'Unspecified'
+        ? ''
+        : project
+
+    return getSelectedQuarters()
+      .reduce(
+        (
+          sum,
+          quarter
+        ) =>
+          sum +
+          calculateQuarterEAC(
+            yearFilter,
+            quarter,
+            normalizedProject,
+            purposeFilter ===
+              'All Purposes'
+              ? null
+              : purposeFilter
+          ),
+        0
+      )
+  }
 
 
   /* =======================================================
@@ -1076,647 +1615,392 @@ export default function ExecutiveSummary() {
   ======================================================= */
 
   const purposeSummary =
-    useMemo(() => {
+    useMemo(
+      () => {
 
-      const map = {}
+        const map = {}
 
+        const ensure =
+          purpose => {
 
-      filteredBudgets.forEach(
-        (item) => {
+            const key =
+              purpose ||
+              'Unspecified'
 
-          const key =
-            item.purpose ||
-            'Unspecified'
+            if (!map[key]) {
 
-
-          if (!map[key]) {
-
-            map[key] = {
-              purpose: key,
-              budget: 0,
-              actual: 0,
-              projection: 0
+              map[key] = {
+                purpose: key,
+                budget: 0,
+                actual: 0,
+                projection: 0
+              }
             }
+
+            return map[key]
           }
 
 
-          map[key].budget +=
-            convertToSEK(
-              item.budget ??
-              item.total_budget ??
-              0,
-              item.currency
-            )
-        }
-      )
+        filteredBudgets.forEach(
+          item =>
+            ensure(
+              item.purpose
+            ).budget +=
+              convertToSEK(
+                item.budget ??
+                  item.total_budget ??
+                  0,
+                item.currency
+              )
+        )
 
 
-      filteredExpenses.forEach(
-        (item) => {
+        filteredExpenses.forEach(
+          item =>
+            ensure(
+              item.purpose
+            ).actual +=
+              convertToSEK(
+                item.amount,
+                item.currency
+              )
+        )
 
-          const key =
-            item.purpose ||
-            'Unspecified'
+
+        filteredStaffProjections.forEach(
+          item =>
+            ensure(
+              item.purpose
+            ).projection +=
+              calculateStaffQuarter(
+                item
+              )
+        )
 
 
-          if (!map[key]) {
+        filteredServiceProjections.forEach(
+          item =>
+            ensure(
+              item.purpose
+            ).projection +=
+              convertToSEK(
+                item.projectedBudget,
+                item.currency
+              )
+        )
 
-            map[key] = {
-              purpose: key,
-              budget: 0,
-              actual: 0,
-              projection: 0
+
+        return Object.values(map)
+          .map(
+            row => {
+
+              const eac =
+                calculatePurposeEAC(
+                  row.purpose
+                )
+
+              return {
+
+                ...row,
+
+                eac,
+
+                variance:
+                  row.budget -
+                  eac,
+
+                actualUtilization:
+                  row.budget > 0
+                    ? (
+                        row.actual /
+                        row.budget
+                      ) * 100
+                    : 0
+              }
             }
-          }
+          )
+          .sort(
+            (
+              a,
+              b
+            ) =>
+              b.eac -
+              a.eac
+          )
 
-
-          map[key].actual +=
-            convertToSEK(
-              item.amount,
-              item.currency
-            )
-        }
-      )
-
-
-      filteredStaffProjections.forEach(
-        (item) => {
-
-          const key =
-            item.purpose ||
-            'Unspecified'
-
-
-          if (!map[key]) {
-
-            map[key] = {
-              purpose: key,
-              budget: 0,
-              actual: 0,
-              projection: 0
-            }
-          }
-
-
-          map[key].projection +=
-            calculateStaffProjection(
-              item
-            )
-        }
-      )
-
-
-      filteredServiceProjections.forEach(
-        (item) => {
-
-          const key =
-            item.purpose ||
-            'Unspecified'
-
-
-          if (!map[key]) {
-
-            map[key] = {
-              purpose: key,
-              budget: 0,
-              actual: 0,
-              projection: 0
-            }
-          }
-
-
-          map[key].projection +=
-            convertToSEK(
-              item.projectedBudget,
-              item.currency
-            )
-        }
-      )
-
-
-      return Object.values(map)
-        .map((row) => ({
-
-          ...row,
-
-          variance:
-            row.budget -
-            row.projection,
-
-          actualUtilization:
-            row.budget > 0
-              ? (
-                  row.actual /
-                  row.budget
-                ) * 100
-              : 0
-
-        }))
-        .sort(
-          (a, b) =>
-            b.projection -
-            a.projection
-        )
-
-    }, [
-      filteredBudgets,
-      filteredExpenses,
-      filteredStaffProjections,
-      filteredServiceProjections,
-      resources,
-      leaveData,
-      forexRates
-    ])
-
-  /* =======================================================
-   QUARTERLY SUMMARY
-   Rolling Budget Logic:
-   Effective Budget =
-     Allocated Budget + Previous Quarter Balance
-
-   Previous Quarter Balance =
-     Previous Effective Budget - Previous Actual
-======================================================= */
-
-const quarterlySummary = []
-
-let previousQuarterBalance = 0
-
-QUARTERS.forEach((quarter) => {
-
-  const quarterBudgets =
-    budgets.filter(
-      (item) =>
-        String(item.year) ===
-          String(yearFilter) &&
-        item.quarter === quarter &&
-        (
-          projectFilter ===
-            'All Projects' ||
-          item.project ===
-            projectFilter
-        ) &&
-        (
-          purposeFilter ===
-            'All Purposes' ||
-          item.purpose ===
-            purposeFilter
-        )
+      },
+      [
+        filteredBudgets,
+        filteredExpenses,
+        filteredStaffProjections,
+        filteredServiceProjections,
+        resources,
+        leaveData,
+        forexRates,
+        yearFilter,
+        quarterFilter,
+        projectFilter,
+        purposeFilter
+      ]
     )
-
-
-  const quarterExpenses =
-    expenses.filter(
-      (item) =>
-        String(item.year) ===
-          String(yearFilter) &&
-        item.quarter === quarter &&
-        (
-          projectFilter ===
-            'All Projects' ||
-          item.project ===
-            projectFilter
-        ) &&
-        (
-          purposeFilter ===
-            'All Purposes' ||
-          item.purpose ===
-            purposeFilter
-        )
-    )
-
-
-  const quarterStaff =
-    projections.filter(
-      (item) =>
-        String(item.year) ===
-          String(yearFilter) &&
-        item.quarter === quarter &&
-        (
-          projectFilter ===
-            'All Projects' ||
-          item.project ===
-            projectFilter
-        ) &&
-        (
-          purposeFilter ===
-            'All Purposes' ||
-          item.purpose ===
-            purposeFilter
-        )
-    )
-
-
-  const quarterService =
-    serviceProjections.filter(
-      (item) =>
-        String(item.year) ===
-          String(yearFilter) &&
-        item.quarter === quarter &&
-        (
-          projectFilter ===
-            'All Projects' ||
-          item.project ===
-            projectFilter
-        ) &&
-        (
-          purposeFilter ===
-            'All Purposes' ||
-          item.purpose ===
-            purposeFilter
-        )
-    )
-
-
-  /* -----------------------------------------------
-     Allocated Budget
-  ----------------------------------------------- */
-
-  const allocatedBudget =
-    quarterBudgets.reduce(
-      (sum, item) =>
-        sum +
-        convertToSEK(
-          item.budget ??
-          item.total_budget ??
-          0,
-          item.currency
-        ),
-      0
-    )
-
-
-  /* -----------------------------------------------
-     Effective Budget
-     
-     Q1:
-       Allocated Budget
-
-     Q2 onwards:
-       Allocated Budget +
-       Previous Quarter Balance
-  ----------------------------------------------- */
-
-  const effectiveBudget =
-    allocatedBudget +
-    previousQuarterBalance
-
-
-  /* -----------------------------------------------
-     Actual Consumption
-  ----------------------------------------------- */
-
-  const actual =
-    quarterExpenses.reduce(
-      (sum, item) =>
-        sum +
-        convertToSEK(
-          item.amount,
-          item.currency
-        ),
-      0
-    )
-
-
-  /* -----------------------------------------------
-     Projection
-  ----------------------------------------------- */
-
-  const staffProjection =
-    quarterStaff.reduce(
-      (sum, item) =>
-        sum +
-        calculateStaffProjection(
-          item
-        ),
-      0
-    )
-
-
-  const serviceProjection =
-    quarterService.reduce(
-      (sum, item) =>
-        sum +
-        convertToSEK(
-          item.projectedBudget,
-          item.currency
-        ),
-      0
-    )
-
-
-  const projection =
-    staffProjection +
-    serviceProjection
-
-
-  /* -----------------------------------------------
-     Forecast / EAC
-     
-     For now we retain the existing
-     quarter-level EAC calculation.
-  ----------------------------------------------- */
-
-  const eac =
-    actual +
-    Math.max(
-      0,
-      projection - actual
-    )
-
-
-  /* -----------------------------------------------
-     Effective Budget Variance
-  ----------------------------------------------- */
-
-  const variance =
-    effectiveBudget - eac
-
-
-  /* -----------------------------------------------
-     Actual Budget Utilization
-  ----------------------------------------------- */
-
-  const utilization =
-    effectiveBudget > 0
-      ? (
-          actual /
-          effectiveBudget
-        ) * 100
-      : 0
-
-
-  /* -----------------------------------------------
-     Store Quarter
-  ----------------------------------------------- */
-
-  quarterlySummary.push({
-
-    quarter,
-
-    allocatedBudget,
-
-    effectiveBudget,
-
-    actual,
-
-    projection,
-
-    eac,
-
-    variance,
-
-    utilization
-
-  })
-
-
-  /* -----------------------------------------------
-     Carry balance into next quarter
-  ----------------------------------------------- */
-
-  previousQuarterBalance =
-    effectiveBudget - actual
-
-})
-
-
-  /* =======================================================
+    /* =======================================================
      PROJECT SUMMARY
   ======================================================= */
 
   const projectSummary =
-    useMemo(() => {
+    useMemo(
+      () => {
 
-      const map = {}
+        const map = {}
 
+        const ensure =
+          project => {
 
-      const ensureProject =
-        (project) => {
+            const key =
+              project ||
+              'Unspecified'
 
-          const key =
-            project ||
-            'Unspecified'
+            if (!map[key]) {
 
-
-          if (!map[key]) {
-
-            map[key] = {
-              project: key,
-              budget: 0,
-              actual: 0,
-              projection: 0
+              map[key] = {
+                project: key,
+                budget: 0,
+                actual: 0,
+                projection: 0
+              }
             }
+
+            return map[key]
           }
 
 
-          return map[key]
-        }
-
-
-      filteredBudgets.forEach(
-        (item) => {
-
-          ensureProject(
-            item.project
-          ).budget +=
-            convertToSEK(
-              item.budget ??
-              item.total_budget ??
-              0,
-              item.currency
-            )
-        }
-      )
-
-
-      filteredExpenses.forEach(
-        (item) => {
-
-          ensureProject(
-            item.project
-          ).actual +=
-            convertToSEK(
-              item.amount,
-              item.currency
-            )
-        }
-      )
-
-
-      filteredStaffProjections.forEach(
-        (item) => {
-
-          ensureProject(
-            item.project
-          ).projection +=
-            calculateStaffProjection(
-              item
-            )
-        }
-      )
-
-
-      filteredServiceProjections.forEach(
-        (item) => {
-
-          ensureProject(
-            item.project
-          ).projection +=
-            convertToSEK(
-              item.projectedBudget,
-              item.currency
-            )
-        }
-      )
-
-
-      return Object.values(map)
-        .map((row) => {
-
-          const eac =
-            row.actual +
-            Math.max(
-              0,
-              row.projection -
-              row.actual
-            )
-
-
-          return {
-            ...row,
-            eac,
-            variance:
-              row.budget - eac,
-            utilization:
-              row.budget > 0
-                ? (
-                    row.actual /
-                    row.budget
-                  ) * 100
-                : 0
-          }
-
-        })
-        .sort(
-          (a, b) =>
-            b.eac - a.eac
+        filteredBudgets.forEach(
+          item =>
+            ensure(
+              item.project
+            ).budget +=
+              convertToSEK(
+                item.budget ??
+                  item.total_budget ??
+                  0,
+                item.currency
+              )
         )
 
-    }, [
-      filteredBudgets,
-      filteredExpenses,
-      filteredStaffProjections,
-      filteredServiceProjections,
-      resources,
-      leaveData,
-      forexRates
-    ])
-    /* =======================================================
+
+        filteredExpenses.forEach(
+          item =>
+            ensure(
+              item.project
+            ).actual +=
+              convertToSEK(
+                item.amount,
+                item.currency
+              )
+        )
+
+
+        filteredStaffProjections.forEach(
+          item =>
+            ensure(
+              item.project
+            ).projection +=
+              calculateStaffQuarter(
+                item
+              )
+        )
+
+
+        filteredServiceProjections.forEach(
+          item =>
+            ensure(
+              item.project
+            ).projection +=
+              convertToSEK(
+                item.projectedBudget,
+                item.currency
+              )
+        )
+
+
+        return Object.values(map)
+          .map(
+            row => {
+
+              const eac =
+                calculateProjectEAC(
+                  row.project
+                )
+
+              return {
+
+                ...row,
+
+                eac,
+
+                variance:
+                  row.budget -
+                  eac,
+
+                utilization:
+                  row.budget > 0
+                    ? (
+                        row.actual /
+                        row.budget
+                      ) * 100
+                    : 0
+              }
+            }
+          )
+          .sort(
+            (
+              a,
+              b
+            ) =>
+              b.eac -
+              a.eac
+          )
+
+      },
+      [
+        filteredBudgets,
+        filteredExpenses,
+        filteredStaffProjections,
+        filteredServiceProjections,
+        resources,
+        leaveData,
+        forexRates,
+        yearFilter,
+        quarterFilter,
+        projectFilter,
+        purposeFilter
+      ]
+    )
+
+
+  /* =======================================================
      EXECUTIVE ATTENTION
   ======================================================= */
 
   const attentionItems =
-    useMemo(() => {
+    useMemo(
+      () => {
 
-      const items = []
-
-
-      if (
-        forecastOverrunSEK > 0
-      ) {
-
-        items.push({
-          type: 'warning',
-          title:
-            'Forecast exceeds budget',
-          message:
-            `Current forecast is ${formatCurrency(
-              forecastOverrunSEK
-            )} above the available budget.`
-        })
-
-      } else if (
-        totalBudgetSEK > 0
-      ) {
-
-        items.push({
-          type: 'positive',
-          title:
-            'Forecast remains within budget',
-          message:
-            `${formatCurrency(
-              forecastHeadroomSEK
-            )} of forecast headroom remains.`
-        })
-      }
+        const items = []
 
 
-      if (
-        actualUtilizationPercent >=
-        90
-      ) {
+        if (
+          forecastOverrunSEK > 0
+        ) {
 
-        items.push({
-          type: 'warning',
-          title:
-            'High actual budget utilization',
-          message:
-            `${actualUtilizationPercent.toFixed(
-              1
-            )}% of the budget has already been consumed.`
-        })
-      }
+          items.push({
 
+            type: 'warning',
 
-      projectSummary
-        .filter(
-          (item) =>
-            item.budget > 0 &&
-            item.eac >
-              item.budget
-        )
-        .slice(0, 3)
-        .forEach(
-          (item) => {
+            title:
+              'Forecast exceeds budget',
 
-            items.push({
-              type: 'warning',
-              title:
-                `${item.project} forecast`,
-              message:
-                `Forecast is ${formatCurrency(
-                  item.eac -
-                  item.budget
-                )} above budget.`
-            })
-          }
-        )
+            message:
+              `Current forecast is ${formatCurrency(
+                forecastOverrunSEK
+              )} above the applicable budget.`
+          })
+
+        } else if (
+          totalBudgetSEK > 0
+        ) {
+
+          items.push({
+
+            type: 'positive',
+
+            title:
+              'Forecast remains within budget',
+
+            message:
+              `${formatCurrency(
+                forecastHeadroomSEK
+              )} of forecast headroom remains.`
+          })
+        }
 
 
-      if (
-        items.length === 0
-      ) {
+        if (
+          actualUtilizationPercent >=
+          90
+        ) {
 
-        items.push({
-          type: 'neutral',
-          title:
-            'No immediate financial attention',
-          message:
-            'There are no current exceptions based on the selected filters.'
-        })
-      }
+          items.push({
+
+            type: 'warning',
+
+            title:
+              'High actual budget utilization',
+
+            message:
+              `${actualUtilizationPercent.toFixed(
+                1
+              )}% of the applicable budget has already been consumed.`
+          })
+        }
 
 
-      return items
+        projectSummary
+          .filter(
+            item =>
+              item.budget > 0 &&
+              item.eac >
+                item.budget
+          )
+          .slice(0, 3)
+          .forEach(
+            item => {
 
-    }, [
-      forecastOverrunSEK,
-      forecastHeadroomSEK,
-      actualUtilizationPercent,
-      projectSummary,
-      totalBudgetSEK
-    ])
+              items.push({
+
+                type: 'warning',
+
+                title:
+                  `${item.project} forecast`,
+
+                message:
+                  `Forecast is ${formatCurrency(
+                    item.eac -
+                    item.budget
+                  )} above budget.`
+              })
+            }
+          )
+
+
+        if (
+          !items.length
+        ) {
+
+          items.push({
+
+            type: 'neutral',
+
+            title:
+              'No immediate financial attention',
+
+            message:
+              'There are no current exceptions based on the selected filters.'
+          })
+        }
+
+
+        return items
+
+      },
+      [
+        forecastOverrunSEK,
+        forecastHeadroomSEK,
+        actualUtilizationPercent,
+        projectSummary,
+        totalBudgetSEK
+      ]
+    )
 
 
   /* =======================================================
@@ -1730,43 +2014,23 @@ QUARTERS.forEach((quarter) => {
     const amount =
       Number(value || 0)
 
-
     if (
       Math.abs(amount) >=
       1000000
     ) {
 
-      return (
-        'SEK ' +
-        (
-          amount /
-          1000000
-        ).toFixed(2) +
-        'M'
-      )
+      return `SEK ${(amount / 1000000).toFixed(2)}M`
     }
-
 
     if (
       Math.abs(amount) >=
       1000
     ) {
 
-      return (
-        'SEK ' +
-        (
-          amount /
-          1000
-        ).toFixed(1) +
-        'K'
-      )
+      return `SEK ${(amount / 1000).toFixed(1)}K`
     }
 
-
-    return (
-      'SEK ' +
-      amount.toFixed(0)
-    )
+    return `SEK ${amount.toFixed(0)}`
   }
 
 
@@ -1774,11 +2038,9 @@ QUARTERS.forEach((quarter) => {
     value
   ) {
 
-    return (
-      Number(value || 0)
-        .toFixed(1) +
-      '%'
-    )
+    return `${Number(
+      value || 0
+    ).toFixed(1)}%`
   }
 
 
@@ -1786,37 +2048,15 @@ QUARTERS.forEach((quarter) => {
     value
   ) {
 
-    if (value > 0) {
-      return 'Headroom'
-    }
-
-    if (value < 0) {
-      return 'Over Budget'
-    }
-
-    return 'On Budget'
+    return (
+      value > 0
+        ? 'Headroom'
+        : value < 0
+          ? 'Over Budget'
+          : 'On Budget'
+    )
   }
 
-
-  function getVarianceClass(
-    value
-  ) {
-
-    if (value > 0) {
-      return 'positive'
-    }
-
-    if (value < 0) {
-      return 'negative'
-    }
-
-    return 'neutral'
-  }
-
-
-  /* =======================================================
-     CLEAR FILTERS
-  ======================================================= */
 
   function clearFilters() {
 
@@ -1836,31 +2076,17 @@ QUARTERS.forEach((quarter) => {
       'All Purposes'
     )
   }
-    return (
 
-    <div
-      style={{
-        padding: 24,
-        fontFamily: 'Arial, sans-serif',
-        background: '#f5f7fa',
-        minHeight: '100vh'
-      }}
-    >
 
-      {/* ==================================================
-          HEADER
-      ================================================== */}
+  /* =======================================================
+     UI
+  ======================================================= */
 
-      <div
-        style={{
-          background: '#ffffff',
-          padding: 24,
-          borderRadius: 10,
-          marginBottom: 20,
-          boxShadow:
-            '0 1px 4px rgba(0,0,0,0.08)'
-        }}
-      >
+  return (
+
+    <div style={pageStyle}>
+
+      <div style={cardStyle}>
 
         <h1
           style={{
@@ -1877,16 +2103,13 @@ QUARTERS.forEach((quarter) => {
             color: '#666'
           }}
         >
-          Business Sponsor View — Budget,
-          Actual Consumption & Forecast
+          Business Sponsor View —
+          Budget, Actual Consumption &
+          Forecast
         </p>
 
       </div>
 
-
-      {/* ==================================================
-          NAVIGATION
-      ================================================== */}
 
       <div
         style={{
@@ -1936,20 +2159,7 @@ QUARTERS.forEach((quarter) => {
       </div>
 
 
-      {/* ==================================================
-          FILTERS
-      ================================================== */}
-
-      <div
-        style={{
-          background: '#ffffff',
-          padding: 20,
-          borderRadius: 10,
-          marginBottom: 20,
-          boxShadow:
-            '0 1px 4px rgba(0,0,0,0.08)'
-        }}
-      >
+      <div style={cardStyle}>
 
         <h2
           style={{
@@ -1959,14 +2169,8 @@ QUARTERS.forEach((quarter) => {
           Filters
         </h2>
 
-
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(4, 1fr)',
-            gap: 15
-          }}
+          style={filterGridStyle}
         >
 
           <div>
@@ -1977,28 +2181,22 @@ QUARTERS.forEach((quarter) => {
               </strong>
             </label>
 
-            <br />
-
             <select
               value={yearFilter}
-              onChange={(e) =>
-                setYearFilter(
-                  e.target.value
-                )
+              onChange={
+                e =>
+                  setYearFilter(
+                    e.target.value
+                  )
               }
-              style={{
-                width: '100%',
-                padding: 8,
-                marginTop: 5
-              }}
+              style={inputStyle}
             >
 
               {availableYears.map(
-                (year) => (
+                year => (
 
                   <option
                     key={year}
-                    value={year}
                   >
                     {year}
                   </option>
@@ -2019,20 +2217,15 @@ QUARTERS.forEach((quarter) => {
               </strong>
             </label>
 
-            <br />
-
             <select
               value={quarterFilter}
-              onChange={(e) =>
-                setQuarterFilter(
-                  e.target.value
-                )
+              onChange={
+                e =>
+                  setQuarterFilter(
+                    e.target.value
+                  )
               }
-              style={{
-                width: '100%',
-                padding: 8,
-                marginTop: 5
-              }}
+              style={inputStyle}
             >
 
               <option>
@@ -2040,7 +2233,7 @@ QUARTERS.forEach((quarter) => {
               </option>
 
               {QUARTERS.map(
-                (quarter) => (
+                quarter => (
 
                   <option
                     key={quarter}
@@ -2064,20 +2257,15 @@ QUARTERS.forEach((quarter) => {
               </strong>
             </label>
 
-            <br />
-
             <select
               value={projectFilter}
-              onChange={(e) =>
-                setProjectFilter(
-                  e.target.value
-                )
+              onChange={
+                e =>
+                  setProjectFilter(
+                    e.target.value
+                  )
               }
-              style={{
-                width: '100%',
-                padding: 8,
-                marginTop: 5
-              }}
+              style={inputStyle}
             >
 
               <option>
@@ -2085,11 +2273,10 @@ QUARTERS.forEach((quarter) => {
               </option>
 
               {availableProjects.map(
-                (project) => (
+                project => (
 
                   <option
                     key={project}
-                    value={project}
                   >
                     {project}
                   </option>
@@ -2110,20 +2297,15 @@ QUARTERS.forEach((quarter) => {
               </strong>
             </label>
 
-            <br />
-
             <select
               value={purposeFilter}
-              onChange={(e) =>
-                setPurposeFilter(
-                  e.target.value
-                )
+              onChange={
+                e =>
+                  setPurposeFilter(
+                    e.target.value
+                  )
               }
-              style={{
-                width: '100%',
-                padding: 8,
-                marginTop: 5
-              }}
+              style={inputStyle}
             >
 
               <option>
@@ -2131,11 +2313,10 @@ QUARTERS.forEach((quarter) => {
               </option>
 
               {availablePurposes.map(
-                (purpose) => (
+                purpose => (
 
                   <option
                     key={purpose}
-                    value={purpose}
                   >
                     {purpose}
                   </option>
@@ -2162,456 +2343,301 @@ QUARTERS.forEach((quarter) => {
       </div>
 
 
-      {/* ==================================================
-          KPI CARDS
-      ================================================== */}
-
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns:
-            'repeat(6, 1fr)',
-          gap: 15,
-          marginBottom: 20
-        }}
+        className="kpiGrid"
+        style={kpiGridStyle}
       >
 
-        <div className="kpiCard">
+        <KPI
+          title="Total Budget"
+          value={formatCurrency(
+            totalBudgetSEK
+          )}
+        />
 
-          <div className="kpiTitle">
-            Total Budget
-          </div>
+        <KPI
+          title="Actual Consumption"
+          value={formatCurrency(
+            totalActualSEK
+          )}
+          sub={`${formatPercent(
+            actualUtilizationPercent
+          )} utilized`}
+        />
 
-          <div className="kpiValue">
-            {formatCurrency(
-              totalBudgetSEK
-            )}
-          </div>
+        <KPI
+          title="Projected Consumption"
+          value={formatCurrency(
+            totalProjectionSEK
+          )}
+        />
 
-        </div>
+        <KPI
+          title="Forecast / EAC"
+          value={formatCurrency(
+            forecastEACSEK
+          )}
+          sub={`${formatPercent(
+            forecastUtilizationPercent
+          )} of budget`}
+        />
 
-
-        <div className="kpiCard">
-
-          <div className="kpiTitle">
-            Actual Consumption
-          </div>
-
-          <div className="kpiValue">
-            {formatCurrency(
-              totalActualSEK
-            )}
-          </div>
-
-          <div className="kpiSub">
-            {formatPercent(
-              actualUtilizationPercent
-            )}{' '}
-            utilized
-          </div>
-
-        </div>
-
-
-        <div className="kpiCard">
-
-          <div className="kpiTitle">
-            Projected Consumption
-          </div>
-
-          <div className="kpiValue">
-            {formatCurrency(
-              totalProjectionSEK
-            )}
-          </div>
-
-        </div>
-
-
-        <div className="kpiCard">
-
-          <div className="kpiTitle">
-            Forecast / EAC
-          </div>
-
-          <div className="kpiValue">
-            {formatCurrency(
-              forecastEACSEK
-            )}
-          </div>
-
-          <div className="kpiSub">
-            {formatPercent(
-              forecastUtilizationPercent
-            )}{' '}
-            of budget
-          </div>
-
-        </div>
-
-
-        <div
-          className={`kpiCard ${
+        <KPI
+          title="Forecast Variance"
+          value={formatCurrency(
+            Math.abs(
+              forecastVarianceSEK
+            )
+          )}
+          sub={getVarianceLabel(
+            forecastVarianceSEK
+          )}
+          positive={
             forecastVarianceSEK >= 0
-              ? 'positiveCard'
-              : 'negativeCard'
-          }`}
-        >
+          }
+        />
 
-          <div className="kpiTitle">
-            Forecast Variance
-          </div>
+        <KPI
+          title="Budget Utilization"
+          value={formatPercent(
+            actualUtilizationPercent
+          )}
+          progress={
+            actualUtilizationPercent
+          }
+        />
 
-          <div className="kpiValue">
-            {formatCurrency(
-              Math.abs(
-                forecastVarianceSEK
+      </div>
+      <Section
+        title="Budget vs Actual vs Projection"
+        subtitle={`Quarterly financial position for ${yearFilter}.`}
+      >
+
+        <Table>
+
+          <thead>
+
+            <tr
+              style={headRowStyle}
+            >
+
+              <th style={thStyle}>
+                Quarter
+              </th>
+
+              <th style={thStyle}>
+                Allocated Budget
+              </th>
+
+              <th style={thStyle}>
+                Effective Budget
+              </th>
+
+              <th style={thStyle}>
+                Actual
+              </th>
+
+              <th style={thStyle}>
+                Projection
+              </th>
+
+              <th style={thStyle}>
+                Forecast / EAC
+              </th>
+
+              <th style={thStyle}>
+                Variance
+              </th>
+
+              <th style={thStyle}>
+                Utilization
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            {quarterlySummary.map(
+              row => (
+
+                <tr
+                  key={row.quarter}
+                >
+
+                  <td style={tdStyle}>
+                    <strong>
+                      {row.quarter}
+                    </strong>
+                  </td>
+
+                  <td style={tdStyle}>
+                    {formatCurrency(
+                      row.allocatedBudget
+                    )}
+                  </td>
+
+                  <td style={tdStyle}>
+                    <strong>
+                      {formatCurrency(
+                        row.effectiveBudget
+                      )}
+                    </strong>
+                  </td>
+
+                  <td style={tdStyle}>
+                    {formatCurrency(
+                      row.actual
+                    )}
+                  </td>
+
+                  <td style={tdStyle}>
+                    {formatCurrency(
+                      row.projection
+                    )}
+                  </td>
+
+                  <td style={tdStyle}>
+                    {formatCurrency(
+                      row.eac
+                    )}
+                  </td>
+
+                  <VarianceCell
+                    value={row.variance}
+                  />
+
+                  <td style={tdStyle}>
+                    {formatPercent(
+                      row.utilization
+                    )}
+                  </td>
+
+                </tr>
+
               )
             )}
-          </div>
 
-          <div className="kpiSub">
-            {getVarianceLabel(
-              forecastVarianceSEK
-            )}
-          </div>
-
-        </div>
+          </tbody>
 
 
-        <div className="kpiCard">
+          <tfoot>
 
-          <div className="kpiTitle">
-            Budget Utilization
-          </div>
-
-          <div className="kpiValue">
-            {formatPercent(
-              actualUtilizationPercent
-            )}
-          </div>
-
-          <div
-            style={{
-              marginTop: 10,
-              background: '#e5e7eb',
-              height: 8,
-              borderRadius: 4
-            }}
-          >
-
-            <div
+            <tr
               style={{
-                width:
-                  `${Math.min(
-                    actualUtilizationPercent,
-                    100
-                  )}%`,
-                height: '100%',
                 background:
-                  actualUtilizationPercent >=
-                  100
-                    ? '#d32f2f'
-                    : actualUtilizationPercent >=
-                      90
-                      ? '#f59e0b'
-                      : '#2e7d32',
-                borderRadius: 4
+                  '#f8fafc',
+                fontWeight:
+                  'bold'
               }}
-            />
+            >
 
-          </div>
+              <td style={tdStyle}>
+                Total
+              </td>
 
-        </div>
+              <td style={tdStyle}>
+                {formatCurrency(
+                  quarterlySummary.reduce(
+                    (
+                      sum,
+                      row
+                    ) =>
+                      sum +
+                      row.allocatedBudget,
+                    0
+                  )
+                )}
+              </td>
 
-      </div>
-      {/* ==================================================
-          QUARTERLY FINANCIAL POSITION
-      ================================================== */}
+              <td style={tdStyle}>
+                {formatCurrency(
+                  quarterlySummary.reduce(
+                    (
+                      sum,
+                      row
+                    ) =>
+                      sum +
+                      row.effectiveBudget,
+                    0
+                  )
+                )}
+              </td>
 
-      <div
-        style={{
-          background: '#ffffff',
-          padding: 20,
-          borderRadius: 10,
-          marginBottom: 20,
-          boxShadow:
-            '0 1px 4px rgba(0,0,0,0.08)'
-        }}
-      >
+              <td style={tdStyle}>
+                {formatCurrency(
+                  quarterlySummary.reduce(
+                    (
+                      sum,
+                      row
+                    ) =>
+                      sum +
+                      row.actual,
+                    0
+                  )
+                )}
+              </td>
 
-        <h2
-          style={{
-            marginTop: 0
-          }}
-        >
-          Budget vs Actual vs Projection
-        </h2>
+              <td style={tdStyle}>
+                {formatCurrency(
+                  quarterlySummary.reduce(
+                    (
+                      sum,
+                      row
+                    ) =>
+                      sum +
+                      row.projection,
+                    0
+                  )
+                )}
+              </td>
 
-        <p
-          style={{
-            color: '#666'
-          }}
-        >
-          Quarterly financial position for{' '}
-          {yearFilter}.
-        </p>
+              <td style={tdStyle}>
+                {formatCurrency(
+                  quarterlySummary.reduce(
+                    (
+                      sum,
+                      row
+                    ) =>
+                      sum +
+                      row.eac,
+                    0
+                  )
+                )}
+              </td>
 
+              <td style={tdStyle}>
+                {formatCurrency(
+                  Math.abs(
+                    quarterlySummary.reduce(
+                      (
+                        sum,
+                        row
+                      ) =>
+                        sum +
+                        row.variance,
+                      0
+                    )
+                  )
+                )}
+              </td>
 
-        <div
-          style={{
-            overflowX: 'auto'
-          }}
-        >
+              <td style={tdStyle}>
+                {formatPercent(
+                  actualUtilizationPercent
+                )}
+              </td>
 
-          <table
-            style={{
-              width: '100%',
-              borderCollapse:
-                'collapse'
-            }}
-          >
+            </tr>
 
-            <thead>
+          </tfoot>
 
-  <tr
-    style={{
-      background:
-        '#f3f4f6'
-    }}
-  >
+        </Table>
 
-    <th style={thStyle}>
-      Quarter
-    </th>
+      </Section>
 
-    <th style={thStyle}>
-      Allocated Budget
-    </th>
-
-    <th style={thStyle}>
-      Effective Budget
-    </th>
-
-    <th style={thStyle}>
-      Actual
-    </th>
-
-    <th style={thStyle}>
-      Projection
-    </th>
-
-    <th style={thStyle}>
-      Forecast / EAC
-    </th>
-
-    <th style={thStyle}>
-      Variance
-    </th>
-
-    <th style={thStyle}>
-      Utilization
-    </th>
-
-  </tr>
-
-</thead>
-
-
-            <tbody>
-
-              {quarterlySummary.map(
-                (row) => (
-
-                  <tr
-  key={row.quarter}
->
-
-  <td style={tdStyle}>
-    <strong>
-      {row.quarter}
-    </strong>
-  </td>
-
-  <td style={tdStyle}>
-    {formatCurrency(
-      row.allocatedBudget
-    )}
-  </td>
-
-  <td style={tdStyle}>
-    <strong>
-      {formatCurrency(
-        row.effectiveBudget
-      )}
-    </strong>
-  </td>
-
-  <td style={tdStyle}>
-    {formatCurrency(
-      row.actual
-    )}
-  </td>
-
-  <td style={tdStyle}>
-    {formatCurrency(
-      row.projection
-    )}
-  </td>
-
-  <td style={tdStyle}>
-    {formatCurrency(
-      row.eac
-    )}
-  </td>
-
-  <td
-    style={{
-      ...tdStyle,
-      fontWeight: 'bold',
-      color:
-        row.variance >= 0
-          ? '#2e7d32'
-          : '#d32f2f'
-    }}
-  >
-
-    {formatCurrency(
-      Math.abs(
-        row.variance
-      )
-    )}
-
-    <br />
-
-    <span
-      style={{
-        fontSize: 12
-      }}
-    >
-      {row.variance >= 0
-        ? 'Headroom'
-        : 'Over Budget'}
-    </span>
-
-  </td>
-
-  <td style={tdStyle}>
-
-    {formatPercent(
-      row.utilization
-    )}
-
-  </td>
-
-</tr>
-                )
-              )}
-
-            </tbody>
-
-
-            <tfoot>
-
-  <tr
-    style={{
-      background:
-        '#f8fafc',
-      fontWeight: 'bold'
-    }}
-  >
-
-    <td style={tdStyle}>
-      Total
-    </td>
-
-    <td style={tdStyle}>
-      {formatCurrency(
-        quarterlySummary.reduce(
-          (sum, row) =>
-            sum +
-            row.allocatedBudget,
-          0
-        )
-      )}
-    </td>
-
-    <td style={tdStyle}>
-      {formatCurrency(
-        quarterlySummary.reduce(
-          (sum, row) =>
-            sum +
-            row.effectiveBudget,
-          0
-        )
-      )}
-    </td>
-
-    <td style={tdStyle}>
-      {formatCurrency(
-        quarterlySummary.reduce(
-          (sum, row) =>
-            sum +
-            row.actual,
-          0
-        )
-      )}
-    </td>
-
-    <td style={tdStyle}>
-      {formatCurrency(
-        quarterlySummary.reduce(
-          (sum, row) =>
-            sum +
-            row.projection,
-          0
-        )
-      )}
-    </td>
-
-    <td style={tdStyle}>
-      {formatCurrency(
-        quarterlySummary.reduce(
-          (sum, row) =>
-            sum +
-            row.eac,
-          0
-        )
-      )}
-    </td>
-
-    <td style={tdStyle}>
-      {formatCurrency(
-        Math.abs(
-          quarterlySummary.reduce(
-            (sum, row) =>
-              sum +
-              row.variance,
-            0
-          )
-        )
-      )}
-    </td>
-
-    <td style={tdStyle}>
-      {formatPercent(
-        actualUtilizationPercent
-      )}
-    </td>
-
-  </tr>
-
-</tfoot>
-          </table>
-
-        </div>
-
-      </div>
-
-
-      {/* ==================================================
-          FORECAST POSITION
-      ================================================== */}
 
       <div
         style={{
@@ -2623,29 +2649,14 @@ QUARTERS.forEach((quarter) => {
         }}
       >
 
-        <div
-          style={{
-            background: '#ffffff',
-            padding: 20,
-            borderRadius: 10,
-            boxShadow:
-              '0 1px 4px rgba(0,0,0,0.08)'
-          }}
+        <Section
+          title="Forecast Position"
         >
-
-          <h2
-            style={{
-              marginTop: 0
-            }}
-          >
-            Forecast Position
-          </h2>
 
           <div
             style={{
               fontSize: 30,
-              fontWeight: 'bold',
-              marginBottom: 8
+              fontWeight: 'bold'
             }}
           >
             {formatCurrency(
@@ -2662,607 +2673,349 @@ QUARTERS.forEach((quarter) => {
             Estimate at Completion
           </div>
 
+          <SummaryLine
+            label="Budget"
+            value={formatCurrency(
+              totalBudgetSEK
+            )}
+          />
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              marginBottom: 8
-            }}
-          >
+          <SummaryLine
+            label="Forecast"
+            value={formatCurrency(
+              forecastEACSEK
+            )}
+          />
 
-            <span>
-              Budget
-            </span>
-
-            <strong>
-              {formatCurrency(
-                totalBudgetSEK
-              )}
-            </strong>
-
-          </div>
-
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              marginBottom: 8
-            }}
-          >
-
-            <span>
-              Forecast
-            </span>
-
-            <strong>
-              {formatCurrency(
-                forecastEACSEK
-              )}
-            </strong>
-
-          </div>
-
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              borderTop:
-                '1px solid #ddd',
-              paddingTop: 10
-            }}
-          >
-
-            <span>
-              {forecastVarianceSEK >= 0
+          <SummaryLine
+            label={
+              forecastVarianceSEK >= 0
                 ? 'Forecast Headroom'
-                : 'Forecast Overrun'}
-            </span>
+                : 'Forecast Overrun'
+            }
+            value={formatCurrency(
+              forecastVarianceSEK >= 0
+                ? forecastHeadroomSEK
+                : forecastOverrunSEK
+            )}
+          />
 
-            <strong
-              style={{
-                color:
-                  forecastVarianceSEK >= 0
-                    ? '#2e7d32'
-                    : '#d32f2f'
-              }}
+        </Section>
+
+
+        <Section
+          title="Projection Composition"
+        >
+
+          <SummaryLine
+            label="Staff Cost"
+            value={formatCurrency(
+              totalStaffProjectionSEK
+            )}
+          />
+
+          <SummaryLine
+            label="Service Cost"
+            value={formatCurrency(
+              totalServiceProjectionSEK
+            )}
+          />
+
+          <SummaryLine
+            label="Total Projection"
+            value={formatCurrency(
+              totalProjectionSEK
+            )}
+            bold
+          />
+
+        </Section>
+
+      </div>
+
+
+      <Section
+        title="Spend by Purpose"
+      >
+
+        <Table>
+
+          <thead>
+
+            <tr
+              style={headRowStyle}
             >
-              {formatCurrency(
-                forecastVarianceSEK >= 0
-                  ? forecastHeadroomSEK
-                  : forecastOverrunSEK
-              )}
-            </strong>
 
-          </div>
+              <th style={thStyle}>
+                Purpose
+              </th>
 
-        </div>
+              <th style={thStyle}>
+                Budget
+              </th>
 
+              <th style={thStyle}>
+                Actual
+              </th>
 
-        <div
-          style={{
-            background: '#ffffff',
-            padding: 20,
-            borderRadius: 10,
-            boxShadow:
-              '0 1px 4px rgba(0,0,0,0.08)'
-          }}
-        >
+              <th style={thStyle}>
+                Projection
+              </th>
 
-          <h2
-            style={{
-              marginTop: 0
-            }}
-          >
-            Projection Composition
-          </h2>
+              <th style={thStyle}>
+                Forecast Variance
+              </th>
 
+              <th style={thStyle}>
+                Actual Utilization
+              </th>
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              padding: '12px 0',
-              borderBottom:
-                '1px solid #eee'
-            }}
-          >
+            </tr>
 
-            <span>
-              Staff Cost
-            </span>
-
-            <strong>
-              {formatCurrency(
-                totalStaffProjectionSEK
-              )}
-            </strong>
-
-          </div>
+          </thead>
 
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              padding: '12px 0',
-              borderBottom:
-                '1px solid #eee'
-            }}
-          >
+          <tbody>
 
-            <span>
-              Service Cost
-            </span>
+            {purposeSummary.length ===
+            0 ? (
 
-            <strong>
-              {formatCurrency(
-                totalServiceProjectionSEK
-              )}
-            </strong>
+              <tr>
 
-          </div>
-
-
-          <div
-            style={{
-              display: 'flex',
-              justifyContent:
-                'space-between',
-              padding: '12px 0',
-              fontWeight: 'bold'
-            }}
-          >
-
-            <span>
-              Total Projection
-            </span>
-
-            <strong>
-              {formatCurrency(
-                totalProjectionSEK
-              )}
-            </strong>
-
-          </div>
-
-        </div>
-
-      </div>
-      {/* ==================================================
-          PURPOSE SUMMARY
-      ================================================== */}
-
-      <div
-        style={{
-          background: '#ffffff',
-          padding: 20,
-          borderRadius: 10,
-          marginBottom: 20,
-          boxShadow:
-            '0 1px 4px rgba(0,0,0,0.08)'
-        }}
-      >
-
-        <h2
-          style={{
-            marginTop: 0
-          }}
-        >
-          Spend by Purpose
-        </h2>
-
-
-        <div
-          style={{
-            overflowX: 'auto'
-          }}
-        >
-
-          <table
-            style={{
-              width: '100%',
-              borderCollapse:
-                'collapse'
-            }}
-          >
-
-            <thead>
-
-              <tr
-                style={{
-                  background:
-                    '#f3f4f6'
-                }}
-              >
-
-                <th style={thStyle}>
-                  Purpose
-                </th>
-
-                <th style={thStyle}>
-                  Budget
-                </th>
-
-                <th style={thStyle}>
-                  Actual
-                </th>
-
-                <th style={thStyle}>
-                  Projection
-                </th>
-
-                <th style={thStyle}>
-                  Forecast Variance
-                </th>
-
-                <th style={thStyle}>
-                  Actual Utilization
-                </th>
+                <td
+                  colSpan="6"
+                  style={{
+                    ...tdStyle,
+                    textAlign:
+                      'center'
+                  }}
+                >
+                  No data available
+                  for the selected
+                  filters.
+                </td>
 
               </tr>
 
-            </thead>
+            ) : (
 
+              purposeSummary.map(
+                row => (
 
-            <tbody>
-
-              {purposeSummary.length ===
-              0 ? (
-
-                <tr>
-
-                  <td
-                    colSpan="6"
-                    style={{
-                      ...tdStyle,
-                      textAlign:
-                        'center'
-                    }}
+                  <tr
+                    key={
+                      row.purpose
+                    }
                   >
-                    No data available
-                    for the selected
-                    filters.
-                  </td>
 
-                </tr>
-
-              ) : (
-
-                purposeSummary.map(
-                  (row) => {
-
-                    const eac =
-                      row.actual +
-                      Math.max(
-                        0,
-                        row.projection -
-                        row.actual
-                      )
-
-                    const variance =
-                      row.budget -
-                      eac
-
-                    return (
-
-                      <tr
-                        key={
-                          row.purpose
-                        }
-                      >
-
-                        <td style={tdStyle}>
-                          <strong>
-                            {row.purpose}
-                          </strong>
-                        </td>
-
-                        <td style={tdStyle}>
-                          {formatCurrency(
-                            row.budget
-                          )}
-                        </td>
-
-                        <td style={tdStyle}>
-                          {formatCurrency(
-                            row.actual
-                          )}
-                        </td>
-
-                        <td style={tdStyle}>
-                          {formatCurrency(
-                            row.projection
-                          )}
-                        </td>
-
-                        <td
-                          style={{
-                            ...tdStyle,
-                            color:
-                              variance >=
-                              0
-                                ? '#2e7d32'
-                                : '#d32f2f',
-                            fontWeight:
-                              'bold'
-                          }}
-                        >
-
-                          {formatCurrency(
-                            Math.abs(
-                              variance
-                            )
-                          )}
-
-                          <br />
-
-                          <span
-                            style={{
-                              fontSize: 12
-                            }}
-                          >
-                            {variance >=
-                            0
-                              ? 'Headroom'
-                              : 'Over Budget'}
-                          </span>
-
-                        </td>
-
-                        <td style={tdStyle}>
-
-                          {formatPercent(
-                            row.actualUtilization
-                          )}
-
-                        </td>
-
-                      </tr>
-
-                    )
-                  }
-                )
-
-              )}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-
-
-      {/* ==================================================
-          PROJECT FINANCIAL POSITION
-      ================================================== */}
-
-      <div
-        style={{
-          background: '#ffffff',
-          padding: 20,
-          borderRadius: 10,
-          marginBottom: 20,
-          boxShadow:
-            '0 1px 4px rgba(0,0,0,0.08)'
-        }}
-      >
-
-        <h2
-          style={{
-            marginTop: 0
-          }}
-        >
-          Project Financial Position
-        </h2>
-
-
-        <div
-          style={{
-            overflowX: 'auto'
-          }}
-        >
-
-          <table
-            style={{
-              width: '100%',
-              borderCollapse:
-                'collapse'
-            }}
-          >
-
-            <thead>
-
-              <tr
-                style={{
-                  background:
-                    '#f3f4f6'
-                }}
-              >
-
-                <th style={thStyle}>
-                  Project
-                </th>
-
-                <th style={thStyle}>
-                  Budget
-                </th>
-
-                <th style={thStyle}>
-                  Actual
-                </th>
-
-                <th style={thStyle}>
-                  Projection
-                </th>
-
-                <th style={thStyle}>
-                  Forecast / EAC
-                </th>
-
-                <th style={thStyle}>
-                  Variance
-                </th>
-
-                <th style={thStyle}>
-                  Actual Utilization
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              {projectSummary.length ===
-              0 ? (
-
-                <tr>
-
-                  <td
-                    colSpan="7"
-                    style={{
-                      ...tdStyle,
-                      textAlign:
-                        'center'
-                    }}
-                  >
-                    No project data
-                    available.
-                  </td>
-
-                </tr>
-
-              ) : (
-
-                projectSummary.map(
-                  (row) => (
-
-                    <tr
-                      key={
-                        row.project
-                      }
+                    <td
+                      style={tdStyle}
                     >
+                      <strong>
+                        {row.purpose}
+                      </strong>
+                    </td>
 
-                      <td style={tdStyle}>
-                        <strong>
-                          {row.project}
-                        </strong>
-                      </td>
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatCurrency(
+                        row.budget
+                      )}
+                    </td>
 
-                      <td style={tdStyle}>
-                        {formatCurrency(
-                          row.budget
-                        )}
-                      </td>
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatCurrency(
+                        row.actual
+                      )}
+                    </td>
 
-                      <td style={tdStyle}>
-                        {formatCurrency(
-                          row.actual
-                        )}
-                      </td>
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatCurrency(
+                        row.projection
+                      )}
+                    </td>
 
-                      <td style={tdStyle}>
-                        {formatCurrency(
-                          row.projection
-                        )}
-                      </td>
+                    <VarianceCell
+                      value={
+                        row.variance
+                      }
+                    />
 
-                      <td style={tdStyle}>
-                        {formatCurrency(
-                          row.eac
-                        )}
-                      </td>
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatPercent(
+                        row.actualUtilization
+                      )}
+                    </td>
 
-                      <td
-                        style={{
-                          ...tdStyle,
-                          color:
-                            row.variance >=
-                            0
-                              ? '#2e7d32'
-                              : '#d32f2f',
-                          fontWeight:
-                            'bold'
-                        }}
-                      >
+                  </tr>
 
-                        {formatCurrency(
-                          Math.abs(
-                            row.variance
-                          )
-                        )}
-
-                        <br />
-
-                        <span
-                          style={{
-                            fontSize: 12
-                          }}
-                        >
-                          {row.variance >=
-                          0
-                            ? 'Headroom'
-                            : 'Over Budget'}
-                        </span>
-
-                      </td>
-
-                      <td style={tdStyle}>
-
-                        {formatPercent(
-                          row.utilization
-                        )}
-
-                      </td>
-
-                    </tr>
-
-                  )
                 )
+              )
 
-              )}
+            )}
 
-            </tbody>
+          </tbody>
 
-          </table>
+        </Table>
 
-        </div>
+      </Section>
 
-      </div>
-      {/* ==================================================
-          ATTENTION REQUIRED
-      ================================================== */}
 
-      <div
-        style={{
-          background: '#ffffff',
-          padding: 20,
-          borderRadius: 10,
-          marginBottom: 20,
-          boxShadow:
-            '0 1px 4px rgba(0,0,0,0.08)'
-        }}
+      <Section
+        title="Project Financial Position"
       >
 
-        <h2
-          style={{
-            marginTop: 0
-          }}
-        >
-          Attention Required
-        </h2>
+        <Table>
 
+          <thead>
+
+            <tr
+              style={headRowStyle}
+            >
+
+              <th style={thStyle}>
+                Project
+              </th>
+
+              <th style={thStyle}>
+                Budget
+              </th>
+
+              <th style={thStyle}>
+                Actual
+              </th>
+
+              <th style={thStyle}>
+                Projection
+              </th>
+
+              <th style={thStyle}>
+                Forecast / EAC
+              </th>
+
+              <th style={thStyle}>
+                Variance
+              </th>
+
+              <th style={thStyle}>
+                Actual Utilization
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            {projectSummary.length ===
+            0 ? (
+
+              <tr>
+
+                <td
+                  colSpan="7"
+                  style={{
+                    ...tdStyle,
+                    textAlign:
+                      'center'
+                  }}
+                >
+                  No project data
+                  available.
+                </td>
+
+              </tr>
+
+            ) : (
+
+              projectSummary.map(
+                row => (
+
+                  <tr
+                    key={
+                      row.project
+                    }
+                  >
+
+                    <td
+                      style={tdStyle}
+                    >
+                      <strong>
+                        {row.project}
+                      </strong>
+                    </td>
+
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatCurrency(
+                        row.budget
+                      )}
+                    </td>
+
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatCurrency(
+                        row.actual
+                      )}
+                    </td>
+
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatCurrency(
+                        row.projection
+                      )}
+                    </td>
+
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatCurrency(
+                        row.eac
+                      )}
+                    </td>
+
+                    <VarianceCell
+                      value={
+                        row.variance
+                      }
+                    />
+
+                    <td
+                      style={tdStyle}
+                    >
+                      {formatPercent(
+                        row.utilization
+                      )}
+                    </td>
+
+                  </tr>
+
+                )
+              )
+
+            )}
+
+          </tbody>
+
+        </Table>
+
+      </Section>
+
+
+      <Section
+        title="Attention Required"
+      >
 
         <div
           style={{
@@ -3272,85 +3025,63 @@ QUARTERS.forEach((quarter) => {
         >
 
           {attentionItems.map(
-            (item, index) => {
+            (
+              item,
+              index
+            ) => (
 
-              let background =
-                '#f8fafc'
+              <div
+                key={index}
+                style={{
+                  padding: 15,
+                  background:
+                    item.type ===
+                    'warning'
+                      ? '#fff7ed'
+                      : item.type ===
+                        'positive'
+                        ? '#f0fdf4'
+                        : '#f8fafc',
+                  border:
+                    `1px solid ${
+                      item.type ===
+                      'warning'
+                        ? '#fdba74'
+                        : item.type ===
+                          'positive'
+                          ? '#86efac'
+                          : '#cbd5e1'
+                    }`,
+                  borderRadius: 8
+                }}
+              >
 
-              let border =
-                '#cbd5e1'
-
-              if (
-                item.type ===
-                'warning'
-              ) {
-
-                background =
-                  '#fff7ed'
-
-                border =
-                  '#fdba74'
-              }
-
-              if (
-                item.type ===
-                'positive'
-              ) {
-
-                background =
-                  '#f0fdf4'
-
-                border =
-                  '#86efac'
-              }
-
-
-              return (
+                <strong>
+                  {item.title}
+                </strong>
 
                 <div
-                  key={index}
                   style={{
-                    padding: 15,
-                    background,
-                    border:
-                      `1px solid ${border}`,
-                    borderRadius: 8
+                    marginTop: 5,
+                    color: '#555'
                   }}
                 >
-
-                  <strong>
-                    {item.title}
-                  </strong>
-
-                  <div
-                    style={{
-                      marginTop: 5,
-                      color: '#555'
-                    }}
-                  >
-                    {item.message}
-                  </div>
-
+                  {item.message}
                 </div>
 
-              )
-            }
+              </div>
+
+            )
           )}
 
         </div>
 
-      </div>
+      </Section>
 
-
-      {/* ==================================================
-          DATA BASIS
-      ================================================== */}
 
       <div
         style={{
-          background: '#ffffff',
-          padding: 15,
-          borderRadius: 10,
+          ...cardStyle,
           color: '#666',
           fontSize: 13
         }}
@@ -3365,64 +3096,46 @@ QUARTERS.forEach((quarter) => {
             marginLeft: 6
           }}
         >
-          Budget is sourced from Project
-          Budgets, Actual Consumption from
-          Expense Tracking, and Projection
-          from Staff and Service Projection
-          Planning. All financial values are
-          normalized to SEK using the
-          configured Forex Rates.
+          Budget is sourced from
+          Project Budgets, Actual
+          Consumption from Expense
+          Tracking, and Projection from
+          Staff and Service Projection
+          Planning. Monthly EAC uses
+          actual Expense Tracking records
+          when available, including valid
+          zero-value records; missing
+          monthly actuals use monthly
+          Projection Planning values. All
+          financial values are normalized
+          to SEK using the configured
+          Forex Rates.
         </span>
 
       </div>
 
 
-      {/* ==================================================
-          INLINE STYLES
-      ================================================== */}
-
       <style jsx>{`
-
-        .kpiCard {
-          background: #ffffff;
-          padding: 18px;
-          border-radius: 10px;
-          min-height: 110px;
-          box-shadow:
-            0 1px 4px rgba(0,0,0,0.08);
-        }
-
-        .positiveCard {
-          border-left:
-            5px solid #2e7d32;
-        }
-
-        .negativeCard {
-          border-left:
-            5px solid #d32f2f;
-        }
-
-        .kpiTitle {
-          color: #666666;
-          font-size: 13px;
-          margin-bottom: 10px;
-        }
-
-        .kpiValue {
-          font-size: 22px;
-          font-weight: bold;
-        }
-
-        .kpiSub {
-          margin-top: 6px;
-          font-size: 12px;
-          color: #666666;
-        }
 
         @media (max-width: 1200px) {
 
-          .kpiCard {
-            min-width: 180px;
+          .kpiGrid {
+            grid-template-columns:
+              repeat(3, 1fr) !important;
+          }
+
+        }
+
+        @media (max-width: 800px) {
+
+          .kpiGrid {
+            grid-template-columns:
+              repeat(2, 1fr) !important;
+          }
+
+          .filterGrid {
+            grid-template-columns:
+              1fr 1fr !important;
           }
 
         }
@@ -3435,8 +3148,336 @@ QUARTERS.forEach((quarter) => {
 
 
 /* =========================================================
-   TABLE STYLES
+   REUSABLE UI COMPONENTS
 ========================================================= */
+
+function KPI({
+  title,
+  value,
+  sub,
+  positive,
+  progress
+}) {
+
+  return (
+
+    <div
+      className="kpiCard"
+      style={{
+        ...kpiCardStyle,
+        borderLeft:
+          positive !== undefined
+            ? `5px solid ${
+                positive
+                  ? '#2e7d32'
+                  : '#d32f2f'
+              }`
+            : undefined
+      }}
+    >
+
+      <div
+        style={kpiTitleStyle}
+      >
+        {title}
+      </div>
+
+      <div
+        style={kpiValueStyle}
+      >
+        {value}
+      </div>
+
+      {sub && (
+
+        <div
+          style={kpiSubStyle}
+        >
+          {sub}
+        </div>
+
+      )}
+
+      {progress !== undefined && (
+
+        <div
+          style={{
+            marginTop: 10,
+            background: '#e5e7eb',
+            height: 8,
+            borderRadius: 4
+          }}
+        >
+
+          <div
+            style={{
+              width:
+                `${Math.min(
+                  progress,
+                  100
+                )}%`,
+              height: '100%',
+              background:
+                progress >= 100
+                  ? '#d32f2f'
+                  : progress >= 90
+                    ? '#f59e0b'
+                    : '#2e7d32',
+              borderRadius: 4
+            }}
+          />
+
+        </div>
+
+      )}
+
+    </div>
+  )
+}
+
+
+function Section({
+  title,
+  subtitle,
+  children
+}) {
+
+  return (
+
+    <div
+      style={cardStyle}
+    >
+
+      <h2
+        style={{
+          marginTop: 0
+        }}
+      >
+        {title}
+      </h2>
+
+      {subtitle && (
+
+        <p
+          style={{
+            color: '#666'
+          }}
+        >
+          {subtitle}
+        </p>
+
+      )}
+
+      {children}
+
+    </div>
+  )
+}
+
+
+function Table({
+  children
+}) {
+
+  return (
+
+    <div
+      style={{
+        overflowX: 'auto'
+      }}
+    >
+
+      <table
+        style={{
+          width: '100%',
+          borderCollapse:
+            'collapse'
+        }}
+      >
+
+        {children}
+
+      </table>
+
+    </div>
+  )
+}
+
+
+function SummaryLine({
+  label,
+  value,
+  bold
+}) {
+
+  return (
+
+    <div
+      style={{
+        display: 'flex',
+        justifyContent:
+          'space-between',
+        padding: '12px 0',
+        borderBottom:
+          '1px solid #eee',
+        fontWeight:
+          bold
+            ? 'bold'
+            : 'normal'
+      }}
+    >
+
+      <span>
+        {label}
+      </span>
+
+      <strong>
+        {value}
+      </strong>
+
+    </div>
+  )
+}
+
+
+function VarianceCell({
+  value
+}) {
+
+  return (
+
+    <td
+      style={{
+        ...tdStyle,
+        fontWeight: 'bold',
+        color:
+          value >= 0
+            ? '#2e7d32'
+            : '#d32f2f'
+      }}
+    >
+
+      {formatStaticCurrency(
+        Math.abs(value)
+      )}
+
+      <br />
+
+      <span
+        style={{
+          fontSize: 12
+        }}
+      >
+        {value >= 0
+          ? 'Headroom'
+          : 'Over Budget'}
+      </span>
+
+    </td>
+  )
+}
+
+
+function formatStaticCurrency(
+  value
+) {
+
+  const amount =
+    Number(value || 0)
+
+  if (
+    Math.abs(amount) >=
+    1000000
+  ) {
+
+    return `SEK ${(amount / 1000000).toFixed(2)}M`
+  }
+
+  if (
+    Math.abs(amount) >=
+    1000
+  ) {
+
+    return `SEK ${(amount / 1000).toFixed(1)}K`
+  }
+
+  return `SEK ${amount.toFixed(0)}`
+}
+
+
+/* =========================================================
+   STYLES
+========================================================= */
+
+const pageStyle = {
+  padding: 24,
+  fontFamily:
+    'Arial, sans-serif',
+  background:
+    '#f5f7fa',
+  minHeight:
+    '100vh'
+}
+
+const cardStyle = {
+  background: '#fff',
+  padding: 20,
+  borderRadius: 10,
+  marginBottom: 20,
+  boxShadow:
+    '0 1px 4px rgba(0,0,0,0.08)'
+}
+
+const filterGridStyle = {
+  display: 'grid',
+  gridTemplateColumns:
+    'repeat(4,1fr)',
+  gap: 15
+}
+
+const inputStyle = {
+  width: '100%',
+  padding: 8,
+  marginTop: 5
+}
+
+const kpiGridStyle = {
+  display: 'grid',
+  gridTemplateColumns:
+    'repeat(6,1fr)',
+  gap: 15,
+  marginBottom: 20
+}
+
+const kpiCardStyle = {
+  background: '#fff',
+  padding: 18,
+  borderRadius: 10,
+  minHeight: 110,
+  boxShadow:
+    '0 1px 4px rgba(0,0,0,0.08)'
+}
+
+const kpiTitleStyle = {
+  color: '#666',
+  fontSize: 13,
+  marginBottom: 10
+}
+
+const kpiValueStyle = {
+  fontSize: 22,
+  fontWeight: 'bold'
+}
+
+const kpiSubStyle = {
+  marginTop: 6,
+  fontSize: 12,
+  color: '#666'
+}
+
+const headRowStyle = {
+  background: '#f3f4f6'
+}
 
 const thStyle = {
   padding: 12,
@@ -3445,7 +3486,6 @@ const thStyle = {
   textAlign: 'left',
   fontSize: 13
 }
-
 
 const tdStyle = {
   padding: 12,

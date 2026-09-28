@@ -1117,7 +1117,7 @@ const exportProjectedVsActualCSV = () => {
     marginBottom: 5
   }}
 >
-  Projected Spend (SEK)
+  SOW/ICRRB Forecast (SEK)
 </h3>
 
 <div
@@ -1127,7 +1127,7 @@ const exportProjectedVsActualCSV = () => {
     marginBottom: 15
   }}
 >
-  Forecasted Consumption
+  Forecasted Consumption based on SOW/ICRRB issued
 </div>
     
           <p>

@@ -1401,7 +1401,7 @@ Budget Runway</h3>
   }}
 >
   <h2>
-    Projected vs Actual Spend
+    SoW / ICRRB Forecast vs Actual Spend
   </h2>
 
   <button
@@ -1430,7 +1430,7 @@ Budget Runway</h3>
     <th>Quarter</th>
     <th>Project</th>
     <th>Purpose</th>
-    <th>Projected Spend (SEK)</th>
+    <th>SoW / ICRRB Forecast (SEK)</th>
     <th>Actual Spend (SEK)</th>
     <th>Forecast Variance (SEK)</th>
   </tr>

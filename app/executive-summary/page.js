@@ -2970,39 +2970,60 @@ export default function ExecutiveSummary() {
 
 
       <div
-        style={{
-          ...cardStyle,
-          color: '#666',
-          fontSize: 13
-        }}
-      >
+  style={{
+    ...cardStyle,
+    color: '#666',
+    fontSize: 13,
+    lineHeight: 1.6
+  }}
+>
 
-        <strong>
-          Executive Summary methodology:
-        </strong>
+  <strong>
+    Executive Summary methodology:
+  </strong>
 
-        <span
-          style={{
-            marginLeft: 6
-          }}
-        >
-          Budget is sourced from
-          Project Budgets, Actual
-          Consumption from Expense
-          Tracking, and Projection from
-          Staff and Service Projection
-          Planning. Monthly EAC uses
-          actual Expense Tracking records
-          when available, including valid
-          zero-value records; missing
-          monthly actuals use monthly
-          Projection Planning values. All
-          financial values are normalized
-          to SEK using the configured
-          Forex Rates.
-        </span>
+  <div
+    style={{
+      marginTop: 8
+    }}
+  >
+    Budget is sourced from Project Budgets,
+    Actual Consumption from Expense
+    Tracking, and Projection from Staff
+    and Service Projection Planning.
+    Monthly EAC uses actual Expense
+    Tracking records when available,
+    including valid zero-value records;
+    missing monthly actuals use monthly
+    Projection Planning values. All
+    financial values are normalized to SEK
+    using the configured Forex Rates.
+  </div>
 
-      </div>
+  <div
+    style={{
+      marginTop: 10
+    }}
+  >
+    <strong>
+      Budget methodology:
+    </strong>{' '}
+    Effective Budget is calculated using
+    the original Allocated Budget for the
+    quarter plus the closing balance
+    carried forward from the previous
+    quarter. The closing balance is based
+    on Actual Spend, not Estimate at
+    Completion (EAC). Therefore, a forecast
+    overrun in one quarter does not reduce
+    the next quarter's Effective Budget
+    until the corresponding actual spend
+    is recorded. EAC is used to show the
+    current forecast position against the
+    Effective Budget.
+  </div>
+
+</div>
       <style jsx>{`
 
         @media (max-width: 1200px) {

@@ -2181,7 +2181,7 @@ export default function ExecutiveSummary() {
         />
 
         <KPI
-          title="Projected Consumption"
+          title="Projected Spend"
           value={formatCurrency(
             totalProjectionSEK
           )}

@@ -314,15 +314,15 @@ filteredExpenses.forEach((e) => {
     quarter: e.quarter,
     project: e.project,
     purpose: e.purpose,
-    projectedSpend: 0,
+    sowIcrrbForecast: 0,
     actualSpend: 0
   }
 }
 
-  purposeSummaryMap[key].actualSpend +=
+  purposeSummaryMap[key].sowIcrrbForecast +=
   convertToSEK(
-    Number(e.amount || 0),
-    e.currency
+    Number(b.total_budget || 0),
+    b.currency
   )
 })
 
@@ -331,7 +331,7 @@ const purposeSummary =
     .map((row) => ({
       ...row,
       variance:
-  row.projectedSpend - row.actualSpend
+  row.sowIcrrbForecast - row.actualSpend
     }))
     .sort((a, b) => {
 
@@ -704,7 +704,7 @@ const exportProjectedVsActualCSV = () => {
     'Quarter',
     'Project',
     'Purpose',
-    'Projected Spend (SEK)',
+    'SoW / ICRRB Forecast (SEK)',
     'Actual Spend (SEK)',
     'Forecast Variance (SEK)'
   ]
@@ -714,7 +714,7 @@ const exportProjectedVsActualCSV = () => {
     row.quarter,
     row.project,
     row.purpose,
-    row.projectedSpend.toFixed(2),
+    row.sowIcrrbForecast.toFixed(2),
     row.actualSpend.toFixed(2),
     row.variance.toFixed(2)
   ])
@@ -1133,10 +1133,10 @@ const exportProjectedVsActualCSV = () => {
           <p>
   kr {
     (
-      kpiView === 'quarter'
-        ? totalBudgetSEK
-        : yearlyBudgetSEK
-    ).toFixed(2)
+  kpiView === 'quarter'
+    ? totalSowIcrrbForecastSEK
+    : yearlySowIcrrbForecastSEK
+).toFixed(2)
   }
 </p>
         </div>
@@ -1451,7 +1451,7 @@ Budget Runway</h3>
         <td>{row.purpose}</td>
 
         <td>
-          kr {row.projectedSpend.toFixed(2)}
+          kr {row.sowIcrrbForecast.toFixed(2)}
         </td>
 
         <td>

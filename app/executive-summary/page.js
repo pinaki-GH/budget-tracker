@@ -2164,7 +2164,7 @@ export default function ExecutiveSummary() {
       >
 
         <KPI
-          title="Total Budget"
+          title="Effective Budget"
           value={formatCurrency(
             totalBudgetSEK
           )}

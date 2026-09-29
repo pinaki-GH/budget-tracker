@@ -2182,9 +2182,6 @@ export default function ExecutiveSummary() {
           value={formatCurrency(
             totalActualSEK
           )}
-          sub={`${formatPercent(
-            actualUtilizationPercent
-          )} utilized (of Effective Budget)`}
         />
 
         <KPI

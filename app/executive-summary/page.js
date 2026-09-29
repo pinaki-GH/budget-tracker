@@ -2171,6 +2171,13 @@ export default function ExecutiveSummary() {
         />
 
         <KPI
+          title="Projected Spend"
+          value={formatCurrency(
+            totalProjectionSEK
+          )}
+        />
+            
+        <KPI
           title="Actual Consumption"
           value={formatCurrency(
             totalActualSEK
@@ -2178,13 +2185,6 @@ export default function ExecutiveSummary() {
           sub={`${formatPercent(
             actualUtilizationPercent
           )} utilized`}
-        />
-
-        <KPI
-          title="Projected Spend"
-          value={formatCurrency(
-            totalProjectionSEK
-          )}
         />
 
         <KPI

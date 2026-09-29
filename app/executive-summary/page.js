@@ -2184,7 +2184,7 @@ export default function ExecutiveSummary() {
           )}
           sub={`${formatPercent(
             actualUtilizationPercent
-          )} utilized`}
+          )} utilized (of Effective Budget)`}
         />
 
         <KPI

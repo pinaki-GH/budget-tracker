@@ -2188,13 +2188,13 @@ export default function ExecutiveSummary() {
         />
 
         <KPI
-          title="Forecast / EAC"
+          title="Estimate at Completion"
           value={formatCurrency(
             forecastEACSEK
           )}
           sub={`${formatPercent(
             forecastUtilizationPercent
-          )} of budget`}
+          )} of Effective Budget`}
         />
 
         <KPI

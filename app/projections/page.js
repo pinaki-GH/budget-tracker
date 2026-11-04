@@ -492,6 +492,11 @@ export default function ProjectionsPage() {
   ] = useState(0)
 
   const [
+    deductPersonalLeave,
+    setDeductPersonalLeave
+  ] = useState(true)
+
+  const [
     fteFactor,
     setFteFactor
   ] = useState('1')
@@ -724,18 +729,18 @@ export default function ProjectionsPage() {
   }
 
   const availableDays =
-    Math.max(
-      0,
+  Math.max(
+    0,
+    Number(
+      workDays || 0
+    ) -
       Number(
-        workDays || 0
+        holidayDays || 0
       ) -
-        Number(
-          holidayDays || 0
-        ) -
-        Number(
-          leaveDays || 0
-        )
-    )
+      (deductPersonalLeave
+        ? Number(leaveDays || 0)
+        : 0)
+  )
 
   const projectedBudget =
     availableDays *
@@ -764,6 +769,7 @@ export default function ProjectionsPage() {
 
     setHolidayDays(0)
     setLeaveDays(0)
+    setDeductPersonalLeave(true)
     setFteFactor('1')
     setEditingId(null)
   }
@@ -798,6 +804,7 @@ export default function ProjectionsPage() {
       workDays,
       holidayDays,
       leaveDays,
+      deductPersonalLeave,
       availableDays,
 
       hoursPerDay,
@@ -867,6 +874,10 @@ export default function ProjectionsPage() {
       item.leaveDays || 0
     )
 
+    setDeductPersonalLeave(
+      item.deductPersonalLeave !== false
+    )
+    
     setFteFactor(
       item.fteFactor ?? '1'
     )
@@ -1032,11 +1043,13 @@ export default function ProjectionsPage() {
           )
 
         const availableDays =
-          monthly.reduce(
-            (sum, month) =>
-              sum +
-              month.availableDays,
-            0
+          Math.max(
+          0,
+            workDays -
+            holidayDays -
+            (item.deductPersonalLeave !== false
+            ? leaveDays
+            : 0)
           )
 
         const budget =
@@ -1060,12 +1073,30 @@ export default function ProjectionsPage() {
         }
       }
 
-      const available =
+      const savedWorkDays =
         Number(
-          item.availableDays ??
-          item.workDays ??
-          0
-        )
+        item.workDays || 0
+      )
+
+      const savedHolidayDays =
+        Number(
+        item.holidayDays || 0
+      )
+
+      const savedLeaveDays =
+        Number(
+        item.leaveDays || 0
+      )
+
+      const available =
+        Math.max(
+        0,
+          savedWorkDays -
+          savedHolidayDays -
+          (item.deductPersonalLeave !== false
+          ? savedLeaveDays
+          : 0)
+      )
 
       const budget =
         available *
@@ -1155,11 +1186,13 @@ export default function ProjectionsPage() {
       )
 
     const availableDays =
-      monthly.reduce(
-        (sum, month) =>
-          sum +
-          month.availableDays,
-        0
+      Math.max(
+      0,
+      workDays -
+      holidayDays -
+      (item.deductPersonalLeave !== false
+        ? leaveDays
+        : 0)
       )
 
     const budget =
@@ -1843,6 +1876,28 @@ export default function ProjectionsPage() {
           />
         </div>
 
+<div>
+  <label style={fieldLabel}>
+    Deduct Personal Leave Days
+  </label>
+
+  <input
+    type="checkbox"
+    checked={deductPersonalLeave}
+    onChange={(e) =>
+      setDeductPersonalLeave(
+        e.target.checked
+      )
+    }
+  />
+
+  <span style={{ marginLeft: 8 }}>
+    {deductPersonalLeave
+      ? 'Yes — deduct confirmed personal leave'
+      : 'No — deduct company holidays only'}
+  </span>
+</div>
+              
         <div>
           <label
             style={fieldLabel}
